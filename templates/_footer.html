@@ -1,0 +1,57 @@
+{% load static %}
+{% load i18n %}
+
+<section class="site-footer">
+  <hr />
+  <div class="row">
+    {# left col #}
+    <div class="col-sm-2">
+      <img src={% static "img/logo-medium.png" %} hspace="20">
+    </div>
+      
+    {# right col #}
+    <div class="col">
+      <div class="row">
+        <div class="col">
+        <h4>Farmation</h4>
+        <ul class="list-unstyled">
+          {% comment %}
+          <li>
+            <a href="#"  class="site-footer">Terms of service</a>
+          </li>
+          <li>Item2</li>
+          {% endcomment %}
+        </ul>
+        </div>
+        <div class="col">
+          {% comment %}
+          <h4>
+            <!a href="#" class="site-footer">Help</a>
+          </h4>
+          <ul class="list-unstyled">
+            <li><a href="#" class="site-footer">FAQ</a></li>
+            <li><a href="#" class="site-footer">About ..</a></li>
+          </ul>
+          {% endcomment %}
+        </div>
+        <div class="col">
+          {% comment %}          
+          <h4>
+            <!a href="#" class="site-footer">Feedback</a>
+          </h4>
+          <ul class="list-unstyled">
+            <li><a href="#" class="site-footer">Feature request</a></li>
+            <li><a href="#" class="site-footer">Report bug</a></li>
+          </ul>
+          {% endcomment %}
+        </div>
+      </div>
+      <div class="row">
+        <div class="col">
+          <small>The entirety of this site is protected by copyright &copy;
+          2019 Farmation, Inc.</small>
+        </div>
+      </div>
+    </div> {# end right col #}
+  </div> {# end row ##}
+</section>

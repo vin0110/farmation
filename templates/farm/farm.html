@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block head_title %}Farm{% endblock %}
+
+{% block body %}
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <h3>
+        Farm: {{ farm.name }}
+      </h3>
+    </div>
+  </div>
+</div>
+
+<div class="container-fluid">
+{% for field in farm.fields %}
+<div class="row">
+  <div class="col">
+    Field
+    {% if field.name %}
+    {{ field.name }}
+    {% else %}
+    #{{ forloop.counter }}
+    {% endif %}
+  </div>
+  <div class="col">
+    {{ field.acreage }} acres
+  </div>
+</div>
+
+{% empty %}
+{% endfor %}
+</div>
+{% endblock %}

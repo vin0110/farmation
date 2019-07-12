@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block head_title %}Home{% endblock %}
+
+{% block body %}
+<div class="row">
+  <div class="col">
+    <h1>Home page</h1>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col">
+    Farm: <em>Thousand Acre Farm</em>
+  </div>
+  <div class="col">
+    <a href="{% url "farm:farm" %}">details</a>
+  </div>
+  <div class="col">
+    <a href="{% url "optimize:home" %}">details</a>
+  </div>
+</div>
+
+{% endblock %}

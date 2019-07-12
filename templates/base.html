@@ -1,0 +1,56 @@
+{% load staticfiles %}
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}">
+    <head>
+      <meta charset="utf-8" />
+      <link rel="shortcut icon" type="image/png" href="{% static "img/favicon.ico" %}">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+      <link rel="stylesheet" href="{% static "css/site.css" %}">
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
+
+      <title>{% block head_title %}Farmation{% endblock %}</title>
+
+      {% block styles %}{% endblock %}
+
+      <!-- HTML5 shim, for IE6-8 support of HTML elements -->
+      <!--[if lt IE 9]>
+          <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.2/html5shiv.min.js"></script>
+          <![endif]-->
+
+      {% block extra_head %}{% endblock %}
+    </head>
+
+    <body class="main_body">
+      <div class="main_body">
+        {% block account_bar %}
+          {% include "_account_bar.html" %}
+          {% endblock %}
+
+        {% block body_base %}
+        <section id="content_body">
+          <div class="container" id="content_body" >
+            {% include "_messages.html" %}
+            {% block body %}{% endblock %}
+          </div>
+        </section>
+        {% endblock %}
+
+        {% block footer %}
+        <footer>
+          <div class="container">
+            {% include "_footer.html" %}
+          </div>
+        </footer>
+        {% endblock %}
+        </div> {# main_body #}
+
+       <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+       <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+       <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+       {% block scripts %}{% endblock %}
+    </body> {# main_body #}
+</html>
