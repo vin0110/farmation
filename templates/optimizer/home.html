@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block head_title %}Farm{% endblock %}
+
+{% block body %}
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <h3>
+        Scenarios for {{ farm.name }}
+      </h3>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-sm">
+      <strong>
+        Scenario
+      </strong>
+    </div>
+    <div class="col-sm">
+      <strong>
+        ROI
+      </strong>
+    </div>
+    <div class="col-sm">
+    </div>
+  </div>
+</div>
+
+<div class="container">
+{% for scenario in farm.scenarios.all %}
+<div class="row" {% cycle '' 'bg-light' %}">
+  <div class="col-sm">
+    <a href="{% url "optimizer:scenario_details" scenario.id %}">
+      {{ scenario }}
+    </a>
+  </div>
+  <div class="col">
+  </div>
+  <div class="col">
+  </div>
+  <div class="col">
+  </div>
+</div>
+
+{% empty %}
+<div class="row">
+  <div class="col">
+    No scenarios
+  </div>
+</div>
+{% endfor %}
+</div>
+
+<div class="container">
+  <hr/>
+  <div class="row">
+    <div class="col">
+      <a href="{% url "optimizer:scenario_add" %}">
+        <i class="fas fa-plus-circle"></i>
+        Add scenario
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

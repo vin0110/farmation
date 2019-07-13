@@ -19,6 +19,7 @@ from django.urls import path, include
 from django.views.generic import TemplateView
 
 from farm import urls as farm_urls
+from optimizer import urls as optimizer_urls
 
 urlpatterns = [
     path('igloo/', admin.site.urls),
@@ -26,4 +27,6 @@ urlpatterns = [
     path('tbd/', TemplateView.as_view(template_name="tbd.html"), name='tbd'),
     path('', TemplateView.as_view(template_name="home.html"), name='home'),
     path('farm/', include((farm_urls, 'farm'), namespace='farm')),
+    path('optimizer/',
+         include((optimizer_urls, 'farm'), namespace='optimizer')),
 ]

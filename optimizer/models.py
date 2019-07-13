@@ -8,7 +8,8 @@ class Scenario(models.Model):
     '''an estimation of profit and risk'''
     name = models.CharField(max_length=32, default='', blank=True)
 
-    farm = models.ForeignKey(Farm, on_delete=models.CASCADE)
+    farm = models.ForeignKey(Farm, on_delete=models.CASCADE,
+                             related_name='scenarios')
 
     the_nets = models.CharField(max_length=2048)
     the_histogram = models.CharField(max_length=2048)
@@ -29,9 +30,9 @@ class Scenario(models.Model):
 
     def __str__(self):
         if self.name:
-            return '{}:{}'.format(self.farm.name, self.name)
+            return self.name
         else:
-            return '{}:scenario_{}'.format(self.farm.name, self.id)
+            return '#{}'.format(self.id)
 
     class Meta:
         pass
@@ -40,7 +41,8 @@ class Scenario(models.Model):
 class Crop(models.Model):
     '''information about a crop for a scenario'''
     name = models.CharField(max_length=32)
-    scenario = models.ForeignKey(Scenario, on_delete=models.CASCADE)
+    scenario = models.ForeignKey(Scenario, on_delete=models.CASCADE,
+                                 related_name='crops')
 
     acres = models.PositiveSmallIntegerField()
 
@@ -71,7 +73,8 @@ class Crop(models.Model):
 
 class Price(models.Model):
     '''a distribution of prices'''
-    crop = models.ForeignKey(Crop, on_delete=models.CASCADE)
+    crop = models.ForeignKey(Crop, on_delete=models.CASCADE,
+                             related_name='prices')
 
     # store json list of prices
     the_prices = models.CharField(max_length=1024)
@@ -92,7 +95,8 @@ class Price(models.Model):
 
 class Yield(models.Model):
     '''a distribution of yields'''
-    crop = models.ForeignKey(Crop, on_delete=models.CASCADE)
+    crop = models.ForeignKey(Crop, on_delete=models.CASCADE,
+                             related_name='yields')
 
     # store json list of yields
     the_yields = models.CharField(max_length=1024)
@@ -113,7 +117,8 @@ class Yield(models.Model):
 
 class Cost(models.Model):
     '''a scalar of cost per acre'''
-    crop = models.ForeignKey(Crop, on_delete=models.CASCADE)
+    crop = models.ForeignKey(Crop, on_delete=models.CASCADE,
+                             related_name='cost')
 
     cost = models.FloatField()
 
