@@ -1,5 +1,13 @@
 from django.contrib import admin
 
-from .models import Scenario
+from .models import Scenario, Crop
 
-admin.site.register(Scenario)
+@admin.register(Scenario)
+class ScenarioAdmin(admin.ModelAdmin):
+    pass
+
+@admin.register(Crop)
+class CropAdmin(admin.ModelAdmin):
+    list_display = ('name', 'scenarioName', 'farmName', 'userName', )
+
+

@@ -124,3 +124,52 @@ STATIC_ROOT = '/static_root/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
 ]
+
+#
+CROPS = ['corn', 'soybeans', 'wheat', 'hay', ]
+STATS = {
+    'corn': {
+        'price': {
+            'mu': 10.0,
+            'sigma': 4.0,
+        },
+        'yield': {
+            'mu': 8.0,
+            'sigma': 3.2,
+        },
+        'cost': 8.0,
+    },
+    'soybeans': {
+        'price': {
+            'mu': 8.0,
+            'sigma': 0.5,
+        },
+        'yield': {
+            'mu': 7.0,
+            'sigma': 0.5,
+        },
+        'cost': 4.0,
+    },
+    'wheat': {
+        'price': {
+            'mu': 4.0,
+            'sigma': 1.5,
+        },
+        'yield': {
+            'mu': 4.0,
+            'sigma': 0.5,
+        },
+        'cost': 2.0,
+    },
+    'hay': {
+        'price': {
+            'mu': 1.0,
+            'sigma': 0.25,
+        },
+        'yield': {
+            'mu': 15.0,
+            'sigma': 2.5,
+        },
+        'cost': 2.0,
+    },
+}

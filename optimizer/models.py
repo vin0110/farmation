@@ -1,8 +1,12 @@
-import json
+import json, pickle
 
 from django.db import models
+from django.conf import settings
 
-from farm.models import Farm, Field
+from farm.models import Farm
+
+from .analyze import positiveDistro, cropDistro, analyzeScenario
+
 
 class Scenario(models.Model):
     '''an estimation of profit and risk'''
@@ -11,28 +15,48 @@ class Scenario(models.Model):
     farm = models.ForeignKey(Farm, on_delete=models.CASCADE,
                              related_name='scenarios')
 
-    the_nets = models.CharField(max_length=2048)
-    the_histogram = models.CharField(max_length=2048)
+    state_choices = (
+        ('M', 'Modified', ),
+        ('A', 'Analyzed', ), )
 
-    def setNets(self, nets):
-        self.the_nets = json.dumps(nets)
+    state = models.CharField(max_length=1,
+                             choices=state_choices,
+                             default='M')
+
+    mean = models.FloatField(default=0.0)
+    mean_partition = models.CharField(max_length=2048)
+    q1 = models.FloatField(default=0.0)
+    q1_partition = models.CharField(max_length=2048)
+    q3 = models.FloatField(default=0.0)
+    q3_partition = models.CharField(max_length=2048)
+
+    def getState(self):
+        index = [l for l, w in self.state_choices]
+        return self.state_choices[index.index(self.state)][1]
+
+    def analyzeScenario(self):
+        crops = []
+        for crop in self.crops.all():
+            quartiles = crop.getQuartiles()
+            crops.append(dict(mean=crop.mean,
+                              q1=quartiles[0],
+                              q3=quartiles[2]))
+
+        mean, q1, q3 = analyzeScenario(crops)
+        self.mean = mean[1]
+        self.mean_partition = json.dumps(mean[0])
+        self.q1 = q1[1]
+        self.q1_partition = json.dumps(q1[0])
+        self.q3 = q3[1]
+        self.q3_partition = json.dumps(q3[0])
+        self.state = "A"
         self.save()
-
-    def getNets(self):
-        return json.loads(self.the_nets)
-
-    def setHistogram(self, histogram):
-        self.the_histogram = json.dumps(histogram)
-        self.save()
-
-    def getHistogram(self):
-        return json.loads(self.the_histogram)
 
     def __str__(self):
         if self.name:
             return self.name
         else:
-            return '#{}'.format(self.id)
+            return '({})'.format(self.id)
 
     class Meta:
         pass
@@ -44,86 +68,74 @@ class Crop(models.Model):
     scenario = models.ForeignKey(Scenario, on_delete=models.CASCADE,
                                  related_name='crops')
 
-    acres = models.PositiveSmallIntegerField()
+    # zero is placeholder for area, but it means NO LIMIT for lo, hi limits
+    lo_acres = models.PositiveSmallIntegerField(default=0)
+    hi_acres = models.PositiveSmallIntegerField(default=0)
 
-    the_nets = models.CharField(max_length=2048)
-    mean = models.FloatField()
-    the_box = models.CharField(max_length=1024)
+    # instances -- set defaults
+    the_prices = models.CharField(max_length=4096)
+    the_yields = models.CharField(max_length=4096)
+    cost = models.FloatField(default=-1.0)
 
-    def setNets(self, nets):
-        self.the_nets = json.dumps(nets)
-        self.save()
+    # crop statistics -- will not be known when first created
+    # therefore, provide defaults
+    mean = models.FloatField(default=-1.0)
+    std = models.FloatField(default=-1.0)
+    quartiles = models.CharField(max_length=1024, default='')
+    histogram = models.CharField(max_length=2048, default='')
 
-    def getNets(self):
-        return json.loads(self.the_nets)
+    def getQuartiles(self):
+        return json.loads(self.quartiles)
 
-    def setBox(self, box):
-        self.the_box = json.dumps(box)
-        self.save()
+    def getHistogram(self):
+        return pickle.loads(self.histograma)
 
-    def getBox(self):
-        return json.loads(self.the_box)
-
-    def __str__(self):
-        return '{}:{}'.format(self.scenario, self.name)
-
-    class Meta:
-        pass
-
-
-class Price(models.Model):
-    '''a distribution of prices'''
-    crop = models.ForeignKey(Crop, on_delete=models.CASCADE,
-                             related_name='prices')
-
-    # store json list of prices
-    the_prices = models.CharField(max_length=1024)
-
-    def setPrices(self, prices):
+    def setPrices(self):
+        stats = settings.STATS[self.name]['price']
+        prices = positiveDistro(stats['mu'], stats['sigma'])
         self.the_prices = json.dumps(prices)
         self.save()
 
-    def getPrices(self):
+    def getPrices(self, regenerate=False):
+        if not self.the_prices or regenerate:
+            self.setPrices()
         return json.loads(self.the_prices)
 
-    def __str__(self):
-        return 'price_{}_{}'.format(self.crop, self.id)
-
-    class Meta:
-        pass
-
-
-class Yield(models.Model):
-    '''a distribution of yields'''
-    crop = models.ForeignKey(Crop, on_delete=models.CASCADE,
-                             related_name='yields')
-
-    # store json list of yields
-    the_yields = models.CharField(max_length=1024)
-
-    def setYields(self, yields):
+    def setYields(self):
+        stats = settings.STATS[self.name]['yield']
+        yields = positiveDistro(stats['mu'], stats['sigma'])
         self.the_yields = json.dumps(yields)
         self.save()
 
-    def getYields(self):
+    def getYields(self, regenerate=False):
+        if not self.the_yields or regenerate:
+            self.setYields()
         return json.loads(self.the_yields)
 
-    def __str__(self):
-        return 'yield_{}_{}'.format(self.crop, self.id)
+    def analyze(self):
+        self.mean, self.std, quartiles, histogram\
+            = cropDistro(self.getPrices(), self.getYields(), self.cost)
+        self.quartiles = json.dumps(quartiles)
+        self.histogram = pickle.dumps(histogram)
 
-    class Meta:
-        pass
+        self.cost = settings.STATS[self.name]['cost']
 
-
-class Cost(models.Model):
-    '''a scalar of cost per acre'''
-    crop = models.ForeignKey(Crop, on_delete=models.CASCADE,
-                             related_name='cost')
-
-    cost = models.FloatField()
+        self.save()
 
     def __str__(self):
-        return 'cost_{}_{}'.format(self.crop, self.id)
+        return self.name
+
+    def farmName(self):
+        '''for admin'''
+        return self.scenario.farm
+
+    def scenarioName(self):
+        '''for admin'''
+        return self.scenario
+
+    def userName(self):
+        '''for admin'''
+        return self.scenario.farm.user
 
     class Meta:
-        pass
+        ordering = ('id', )

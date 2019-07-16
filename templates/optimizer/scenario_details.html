@@ -9,50 +9,114 @@
       <h3>
       Scenario details
       </h3>
-      <p> Scenario: {{ scenario }}
       <p> Farm: {{ scenario.farm.name }}</p>
+      <p> Scenario: {{ scenario }}
       <a href="{% url "optimizer:scenario_edit" scenario.id %}">
         <i class="fas fa-edit"></i>
         Edit name
       </a>
+      <p>State: {{ scenario.getState }}</p>
       <hr/>
+    </div>
+  </div>
+</div>
+
+{% if scenario.state == "M" %}
+<div class="container">
+    <div class="row">
+      <div class="col">
+        <a class="btn btn-primary" href="{% url "optimizer:analyze" scenario.id %}" role="button">
+          Update
+        </a>
+        
+    </div>
+  </div>
+</div>
+{% else %}
+<div class="container">
+  <div class="row">
+    <div class="col-sm">
+      Maximum expected
+    </div>
+    <div class="col-sm">
+      {{ scenario.mean }}
+    </div>
+    <div class="col-sm">
+      partition
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm">
+      Pessimistic 
+    </div>
+    <div class="col-sm">
+      {{ scenario.q1 }}
+    </div>
+    <div class="col-sm">
+      partition
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm">
+      Optimistic
+    </div>
+    <div class="col-sm">
+      {{ scenario.q3 }}
+    </div>
+    <div class="col-sm">
+      partition
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<div class="container">
+    <div class="row">
+    <div class="col">
+      <h3>Crop details</h3>
     </div>
   </div>
 </div>
 
 <div class="container">
   <div class="row">
-    <div class="col-sm">
+    <div class="col-sm-1">
       <strong>
         Crop
       </strong>
     </div>
-    <div class="col-sm">
+    <div class="col-med">
       <strong>
-        Acres
+        Acre range
       </strong>
     </div>
-    <div class="col-sm">
+    <div class="col">
       <strong>
-        ROI
+        Probablity
       </strong>
     </div>
   </div>
 </div>
 
 <div class="container">
-{% for crop in scenarios.crops.all %}
+{% for crop in scenario.crops.all %}
 <div class="row" {% cycle '' 'bg-light' %}">
-  <div class="col-sm">
+  <div class="col-sm-1">
     <a href="{% url "optimizer:crop_details" crop.id %}">
-      {{ crop }}
+      {{ crop.name }}
     </a>
   </div>
-  <div class="col">
+  <div class="col-med">
+    {{ crop.lo_acres }}
+    to
+    {% if crop.hi_acres > 0 %}
+    {{ crop.hi_acres }}
+    {% else %}
+    infinity
+    {% endif %}
   </div>
   <div class="col">
-  </div>
-  <div class="col">
+    histogram
   </div>
 </div>
 
@@ -65,15 +129,4 @@
 {% endfor %}
 </div>
 
-<div class="container">
-  <hr/>
-  <div class="row">
-    <div class="col">
-      <a href="{% url "optimizer:crop_add" scenario.id %}">
-        <i class="fas fa-plus-circle"></i>
-        Add crop
-      </a>
-    </div>
-  </div>
-</div>
 {% endblock %}

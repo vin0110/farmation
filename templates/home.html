@@ -11,13 +11,13 @@
 
 <div class="row">
   <div class="col">
-    Farm: <em>Thousand Acre Farm</em>
+    Farm: <em>{{ farm.name }}</em>
   </div>
   <div class="col">
-    <a href="{% url "farm:farm" %}">details</a>
+    <a href="{% url "farm:farm" farm.id %}">details</a>
   </div>
   <div class="col">
-    <a href="{% url "optimizer:home" %}">analyze</a>
+    <a href="{% url "optimizer:list" farm.id %}">analyze</a>
   </div>
 </div>
 

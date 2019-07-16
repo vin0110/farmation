@@ -6,5 +6,5 @@ from django.views.generic import TemplateView
 from .views import farm
 
 urlpatterns = [
-    path('', farm, name='farm'),
+    path('<int:pk>/', farm, name='farm'),
 ]

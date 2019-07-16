@@ -13,19 +13,80 @@
   </div>
 </div>
 
+<div class="container">
+    <div class="row">
+    <div class="col">
+      <h5>Crop preferences</h5>
+    </div>
+  </div>
+</div>
+
+{% for crop in farm.getCrops %}
+<div class="container">
+    <div class="row">
+    <div class="col-sm-1"></div>
+    <div class="col">
+      <a href="{% url "tbd" %}">
+        <i class="fas fa-minus-circle"></i>
+      </a>
+      {{ crop }}
+    </div>
+  </div>
+</div>
+{% empty %}
+<p>No crops. This could be a problem</p>
+{% endfor %}
+
+<div class="container">
+  <div class="row">
+    <div class="col-sm-1"></div>
+    <div class="col">
+      <a href="{% url "tbd" %}">
+        <i class="fas fa-plus-circle"></i>
+        Add a crop
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <hr/>
+  </div>
+</div>
+
 <div class="container-fluid">
-{% for field in farm.fields %}
 <div class="row">
-  <div class="col">
-    Field
-    {% if field.name %}
-    {{ field.name }}
-    {% else %}
-    #{{ forloop.counter }}
-    {% endif %}
+  <div class="col-sm-1">
   </div>
   <div class="col">
-    {{ field.acreage }} acres
+    <strong>Field</strong>
+  </div>
+  <div class="col">
+    <strong>Acres</strong>
+  </div>
+</div>
+
+<div class="container-fluid">
+{% for field in farm.fields %}
+<div class="row {% cycle 'bg-light' '' %}">
+  <div class="col-sm-1">
+    {{ forloop.counter }}
+  </div>
+  <div class="col">
+    {{ field }}
+    &nbsp;
+    <a href="{% url "tbd" %}">
+      <i class="fas fa-edit"></i>
+    </a>
+  </div>
+  <div class="col">
+    {{ field.acreage }}
+  </div>
+  <div class="col-sm-1">
+    <a href="{% url "tbd" %}">
+      <i class="fas fa-minus-circle"></i>
+    </a>
   </div>
 </div>
 
@@ -37,4 +98,17 @@
 </div>
 {% endfor %}
 </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-sm-1"></div>
+    <div class="col">
+      <a href="{% url "tbd" %}">
+        <i class="fas fa-plus-circle"></i>
+        Add a field
+      </a>
+    </div>
+  </div>
+</div>
+
 {% endblock %}

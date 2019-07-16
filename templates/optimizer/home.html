@@ -22,6 +22,11 @@
     </div>
     <div class="col-sm">
       <strong>
+        State
+      </strong>
+    </div>
+    <div class="col-sm">
+      <strong>
         ROI
       </strong>
     </div>
@@ -39,6 +44,10 @@
     </a>
   </div>
   <div class="col">
+    {{ scenario.getState }}
+  </div>
+  <div class="col">
+    {{ scenario.getROI }}
   </div>
   <div class="col">
   </div>
@@ -59,7 +68,7 @@
   <hr/>
   <div class="row">
     <div class="col">
-      <a href="{% url "optimizer:scenario_add" %}">
+      <a href="{% url "optimizer:scenario_add" farm.id %}">
         <i class="fas fa-plus-circle"></i>
         Add scenario
       </a>
