@@ -69,6 +69,19 @@ def analyzeScenario(crops):
         q1 = 0.0
         q3 = 0.0
 
+        valid = True
+        for i in range(len(p)):
+            pacres = p[i] * 100		# partition is by fields @@@
+            print('p', pacres, crops[i]['lo'], crops[i]['hi'])
+            if pacres < crops[i]['lo'] or \
+               (crops[i]['hi'] > 0 and pacres > crops[i]['hi']):
+                # not a valid partition
+                valid = False
+                break
+
+        if not valid:
+            continue
+
         for i in range(nCrops):
             factor = acreage * p[i]
             mean += crops[i]['mean'] * factor

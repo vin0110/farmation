@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block head_title %}Crop|Details{% endblock %}
+
+{% block body %}
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <h3>
+      Crop details {{ crop.name }}
+      </h3>
+      <p> Farm: {{ crop.scenario.farm.name }}</p>
+      <p>
+        <a href="{% url "optimizer:scenario_details" crop.scenario.id %}">
+          Scenario:
+        </a>
+      {{ crop.scenario }}</p>
+      <hr/>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <h4>Histogram</h4>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <hr/>
+      <h4>Acreage</h4>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
+      Lower limit: {{ crop.lo_acres }}
+    </div>
+    <div class="col">
+      Upper limit:
+      {{ crop.hi_acres|default:"infintiy" }}
+    </div>
+    <div class="col-sm-1">
+      <a data-toggle="modal" href="#acressetlo">
+        <i class="fas fa-edit fa-lg"></i>
+      </a>
+      <!-- Modal -->
+      <div class="modal fade" id="acressetlo" tabindex="-1" role="dialog" aria-labelledby="videoTitleLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <form class="well" method="post">
+              <div class="modal-header">
+                <h5 class="modal-title" id="editplan">Set limits</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                {% csrf_token %}
+                {{ form.as_p }}
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary">Save changes</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <hr/>
+      <h4>Price</h4>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
+      
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <hr/>
+      <h4>Yield</h4>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <hr/>
+      <h4>Cost</h4>
+    </div>
+  </div>
+</div>
+
+
+{% endblock %}

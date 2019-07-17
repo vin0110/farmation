@@ -40,7 +40,9 @@ class Scenario(models.Model):
             quartiles = crop.getQuartiles()
             crops.append(dict(mean=crop.mean,
                               q1=quartiles[0],
-                              q3=quartiles[2]))
+                              q3=quartiles[2],
+                              lo=crop.lo_acres,
+                              hi=crop.hi_acres))
 
         mean, q1, q3 = analyzeScenario(crops)
         self.mean = mean[1]

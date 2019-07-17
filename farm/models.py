@@ -27,6 +27,12 @@ class Farm(models.Model):
     def __str__(self):
         return self.name
 
+    def acreage(self):
+        acreage = 0
+        for field in self.fields.all():
+            acreage += field.acreage
+        return acreage
+
     @classmethod
     def create1KFarm(cls, user):
         '''create a 1000-acre farm'''
@@ -47,7 +53,8 @@ class Farm(models.Model):
 
 class Field(models.Model):
     '''specifics of a field in a farm'''
-    farm = models.ForeignKey(Farm, on_delete=models.CASCADE)
+    farm = models.ForeignKey(Farm, on_delete=models.CASCADE,
+                             related_name='fields')
     name = models.CharField(max_length=64, blank=True, default='')
 
     acreage = models.PositiveSmallIntegerField()
