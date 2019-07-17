@@ -18,18 +18,17 @@ def home(request):
     else:
         farm = farms[0]
 
-    context = dict( 
+    context = dict(
         farm=farm,
     )
     return HttpResponse(render(request, template_name, context))
-    
+
 
 def farm(request, pk):
     '''display the specifics of the farm'''
-    
+
     template_name = 'farm/farm.html'
 
     farm = get_object_or_404(Farm, pk=pk, user=request.user)
-    context = dict(farm=farm,
-                   fields=farm.fields(), )
+    context = dict(farm=farm, )
     return HttpResponse(render(request, template_name, context))

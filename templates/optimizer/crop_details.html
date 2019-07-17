@@ -10,12 +10,18 @@
       <h3>
       Crop details {{ crop.name }}
       </h3>
-      <p> Farm: {{ crop.scenario.farm.name }}</p>
+      <p>
+        <a href="{% url "farm:farm" crop.scenario.farm.id %}">
+          Farm:
+        </a>
+        {{ crop.scenario.farm.name }}
+      </p>
       <p>
         <a href="{% url "optimizer:scenario_details" crop.scenario.id %}">
           Scenario:
         </a>
-      {{ crop.scenario }}</p>
+        {{ crop.scenario }}
+      </p>
       <hr/>
     </div>
   </div>

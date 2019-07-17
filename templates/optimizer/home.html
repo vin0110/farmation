@@ -7,8 +7,13 @@
   <div class="row">
     <div class="col">
       <h3>
-        Scenarios for {{ farm.name }}
+        <a href="{% url "home" %}">
+          <i class="fas fa-caret-up"></i>
+        </a>
+        Scenarios
       </h3>
+      For farm:
+      <a href="{% url "farm:farm" farm.id %}">{{ farm.name }}</a>
     </div>
   </div>
 </div>

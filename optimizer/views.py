@@ -58,7 +58,7 @@ def scenarioEdit(request, pk):
             name = form.cleaned_data['name']
             scenario.name = name
             scenario.save()
-            return HttpResponseRedirect(reverse('optimizer:home'))
+            return HttpResponseRedirect(reverse('optimizer:list'))
     else:
         # GET
         form = theform(instance=scenario)

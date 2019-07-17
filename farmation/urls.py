@@ -29,5 +29,5 @@ urlpatterns = [
     path('', home, name='home'),
     path('farm/', include((farm_urls, 'farm'), namespace='farm')),
     path('optimizer/',
-         include((optimizer_urls, 'farm'), namespace='optimizer')),
+         include((optimizer_urls, 'optimizer'), namespace='optimizer')),
 ]

@@ -8,9 +8,14 @@
   <div class="row">
     <div class="col">
       <h3>
-      Scenario details
+        Scenario details
       </h3>
-      <p> Farm: {{ scenario.farm.name }}</p>
+      <p>
+        <a href="{% url "farm:farm" scenario.farm.id %}">
+          Farm:
+        </a>
+        {{ scenario.farm.name }}
+      </p>
       <p> Scenario: {{ scenario }}
       <a href="{% url "optimizer:scenario_edit" scenario.id %}">
         <i class="fas fa-edit"></i>
