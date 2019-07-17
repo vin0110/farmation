@@ -48,7 +48,7 @@
     </div>
     <div class="col">
       Upper limit:
-      {{ crop.hi_acres|default:"infintiy" }}
+      {{ crop.hi_acres|default:"No limit" }}
     </div>
     <div class="col-sm-1">
       <a data-toggle="modal" href="#acressetlo">
@@ -89,8 +89,21 @@
     </div>
   </div>
   <div class="row">
+    <div class="col-sm">
+      <h5>Distribution</h5>
+    </div>
     <div class="col">
-      
+      &ldquo;histogram&rdquo;
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm">
+      <h5>Overrides</h5>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
+      &ldquo;list of futures&rdquo;
     </div>
   </div>
 </div>
@@ -102,6 +115,22 @@
       <h4>Yield</h4>
     </div>
   </div>
+  <div class="row">
+    <div class="col-sm">
+      <h5>Distribution</h5>
+    </div>
+    <div class="col">
+      &ldquo;histogram&rdquo;
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm">
+      <h5>Override</h5>
+    </div>
+    <div class="col">
+      &ldquo;slider: I can do worse ... I can do better&rdquo;
+    </div>
+  </div>
 </div>
 
 <div class="container">
@@ -109,6 +138,31 @@
     <div class="col">
       <hr/>
       <h4>Cost</h4>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-2">
+      <h6>$XX.YY / acre</h6>
+    </div>
+    <div class="col-sm-2">
+      Average cost
+    </div>
+    <div class="col-sm-1">
+      $ZZ.WW
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-2">
+      <h5>Override</h5>
+    </div>
+    <div class="col-sm-2">
+      my adjust
+    </div>
+    <div class="col-sm-1">
+      $KK.LL
+    </div>
+    <div class="col">
+      &ldquo;slider: My cost is less ... My cost is greater&rdquo;
     </div>
   </div>
 </div>
