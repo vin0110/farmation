@@ -141,8 +141,6 @@ def analyze(request, pk):
     '''analyze scenario'''
     scenario = get_object_or_404(Scenario, pk=pk, farm__user=request.user)
 
-    for crop in scenario.crops.all():
-        crop.analyze()
     scenario.analyzeScenario()
     messages.info(request,
                   'Analyzed scenario "{}"'.format(scenario))

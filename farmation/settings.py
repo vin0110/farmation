@@ -12,6 +12,9 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 
+from django.urls import reverse_lazy
+from django.contrib.messages import constants as messages
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -126,51 +129,30 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
 ]
 
+
+# auth settings
+LOGIN_URL = reverse_lazy('login')
+
+LOGIN_REDIRECT_URL = '/'
+# LOGOUT_REDIRECT_URL = '/'
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/2.2/howto/static-files/
+
+STATIC_URL = '/static/'
+STATIC_ROOT = 'static'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "static_source"),
+]
+
+# message tags: coloring in bootstrap
+MESSAGE_TAGS = {
+    messages.DEBUG: 'alert-info',
+    messages.INFO: 'alert-info',
+    messages.SUCCESS: 'alert-success',
+    messages.WARNING: 'alert-warning',
+    messages.ERROR: 'alert-danger',
+}
+
 #
 CROPS = ['corn', 'soybeans', 'wheat', 'hay', ]
-STATS = {
-    'corn': {
-        'price': {
-            'mu': 10.0,
-            'sigma': 4.0,
-        },
-        'yield': {
-            'mu': 8.0,
-            'sigma': 3.2,
-        },
-        'cost': 8.0,
-    },
-    'soybeans': {
-        'price': {
-            'mu': 8.0,
-            'sigma': 0.5,
-        },
-        'yield': {
-            'mu': 7.0,
-            'sigma': 0.5,
-        },
-        'cost': 4.0,
-    },
-    'wheat': {
-        'price': {
-            'mu': 4.0,
-            'sigma': 1.5,
-        },
-        'yield': {
-            'mu': 4.0,
-            'sigma': 0.5,
-        },
-        'cost': 2.0,
-    },
-    'hay': {
-        'price': {
-            'mu': 1.0,
-            'sigma': 0.25,
-        },
-        'yield': {
-            'mu': 15.0,
-            'sigma': 2.5,
-        },
-        'cost': 2.0,
-    },
-}

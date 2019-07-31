@@ -78,15 +78,15 @@
   </div>
   <div class="col">
     {{ field }}
-    &nbsp;
-    <a href="{% url "tbd" %}">
-      <i class="fas fa-edit"></i>
-    </a>
   </div>
   <div class="col">
     {{ field.acreage }}
   </div>
   <div class="col-sm-1">
+    <a href="{% url "tbd" %}">
+      <i class="fas fa-edit"></i>
+    </a>
+    &nbsp;
     <a href="{% url "tbd" %}">
       <i class="fas fa-minus-circle"></i>
     </a>
