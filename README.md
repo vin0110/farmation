@@ -3,12 +3,16 @@ A website for risk and profit analysis of farms
 
 ## Start up
 
-### Web infrastructure
-
-Install django and related components.
+First update the instance.
+Use python3 and pipenv.
 
 ```
-cd <farmation>
-django-admin startproject farmation .
+sudo apt update && sudo apt upgrade
+sudo apt install python3-pip
+```
+
+Get the code
+```
+git@github.ncsu.edu:vwfreeh/farmation.git
 ```
 
