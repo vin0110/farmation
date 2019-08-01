@@ -2,9 +2,12 @@ from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
 from django.http import Http404
 from django.shortcuts import get_object_or_404
+from django.contrib.auth.decorators import login_required
 
 from farm.models import Farm
 
+
+@login_required
 def home(request):
     '''the overall home view'''
     template_name = "home.html"
@@ -24,6 +27,7 @@ def home(request):
     return HttpResponse(render(request, template_name, context))
 
 
+@login_required
 def farm(request, pk):
     '''display the specifics of the farm'''
 
