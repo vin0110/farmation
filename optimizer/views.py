@@ -131,7 +131,7 @@ def removeCropFromScenario(request, pk):
 
     crop.delete()
     return HttpResponseRedirect(
-        reverse('optimizer:scenario:details', args=(scenario.id, )))
+        reverse('optimizer:scenario_details', args=(scenario.id, )))
 
 
 @login_required
@@ -160,12 +160,23 @@ def addCropToScenario(request, pk):
         theform = form()
 
     possible_crops = []
-    for crop in settings.CROPS:
+    farm_crops = scenario.farm.getCrops()
+    for crop in farm_crops:
         try:
             scenario.crops.get(name=crop)
             # crop is in the list; it is not possible
         except Crop.DoesNotExist:
             possible_crops.append((crop, crop))
+    if len(possible_crops) == 0:
+        if len(farm_crops) < len(settings.CROPS):
+            msg = "All crops allowed in this farm have been added. "\
+                  "Must reconfigure farm to add more crops."
+        else:
+            msg = 'All crops have been added to this scenario.'
+        messages.info(request, msg)
+        return HttpResponseRedirect(
+            reverse('optimizer:scenario_details', args=(scenario.id, )))
+
     theform.fields['crop'].choices = possible_crops
 
     context = dict(scenario=scenario, form=theform)
