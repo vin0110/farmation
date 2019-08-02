@@ -4,6 +4,8 @@ from django.urls import reverse
 from django.shortcuts import get_object_or_404
 from django.contrib import messages
 from django.http import Http404
+from django.contrib.auth.decorators import login_required
+from django.conf import settings
 
 from .models import (Scenario,
                      Crop,
@@ -11,11 +13,12 @@ from .models import (Scenario,
 from farm.models import Farm
 
 from .forms import (ScenarioEditForm,
-                    CropAddForm,
                     CropAcresSetForm,
+                    AddCropForm,
                     )
 
 
+@login_required
 def scenarioList(request, pk):
     '''dashboard for optimizer'''
     template_name = "optimizer/home.html"
@@ -29,6 +32,7 @@ def scenarioList(request, pk):
     return HttpResponse(render(request, template_name, context))
 
 
+@login_required
 def scenarioAdd(request, pk):
     '''create a new scenario'''
     farm = get_object_or_404(Farm, pk=pk, user=request.user)
@@ -45,6 +49,7 @@ def scenarioAdd(request, pk):
         reverse('optimizer:scenario_details', args=(scenario.id, )))
 
 
+@login_required
 def scenarioEdit(request, pk):
     '''edit a scenario'''
     template_name = 'optimizer/scenario_edit.html'
@@ -67,6 +72,7 @@ def scenarioEdit(request, pk):
     return HttpResponse(render(request, template_name, context))
 
 
+@login_required
 def scenarioDetails(request, pk):
     '''edit a scenario'''
     template_name = 'optimizer/scenario_details.html'
@@ -77,29 +83,7 @@ def scenarioDetails(request, pk):
     return HttpResponse(render(request, template_name, context))
 
 
-def cropAdd(request, pk):
-    '''add a crop to a scenario'''
-    template_name = 'optimizer/crop_add.html'
-    theform = CropAddForm
-
-    scenario = get_object_or_404(Scenario, pk=pk, farm__user=request.user)
-
-    if request.method == "POST":
-        form = theform(request.POST)
-        if form.is_valid():
-            name = form.cleaned_data['name']
-            Crop.objects.create(name=name)
-
-            return HttpResponseRedirect(
-                reverse('optimizer:scenario_details', args=(scenario.id)))
-    else:
-        # GET
-        form = theform()
-
-    context = dict(scenario=scenario, form=form)
-    return HttpResponse(render(request, template_name, context))
-
-
+@login_required
 def cropDetails(request, pk):
     '''edit a crop'''
     template_name = 'optimizer/crop_details.html'
@@ -137,6 +121,58 @@ def cropDetails(request, pk):
     return HttpResponse(render(request, template_name, context))
 
 
+@login_required
+def removeCropFromScenario(request, pk):
+    '''remove crop from a scenario'''
+    crop = get_object_or_404(Crop, pk=pk)
+    scenario = crop.scenario
+    if scenario.farm.user != request.user:
+        raise Http404
+
+    crop.delete()
+    return HttpResponseRedirect(
+        reverse('optimizer:scenario:details', args=(scenario.id, )))
+
+
+@login_required
+def addCropToScenario(request, pk):
+    '''select crop from form and add to scenario
+    determine possible crops'''
+    template_name = 'optimizer/add_crop_to_scenario.html'
+    form = AddCropForm
+
+    scenario = get_object_or_404(Scenario, pk=pk)
+    if scenario.farm.user != request.user:
+        raise Http404
+
+    if request.method == "POST":
+        print('post', request.POST)
+        theform = form(request.POST)
+        if theform.is_valid():
+            name = theform.cleaned_data['crop']
+            crop = Crop.objects.create(name=name, scenario=scenario)
+            scenario.crops.add(crop)
+            print('n', name, crop)
+            return HttpResponseRedirect(
+                reverse('optimizer:scenario_details', args=(scenario.id, )))
+    else:
+        # GET or invalid form
+        theform = form()
+
+    possible_crops = []
+    for crop in settings.CROPS:
+        try:
+            scenario.crops.get(name=crop)
+            # crop is in the list; it is not possible
+        except Crop.DoesNotExist:
+            possible_crops.append((crop, crop))
+    theform.fields['crop'].choices = possible_crops
+
+    context = dict(scenario=scenario, form=theform)
+    return render(request, template_name, context)
+
+
+@login_required
 def analyze(request, pk):
     '''analyze scenario'''
     scenario = get_object_or_404(Scenario, pk=pk, farm__user=request.user)

@@ -1,14 +1,7 @@
-import os
-import json
 import numpy as np
 
 from django.conf import settings
-base_dir = settings.BASE_DIR
-Prices = json.load(open(
-    os.path.join(base_dir, 'fixtures', 'fake-prices.json')))
-Yields = json.load(open(
-    os.path.join(base_dir, 'fixtures', 'fake-yields.json')))
-Costs = json.load(open(os.path.join(base_dir, 'fixtures', 'fake-costs.json')))
+Prices, Yields, Costs = settings.PRICES, settings.YIELDS, settings.COSTS
 
 
 def mkPartitions(size, width):
@@ -101,19 +94,14 @@ def analyzeScenario(crops):
         q1, q2, q3 = np.percentile(nets, [25, 50, 75])
 
         if mean > max_mean[1]:
-            print('new mean', max_mean[1], mean)
             max_mean = (partition, mean)
         if std < min_std[1]:
-            print('new std', min_std[1], std)
             min_std = (partition, std)
         if q1 < min_q1[1]:
-            print('new q1', min_q1[1], q1)
             min_q1 = (partition, q1)
         if q2 > max_q2[1]:
-            print('new q2', max_q2[1], q2)
             max_q2 = (partition, q2)
         if q3 > max_q3[1]:
-            print('new q3', max_q3[1], q3)
             max_q3 = (partition, q3)
 
     return (max_mean, min_std, min_q1, max_q2, max_q3)
