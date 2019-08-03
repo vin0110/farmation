@@ -69,6 +69,11 @@ Finishing touches for django.
 ./manage.py createsuperuser
 ```
 
+Load crop data.
+```
+./manage loaddata fixtures/fake-cropdata.json
+```
+
 Run the server.
 ```
 $ ./manage.py runserver &

@@ -5,12 +5,11 @@ from django.shortcuts import get_object_or_404
 from django.contrib import messages
 from django.http import Http404
 from django.contrib.auth.decorators import login_required
-from django.conf import settings
 
 from .models import (Scenario,
                      Crop,
                      )
-from farm.models import Farm
+from farm.models import Farm, CropData
 
 from .forms import (ScenarioEditForm,
                     CropAcresSetForm,
@@ -63,7 +62,8 @@ def scenarioEdit(request, pk):
             name = form.cleaned_data['name']
             scenario.name = name
             scenario.save()
-            return HttpResponseRedirect(reverse('optimizer:list'))
+            return HttpResponseRedirect(
+                reverse('optimizer:scenario_details', args=(scenario.id, )))
     else:
         # GET
         form = theform(instance=scenario)
@@ -168,7 +168,7 @@ def addCropToScenario(request, pk):
         except Crop.DoesNotExist:
             possible_crops.append((crop, crop))
     if len(possible_crops) == 0:
-        if len(farm_crops) < len(settings.CROPS):
+        if len(farm_crops) < CropData.objects.count():
             msg = "All crops allowed in this farm have been added. "\
                   "Must reconfigure farm to add more crops."
         else:
