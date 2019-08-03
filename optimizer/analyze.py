@@ -1,7 +1,8 @@
+import json
 import numpy as np
 
-from django.conf import settings
-Prices, Yields, Costs = settings.PRICES, settings.YIELDS, settings.COSTS
+# from farm.models import CropData	# @@@ this does not work but
+import farm.models			# @@@ this does work
 
 
 def mkPartitions(size, width):
@@ -59,7 +60,9 @@ def cropDistro(prices, yields, cost):
 
 
 def analyzeScenario(crops):
-    nFields, acreage = 10, 100  # @@@ simple 1000 acre farm
+    nFields = 10  # @@@ simple 1000 acre farm
+    # acreage = 100
+
     nCrops = len(crops)
 
     partitions = mkPartitions(nFields, nCrops)
@@ -113,8 +116,22 @@ def computeNets(crop_names, partition, field_size=100):
 
     assert len(crop_names) == len(partition)
 
-    for y in range(len(Yields)):
-        for p in range(len(Prices)):
+    # price, yields, and cost arrays
+    Prices = {}
+    Yields = {}
+    Costs = {}
+    plen = 100
+    ylen = 100
+    for crop in crop_names:
+        cropdata = farm.models.CropData.objects.get(name=crop)
+        Prices[crop] = json.loads(cropdata.prices)
+        Yields[crop] = json.loads(cropdata.yields)
+        Costs[crop] = cropdata.cost
+        plen = min(len(Prices[crop]), plen)
+        ylen = min(len(Yields[crop]), ylen)
+
+    for y in range(ylen):
+        for p in range(plen):
             net = 0.0
             for part in range(len(partition)):
                 if partition[part] == 0:
@@ -128,3 +145,27 @@ def computeNets(crop_names, partition, field_size=100):
             nets.append(net)
 
     return nets
+
+
+def describeData(data):
+    '''data is a list of floats'''
+    stats = {}
+    stats['average'] = np.average(data)
+    steps = np.percentile(data, [10, 25, 50, 75, 90])
+    stats['10'] = steps[0]
+    stats['q1'] = steps[1]
+    stats['median'] = steps[2]
+    stats['q3'] = steps[3]
+    stats['90'] = steps[4]
+    stats['std'] = np.std(data)
+
+    return stats
+
+
+def mkHistogram(data, bins=6):
+    '''create a histogram'''
+    counts, edges = np.histogram(data, bins=bins)
+    # numpy.ndarray and numpy.int64 are not json serializable
+    # convert ndarray to native list and int64 to native int
+    a_counts = [i for i in map(int, list(counts))]
+    return {'counts': a_counts, 'edges': list(edges), }

@@ -10,9 +10,6 @@ class ScenarioEditForm(forms.ModelForm):
         fields = ['name', ]
 
 
-CROP_CHOICES = [(n, n, ) for n in settings.CROPS]
-
-
 class CropAcresSetForm(forms.Form):
     low = forms.IntegerField(min_value=0)
     high = forms.IntegerField(min_value=0,
@@ -21,4 +18,4 @@ class CropAcresSetForm(forms.Form):
 
 class AddCropForm(forms.Form):
     '''select a crop. the list is dynamic; set none here; view will expand'''
-    crop = forms.ChoiceField(choices=CROP_CHOICES)
+    crop = forms.ChoiceField(choices=[])
