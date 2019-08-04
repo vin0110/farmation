@@ -13,7 +13,7 @@ from farm.models import Farm, CropData
 
 from .forms import (ScenarioEditForm,
                     CropAcresSetForm,
-                    AddCropForm,
+                    AddMultipleCropForm,
                     )
 
 
@@ -128,23 +128,11 @@ def addCropToScenario(request, pk):
     '''select crop from form and add to scenario
     determine possible crops'''
     template_name = 'optimizer/add_crop_to_scenario.html'
-    form = AddCropForm
+    form = AddMultipleCropForm
 
     scenario = get_object_or_404(Scenario, pk=pk)
     if scenario.farm.user != request.user:
         raise Http404
-
-    if request.method == "POST":
-        theform = form(request.POST)
-        if theform.is_valid():
-            name = theform.cleaned_data['crop']
-            crop = Crop.objects.create(name=name, scenario=scenario)
-            scenario.crops.add(crop)
-            return HttpResponseRedirect(
-                reverse('optimizer:scenario_details', args=(scenario.id, )))
-    else:
-        # GET or invalid form
-        theform = form()
 
     possible_crops = []
     farm_crops = scenario.farm.getCrops()
@@ -154,6 +142,21 @@ def addCropToScenario(request, pk):
             # crop is in the list; it is not possible
         except Crop.DoesNotExist:
             possible_crops.append((crop, crop))
+
+    if request.method == "POST":
+        theform = form(request.POST)
+        theform.fields['crops'].choices = possible_crops
+        if theform.is_valid():
+            selected_crops = theform.cleaned_data['crops']
+            for new_crop in selected_crops:
+                crop = Crop.objects.create(name=new_crop, scenario=scenario)
+                scenario.crops.add(crop)
+            return HttpResponseRedirect(
+                reverse('optimizer:scenario_details', args=(scenario.id, )))
+    else:
+        # GET or invalid form
+        theform = form()
+
     if len(possible_crops) == 0:
         if len(farm_crops) < CropData.objects.count():
             msg = "All crops allowed in this farm have been added. "\
@@ -164,7 +167,7 @@ def addCropToScenario(request, pk):
         return HttpResponseRedirect(
             reverse('optimizer:scenario_details', args=(scenario.id, )))
 
-    theform.fields['crop'].choices = possible_crops
+    theform.fields['crops'].choices = possible_crops
 
     context = dict(scenario=scenario, form=theform)
     return render(request, template_name, context)
