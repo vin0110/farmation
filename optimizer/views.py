@@ -49,9 +49,9 @@ def scenarioAdd(request, pk):
 
 
 @login_required
-def scenarioEdit(request, pk):
+def scenarioDetails(request, pk):
     '''edit a scenario'''
-    template_name = 'optimizer/scenario_edit.html'
+    template_name = 'optimizer/scenario_details.html'
     theform = ScenarioEditForm
 
     scenario = get_object_or_404(Scenario, pk=pk, farm__user=request.user)
@@ -62,23 +62,12 @@ def scenarioEdit(request, pk):
             name = form.cleaned_data['name']
             scenario.name = name
             scenario.save()
-            return HttpResponseRedirect(
-                reverse('optimizer:scenario_details', args=(scenario.id, )))
     else:
         # GET
         form = theform(instance=scenario)
 
-    context = dict(scenario=scenario, form=form)
-    return HttpResponse(render(request, template_name, context))
-
-
-@login_required
-def scenarioDetails(request, pk):
-    '''edit a scenario'''
-    template_name = 'optimizer/scenario_details.html'
-
-    scenario = get_object_or_404(Scenario, pk=pk, farm__user=request.user)
-    context = dict(scenario=scenario)
+    context = dict(scenario=scenario,
+                   form=ScenarioEditForm(),)
 
     return HttpResponse(render(request, template_name, context))
 
