@@ -20,7 +20,12 @@ class Farm(models.Model):
         return json.loads(self.crops)
 
     def addCrop(self, crop):
-        pass
+        crops = self.getCrops()
+        if crop.lower() in crops:
+            raise ValueError('crop "{}" in farm'.format(crop))
+        crops.append(crop.lower())
+        self.crops = json.dumps(crops)
+        self.save()
 
     def rmCrop(self, crop):
         '''return ValueError if crop not in farm'''

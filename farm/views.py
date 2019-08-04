@@ -6,7 +6,9 @@ from django.contrib import messages
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 
-from farm.models import Farm
+from farm.models import (Farm,
+                         CropData, )
+from optimizer.forms import AddMultipleCropForm
 
 
 @login_required
@@ -61,46 +63,44 @@ def removeCropFromFarm(request, pk, crop):
 def addCropToFarm(request, pk):
     '''select crop from form and add to farm
     determine possible crops'''
-    template_name = 'optimizer/add_crop_to_farm.html'
-    form = AddCropForm
+    template_name = 'farm/add_crop_to_farm.html'
+    form = AddMultipleCropForm
 
     farm = get_object_or_404(Farm, pk=pk)
-    if scenario.farm.user != request.user:
+    if farm.user != request.user:
         raise Http404
 
+    possible_crops = []
+    farm_crops = farm.getCrops()
+    for crop in CropData.objects.all():
+        if crop.name not in farm_crops:
+            possible_crops.append((crop.name, crop.name))
+
     if request.method == "POST":
-        print('post', request.POST)
         theform = form(request.POST)
+        theform.fields['crops'].choices = possible_crops
+
         if theform.is_valid():
-            name = theform.cleaned_data['crop']
-            crop = Crop.objects.create(name=name, farm=farm)
-            scenario.crops.add(crop)
-            print('n', name, crop)
+            selected_crops = theform.cleaned_data['crops']
+            for new_crop in selected_crops:
+                try:
+                    farm.addCrop(new_crop)
+                except ValueError as e:
+                    messages.warning(request, e)
             return HttpResponseRedirect(
-                reverse('optimizer:farm_details', args=(farm.id, )))
+                reverse('farm:farm', args=(farm.id, )))
     else:
         # GET or invalid form
         theform = form()
 
-    possible_crops = []
-    farm_crops = scenario.farm.getCrops()
-    for crop in farm_crops:
-        try:
-            scenario.crops.get(name=crop)
-            # crop is in the list; it is not possible
-        except Crop.DoesNotExist:
-            possible_crops.append((crop, crop))
     if len(possible_crops) == 0:
         if len(farm_crops) < CropData.objects.count():
-            msg = "All crops allowed in this farm have been added. "\
-                  "Must reconfigure farm to add more crops."
-        else:
-            msg = 'All crops have been added to this scenario.'
-        messages.info(request, msg)
+            messages.info(request,
+                          "All known crops have been added to this farm.")
         return HttpResponseRedirect(
-            reverse('optimizer:scenario_details', args=(scenario.id, )))
+            reverse('farm:farm', args=(farm.id, )))
 
-    theform.fields['crop'].choices = possible_crops
+    theform.fields['crops'].choices = possible_crops
 
-    context = dict(scenario=scenario, form=theform)
+    context = dict(farm=farm, form=theform)
     return render(request, template_name, context)

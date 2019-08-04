@@ -135,13 +135,11 @@ def addCropToScenario(request, pk):
         raise Http404
 
     if request.method == "POST":
-        print('post', request.POST)
         theform = form(request.POST)
         if theform.is_valid():
             name = theform.cleaned_data['crop']
             crop = Crop.objects.create(name=name, scenario=scenario)
             scenario.crops.add(crop)
-            print('n', name, crop)
             return HttpResponseRedirect(
                 reverse('optimizer:scenario_details', args=(scenario.id, )))
     else:

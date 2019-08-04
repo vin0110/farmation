@@ -18,4 +18,9 @@ class CropAcresSetForm(forms.Form):
 
 class AddCropForm(forms.Form):
     '''select a crop. the list is dynamic; set none here; view will expand'''
-    crop = forms.ChoiceField(choices=[])
+    crop = forms.ChoiceField(choices=[], required=False)
+
+
+class AddMultipleCropForm(forms.Form):
+    '''select a crop. the list is dynamic; set none here; view will expand'''
+    crops = forms.MultipleChoiceField(choices=[])
