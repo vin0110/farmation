@@ -19,11 +19,16 @@ class Farm(models.Model):
     def getCrops(self):
         return json.loads(self.crops)
 
-    def addCrops(self, crop):
+    def addCrop(self, crop):
         pass
 
-    def rmCrops(self, crop):
-        pass
+    def rmCrop(self, crop):
+        '''return ValueError if crop not in farm'''
+        crops = self.getCrops()
+        idx = crops.index(crop)
+        del crops[idx]
+        self.crops = json.dumps(crops)
+        self.save()
 
     def __str__(self):
         return self.name
