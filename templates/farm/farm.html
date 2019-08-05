@@ -7,9 +7,6 @@
   <div class="row">
     <div class="col">
       <h3>
-        <a href="{% url "home" %}">
-          <i class="fas fa-caret-up"></i>
-        </a>
         Farm: {{ farm.name }}
       </h3>
     </div>
@@ -17,37 +14,63 @@
 </div>
 
 <div class="container">
-    <div class="row">
-    <div class="col">
-      <h5>Crop preferences</h5>
-    </div>
-  </div>
-</div>
-
-{% for crop in farm.getCrops %}
-<div class="container">
-    <div class="row">
-    <div class="col-sm-1"></div>
-    <div class="col">
-      <a href="{% url "farm:remove_crop" farm.id crop %}">
-        <i class="fas fa-minus-circle"></i>
-      </a>
-      {{ crop }}
-    </div>
-  </div>
-</div>
-{% empty %}
-<p>No crops. This could be a problem</p>
-{% endfor %}
-
-<div class="container">
   <div class="row">
-    <div class="col-sm-1"></div>
     <div class="col">
-      <a href="{% url "farm:add_crop" farm.id %}">
-        <i class="fas fa-plus-circle"></i>
-        Add crops
-      </a>
+      <div class="row">
+        <div class="col">
+          <h5>Crops</h5>
+        </div>
+      </div>
+      {% for crop in farm.getCrops %}
+      <div class="row">
+        <div class="col">
+          <a href="{% url "farm:remove_crop" farm.id crop %}">
+            <i class="fas fa-minus-circle"></i>
+          </a>
+          {{ crop }}
+        </div>
+      </div>
+      {% empty %}
+      <div class="row">
+        <div class="col">
+          <p>No crops. This could be a problem</p>
+        </div>
+      </div>
+      {% endfor %}
+      <div class="row">
+        <div class="col-sm-1"></div>
+        <div class="col">
+          <a href="{% url "farm:add_crop" farm.id %}">
+            <i class="fas fa-plus-circle"></i>
+            Add crops
+          </a>
+        </div>
+      </div>
+    </div>      {# end left column #}
+    <div class="col">
+      <div class="row">
+        <div class="col">
+          <h5>Scenarios</h5>
+        </div>
+      </div>
+      {% for scenario in farm.scenarios.all|slice:":5" %}
+      <div class="row">
+        <div class="col">
+          {{ scenario.name }}&nbsp;
+          <a href="{% url "optimizer:scenario_details" scenario.id %}">
+            <i class="fa fa-arrow-circle-right"></i>
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+      <p>
+        {% if farm.scenarios.count > 5 %}
+        ...<br/>
+        {% endif %}
+        <a href="{% url "optimizer:list" farm.id %}">
+          See all
+        </a>
+      </p>
     </div>
   </div>
 </div>
@@ -83,11 +106,11 @@
     {{ field.acreage }}
   </div>
   <div class="col-sm-1">
-    <a href="{% url "tbd" %}">
+    <!a href="{% url "tbd" %}">
       <i class="fas fa-edit"></i>
     </a>
     &nbsp;
-    <a href="{% url "tbd" %}">
+    <!a href="{% url "tbd" %}">
       <i class="fas fa-minus-circle"></i>
     </a>
   </div>
@@ -106,7 +129,7 @@
   <div class="row">
     <div class="col-sm-1"></div>
     <div class="col">
-      <a href="{% url "tbd" %}">
+      <!a href="{% url "tbd" %}">
         <i class="fas fa-plus-circle"></i>
         Add a field
       </a>

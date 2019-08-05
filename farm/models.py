@@ -51,10 +51,11 @@ class Farm(models.Model):
                     name="Thousand-Acre Farm",
                     crops=json.dumps(['corn', 'soybeans', 'wheat']))
         farm.save()
-        for i in range(10):
+        for n in ['one', 'two', 'three', 'four', 'five',
+                  'six', 'seven', 'eight', 'nine', 'ten']:
             Field.objects.create(
                 farm=farm,
-                name="field {}".format(i),
+                name="Field {}".format(n),
                 acreage=100)
         return farm
 
