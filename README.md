@@ -7,8 +7,7 @@ First update the instance.
 Use python3 and pipenv.
 
 ```
-sudo apt update && sudo apt upgrade
-sudo apt install python3-pip
+python3 -m pip install --user --upgrade pip
 pip3 install --user pipenv
 ```
 
