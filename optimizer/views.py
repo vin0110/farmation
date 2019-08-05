@@ -20,7 +20,7 @@ from .forms import (ScenarioEditForm,
 @login_required
 def scenarioList(request, pk):
     '''dashboard for optimizer'''
-    template_name = "optimizer/home.html"
+    template_name = "optimizer/list.html"
 
     farm = get_object_or_404(Farm, pk=pk, user=request.user)
 
