@@ -34,9 +34,21 @@ def scenarioList(request, pk):
 @login_required
 def scenarioAdd(request, pk):
     '''create a new scenario'''
+    def number2words(n):
+        name = []
+        while n > 0:
+            name.append(
+                ['zero', 'one', 'two', 'three', 'four',
+                 'five', 'six', 'seven', 'eight', 'nine'][n % 10])
+            n //= 10
+        return '-'.join(name)
+
     farm = get_object_or_404(Farm, pk=pk, user=request.user)
+    cnt = Scenario.objects.filter(farm=farm).count()
+    name = number2words(cnt+1)
     scenario = Scenario.objects.create(
         farm=farm,
+        name=name,
     )
     crops = farm.getCrops()
     for crop_name in crops:
