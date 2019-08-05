@@ -19,11 +19,21 @@ class Farm(models.Model):
     def getCrops(self):
         return json.loads(self.crops)
 
-    def addCrops(self, crop):
-        pass
+    def addCrop(self, crop):
+        crops = self.getCrops()
+        if crop.lower() in crops:
+            raise ValueError('crop "{}" in farm'.format(crop))
+        crops.append(crop.lower())
+        self.crops = json.dumps(crops)
+        self.save()
 
-    def rmCrops(self, crop):
-        pass
+    def rmCrop(self, crop):
+        '''return ValueError if crop not in farm'''
+        crops = self.getCrops()
+        idx = crops.index(crop)
+        del crops[idx]
+        self.crops = json.dumps(crops)
+        self.save()
 
     def __str__(self):
         return self.name
@@ -41,10 +51,11 @@ class Farm(models.Model):
                     name="Thousand-Acre Farm",
                     crops=json.dumps(['corn', 'soybeans', 'wheat']))
         farm.save()
-        for i in range(10):
+        for n in ['one', 'two', 'three', 'four', 'five',
+                  'six', 'seven', 'eight', 'nine', 'ten']:
             Field.objects.create(
                 farm=farm,
-                name="field {}".format(i),
+                name="Field {}".format(n),
                 acreage=100)
         return farm
 

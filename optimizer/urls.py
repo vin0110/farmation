@@ -2,7 +2,6 @@ from django.urls import path
 
 from .views import (scenarioList,
                     scenarioDetails,
-                    scenarioEdit,
                     scenarioAdd,
                     cropDetails,
                     # cropEdit,
@@ -14,7 +13,6 @@ from .views import (scenarioList,
 urlpatterns = [
     path('scenario/details/<int:pk>/', scenarioDetails,
          name='scenario_details'),
-    path('scenario/edit/<int:pk>/', scenarioEdit, name='scenario_edit'),
     path('scenario/add/<int:pk>/', scenarioAdd, name='scenario_add'),
 
     path('scenario/crop/rm/<int:pk>/', removeCropFromScenario,

@@ -16,6 +16,6 @@ class CropAcresSetForm(forms.Form):
                               help_text="0 means unlimited")
 
 
-class AddCropForm(forms.Form):
+class AddMultipleCropForm(forms.Form):
     '''select a crop. the list is dynamic; set none here; view will expand'''
-    crop = forms.ChoiceField(choices=[])
+    crops = forms.MultipleChoiceField(choices=[])
