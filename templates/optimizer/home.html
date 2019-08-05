@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load humanize %}
 
 {% block head_title %}Farm{% endblock %}
 
@@ -25,12 +26,10 @@
         State
       </strong>
     </div>
-    <div class="col-sm">
+    <div class="col">
       <strong>
         ROI
       </strong>
-    </div>
-    <div class="col-sm">
     </div>
   </div>
 </div>
@@ -43,15 +42,15 @@
       {{ scenario }}
     </a>
   </div>
-  <div class="col">
+  <div class="col-sm">
     {{ scenario.getState }}
   </div>
   <div class="col">
-    {{ scenario.getROI }}
-  </div>
-  <div class="col">
-  </div>
-  <div class="col">
+    ${{ scenario.q1|floatformat:"0"|intcomma }}
+    /
+    ${{ scenario.mean|floatformat:"0"|intcomma }}
+    /
+    ${{ scenario.q3|floatformat:"0"|intcomma }}
   </div>
 </div>
 
