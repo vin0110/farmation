@@ -65,7 +65,7 @@ class Scenario(models.Model):
     def analyzeScenario(self):
         crops = []
         for crop in self.crops.all():
-            crops.append(dict(name=crop.name,
+            crops.append(dict(name=crop.data.name,
                               lo=crop.lo_acres,
                               hi=crop.hi_acres))
 
