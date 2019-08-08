@@ -1,6 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.apps import apps
 
 
 class Farm(models.Model):

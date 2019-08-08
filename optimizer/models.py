@@ -35,6 +35,12 @@ class CropData(models.Model):
             self.yield_histo = json.dumps(mkHistogram(yields))
         super().save(*args, **kwargs)
 
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name_plural = "cropdata"
+
 
 class Scenario(models.Model):
     '''an estimation of profit and risk'''
@@ -99,9 +105,6 @@ class AbstractCrop(models.Model):
 
     yield_override = models.FloatField(default=1.0)
     cost_override = models.FloatField(default=0.0)
-
-    def __str__(self):
-        return self.data.name
 
     class Meta:
         abstract = True
