@@ -8,8 +8,9 @@ from django.contrib.auth.decorators import login_required
 
 from .models import (Scenario,
                      Crop,
+                     CropData,
                      )
-from farm.models import Farm, CropData
+from farm.models import Farm
 
 from .forms import (ScenarioEditForm,
                     CropAcresSetForm,
@@ -198,3 +199,4 @@ def analyze(request, pk):
         request.META.get(
             'HTTP_REFERER',
             reverse('optimizer:scenario_details', args=(scenario.id, ))))
+

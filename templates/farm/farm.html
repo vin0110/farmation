@@ -21,13 +21,13 @@
           <h5>Crops</h5>
         </div>
       </div>
-      {% for crop in farm.getCrops %}
+      {% for crop in farm.crops.all %}
       <div class="row">
         <div class="col">
           <a href="{% url "farm:remove_crop" farm.id crop %}">
             <i class="fas fa-minus-circle"></i>
           </a>
-          {{ crop }}
+          {{ crop.data.name }}
         </div>
       </div>
       {% empty %}
