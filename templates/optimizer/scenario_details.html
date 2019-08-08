@@ -126,7 +126,7 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="cropRemove">
-              Remove Crop: {{ crop.name }}
+              Remove Crop: {{ crop.data.name }}
             </h5>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
               <span aria-hidden="true">&times;</span>
@@ -143,7 +143,7 @@
     </div>
     &nbsp;
     <a href="{% url "optimizer:crop_details" crop.id %}">
-      {{ crop.name }}
+      {{ crop.data.name }}
     </a>
   </div>
 </div>

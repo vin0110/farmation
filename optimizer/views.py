@@ -51,10 +51,10 @@ def scenarioAdd(request, pk):
         farm=farm,
         name=name,
     )
-    crops = farm.getCrops()
-    for crop_name in crops:
+    crops = farm.crops.all()
+    for crop in crops:
         Crop.objects.create(
-            name=crop_name,
+            data=crop.data,
             scenario=scenario, )
 
     return HttpResponseRedirect(
@@ -148,13 +148,13 @@ def addCropToScenario(request, pk):
         raise Http404
 
     possible_crops = []
-    farm_crops = scenario.farm.getCrops()
+    farm_crops = scenario.farm.crops.all()
     for crop in farm_crops:
         try:
-            scenario.crops.get(name=crop)
+            scenario.crops.get(data=crop.data)
             # crop is in the list; it is not possible
         except Crop.DoesNotExist:
-            possible_crops.append((crop, crop))
+            possible_crops.append((crop.data.name, crop.data.name))
 
     if request.method == "POST":
         theform = form(request.POST)
@@ -162,7 +162,8 @@ def addCropToScenario(request, pk):
         if theform.is_valid():
             selected_crops = theform.cleaned_data['crops']
             for new_crop in selected_crops:
-                crop = Crop.objects.create(name=new_crop, scenario=scenario)
+                data = CropData.objects.get(name=new_crop)
+                crop = Crop.objects.create(data=data, scenario=scenario)
                 scenario.crops.add(crop)
             return HttpResponseRedirect(
                 reverse('optimizer:scenario_details', args=(scenario.id, )))
@@ -171,7 +172,7 @@ def addCropToScenario(request, pk):
         theform = form()
 
     if len(possible_crops) == 0:
-        if len(farm_crops) < CropData.objects.count():
+        if scenario.farm.crops.count() < CropData.objects.count():
             msg = "All crops allowed in this farm have been added. "\
                   "Must reconfigure farm to add more crops."
         else:
