@@ -57,13 +57,11 @@ def cropDistro(prices, yields, cost):
 
 
 def analyzeScenario(crops):
-    nFields = 10  # @@@ simple 1000 acre farm
-    # acreage = 100
-
-    nCrops = crops.count()
     farm = crops.first().scenario.farm
 
-    partitions = mkPartitions(nFields, nCrops)
+    fields = [f.acreage for f in farm.fields.all()]
+
+    partitions = mkPartitions(len(fields), crops.count())
     max_mean = (None, 0.)
     min_std = (None, 1e10)
     min_q1 = (None, 1e10)
@@ -71,25 +69,27 @@ def analyzeScenario(crops):
     max_q3 = (None, 0.)
 
     # build price, yields, and cost arrays
+    cropDict = {}
     crop_names = []
-    Prices = {}
-    Yields = {}
-    Costs = {}
     plen = 100
     ylen = 100
     for crop in crops.all():
+        thisDict = {}
         cropdata = crop.data
         crop_name = cropdata.name
         crop_names.append(crop_name)
         farmcrop = farm.crops.get(data=cropdata)
-        Prices[crop_name] = json.loads(cropdata.prices)
+        prices = json.loads(cropdata.prices)
+        thisDict['prices'] = prices
         yields = json.loads(cropdata.yields)
         y_override = farmcrop.yield_override * crop.yield_override
-        Yields[crop_name] = list(map(lambda x: x*y_override, yields))
-        Costs[crop_name] = cropdata.cost + farmcrop.cost_override +\
+        thisDict['yields'] = list(map(lambda x: x*y_override, yields))
+        thisDict['cost'] = cropdata.cost + farmcrop.cost_override +\
             crop.cost_override
-        plen = min(len(Prices[crop_name]), plen)
-        ylen = min(len(Yields[crop_name]), ylen)
+        cropDict[crop_name] = thisDict
+
+        plen = min(len(prices), plen)
+        ylen = min(len(yields), ylen)
 
     for partition in partitions:
         mean = 0.0
@@ -108,8 +108,7 @@ def analyzeScenario(crops):
         if not valid:
             continue
 
-        nets = computeNets(partition, crop_names, Prices, Yields, Costs,
-                           plen, ylen)
+        nets = computeNets(partition, fields, crop_names, cropDict, plen, ylen)
         mean = np.average(nets)
         std = np.std(nets)
         q1, q2, q3 = np.percentile(nets, [25, 50, 75])
@@ -128,8 +127,7 @@ def analyzeScenario(crops):
     return (max_mean, min_std, min_q1, max_q2, max_q3)
 
 
-def computeNets(partition, crop_names, Prices, Yields, Costs, plen, ylen,
-                field_size=100):
+def computeNets(partition, fields, crop_names, cropDict, plen, ylen):
     '''computer nets for a partition'''
     nets = []
 
@@ -139,9 +137,9 @@ def computeNets(partition, crop_names, Prices, Yields, Costs, plen, ylen,
             for part in range(len(partition)):
                 if partition[part] == 0:
                     continue
-                crop = crop_names[part]
-                per_acre = Prices[crop][p] * Yields[crop][y] - Costs[crop]
-                net += partition[part] * field_size * per_acre
+                crop = cropDict[crop_names[part]]
+                per_acre = crop['prices'][p] * crop['yields'][y] - crop['cost']
+                net += partition[part] * fields[part] * per_acre
             nets.append(net)
 
     return nets
