@@ -214,7 +214,6 @@ def editCrop(request, pk):
     if request.method == "POST":
         theform = form(request.POST, instance=crop)
         if theform.is_valid():
-            print('lo', theform.cleaned_data['lo_acres'])
             theform.save()
             return HttpResponseRedirect(
                 reverse('optimizer:scenario_details',
