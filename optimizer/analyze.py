@@ -1,8 +1,8 @@
 import json
 import numpy as np
 
-# from farm.models import CropData	# @@@ this does not work but
-import farm.models			# @@@ this does work
+# from .models import CropData  # why doesn't this work?!
+import optimizer.models
 
 
 def mkPartitions(size, width):
@@ -123,7 +123,7 @@ def computeNets(crop_names, partition, field_size=100):
     plen = 100
     ylen = 100
     for crop in crop_names:
-        cropdata = farm.models.CropData.objects.get(name=crop)
+        cropdata = optimizer.models.CropData.objects.get(name=crop)
         Prices[crop] = json.loads(cropdata.prices)
         Yields[crop] = json.loads(cropdata.yields)
         Costs[crop] = cropdata.cost

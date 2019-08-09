@@ -1,6 +1,6 @@
 [
 {
-  "model": "farm.cropdata",
+  "model": "optimizer.cropdata",
   "pk": 1,
   "fields": {
     "name": "corn",
@@ -15,7 +15,7 @@
   }
 },
 {
-  "model": "farm.cropdata",
+  "model": "optimizer.cropdata",
   "pk": 2,
   "fields": {
     "name": "soybeans",
@@ -30,7 +30,7 @@
   }
 },
 {
-  "model": "farm.cropdata",
+  "model": "optimizer.cropdata",
   "pk": 3,
   "fields": {
     "name": "tobacco",
@@ -45,7 +45,7 @@
   }
 },
 {
-  "model": "farm.cropdata",
+  "model": "optimizer.cropdata",
   "pk": 4,
   "fields": {
     "name": "cotton",
@@ -60,7 +60,7 @@
   }
 },
 {
-  "model": "farm.cropdata",
+  "model": "optimizer.cropdata",
   "pk": 5,
   "fields": {
     "name": "wheat",
@@ -75,7 +75,7 @@
   }
 },
 {
-  "model": "farm.cropdata",
+  "model": "optimizer.cropdata",
   "pk": 6,
   "fields": {
     "name": "hay",
@@ -90,7 +90,7 @@
   }
 },
 {
-  "model": "farm.cropdata",
+  "model": "optimizer.cropdata",
   "pk": 7,
   "fields": {
     "name": "peanuts",
@@ -105,7 +105,7 @@
   }
 },
 {
-  "model": "farm.cropdata",
+  "model": "optimizer.cropdata",
   "pk": 8,
   "fields": {
     "name": "sweatpotatoes",
@@ -120,7 +120,7 @@
   }
 },
 {
-  "model": "farm.cropdata",
+  "model": "optimizer.cropdata",
   "pk": 9,
   "fields": {
     "name": "barley",
@@ -135,7 +135,7 @@
   }
 },
 {
-  "model": "farm.cropdata",
+  "model": "optimizer.cropdata",
   "pk": 10,
   "fields": {
     "name": "sorghum",
@@ -150,7 +150,7 @@
   }
 },
 {
-  "model": "farm.cropdata",
+  "model": "optimizer.cropdata",
   "pk": 11,
   "fields": {
     "name": "alfalfa",
@@ -165,7 +165,7 @@
   }
 },
 {
-  "model": "farm.cropdata",
+  "model": "optimizer.cropdata",
   "pk": 12,
   "fields": {
     "name": "rice",
