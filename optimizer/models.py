@@ -118,15 +118,10 @@ class AbstractCrop(models.Model):
     def isCostOverride(self):
         return self.cost_override != 0.0
 
-    def isLimitOverride(self):
-        return self.lo_acres != 0 or self.hi_acres != 0
-
-    def limits(self):
-        return (self.lo_acres, self.hi_acres)
-
     def show_limits(self):
-        lo, hi = self.limits()
-        return '{} - {}'.format(lo, hi if hi else "")
+        return '{} - {}'.format(
+            self.lo_acres,
+            self.hi_acres if self.hi_acres else "")
 
     class Meta:
         abstract = True
@@ -150,25 +145,6 @@ class Crop(AbstractCrop):
         return self.data.cost +\
             self.cost_override +\
             self.farmcrop().cost_override
-
-    def limits(self):
-        farmcrop = self.farmcrop()
-        flo, fhi = farmcrop.lo_acres, farmcrop.hi_acres
-        lo, hi = self.lo_acres, self.hi_acres
-
-        if lo > 0:
-            if flo > 0:
-                lo = max(lo, flo)
-        else:                   # lo == 0
-            lo = flo
-
-        if hi > 0:
-            if fhi > 0:
-                hi = min(hi, fhi)
-        else:                   # hi == 0
-            hi = fhi
-
-        return (lo, hi)
 
     def __str__(self):
         return "{}:{}".format(self.data.name, self.scenario.name)
