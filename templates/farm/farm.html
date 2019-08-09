@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load humanize %}
 
 {% block head_title %}Farm{% endblock %}
 
@@ -16,63 +17,115 @@
 <div class="container">
   <div class="row">
     <div class="col">
-      <div class="row">
-        <div class="col">
-          <h5>Crops</h5>
-        </div>
-      </div>
-      {% for crop in farm.crops.all %}
-      <div class="row">
-        <div class="col">
-          <a href="{% url "farm:remove_crop" farm.id crop %}">
-            <i class="fas fa-minus-circle"></i>
-          </a>
-          {{ crop.data.name }}
-        </div>
-      </div>
-      {% empty %}
-      <div class="row">
-        <div class="col">
-          <p>No crops. This could be a problem</p>
-        </div>
-      </div>
-      {% endfor %}
-      <div class="row">
-        <div class="col-sm-1"></div>
-        <div class="col">
-          <a href="{% url "farm:add_crop" farm.id %}">
-            <i class="fas fa-plus-circle"></i>
-            Add crops
-          </a>
-        </div>
-      </div>
-    </div>      {# end left column #}
-    <div class="col">
-      <div class="row">
-        <div class="col">
-          <h5>Scenarios</h5>
-        </div>
-      </div>
-      {% for scenario in farm.scenarios.all|slice:":5" %}
-      <div class="row">
-        <div class="col">
-          {{ scenario.name }}&nbsp;
-          <a href="{% url "optimizer:scenario_details" scenario.id %}">
-            <i class="fa fa-arrow-circle-right"></i>
-          </a>
-        </div>
-      </div>
-      {% endfor %}
-      <p>
-        {% if farm.scenarios.count > 5 %}
-        ...<br/>
-        {% endif %}
-        <a href="{% url "optimizer:list" farm.id %}">
-          See all
-        </a>
-      </p>
+      <h5>Crops</h5>
     </div>
   </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-sm">
+      <b>Crop</b>
+    </div>
+    <div class="col-sm" align="right">
+      <b>Price</b>
+    </div>
+    <div class="col-sm" align="right">
+      <b>Yield</b> (per acre)
+    </div>
+    <div class="col-sm" align="right">
+      <b>Cost</b> (per acre)
+    </div>
+    <div class="col-sm" align="right">
+      <b>Limit</b>
+    </div>
+    <div class="col-sm">
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  {% for crop in farm.crops.all %}
+  <div class="row">
+    <div class="col-sm">
+      {{ crop.data.name }}
+    </div>
+    <div class="col-sm" align="right">
+      ${{ crop.data.mean_price|floatformat:"2"|intcomma }}
+      / {{ crop.data.unit }}
+    </div>
+    <div class="col-sm" align="right">
+      {% if crop.isYieldOverride %}
+      *
+      {% endif %}
+      {{ crop.net_yield|floatformat:"1"|intcomma  }}
+    </div>
+    <div class="col-sm" align="right">
+      {% if crop.isCostOverride %}
+      *
+      {% endif %}
+      ${{ crop.net_cost|floatformat:"2"|intcomma }}
+    </div>
+    <div class="col-sm" align="right">
+      
+    </div>
+    <div class="col-sm">
+      {# <a href="{% url "tbd" farm.id crop %}">#}
+        <i class="fas fa-edit"></i>
+      </a>
+      <a href="{% url "farm:remove_crop" farm.id crop %}">
+        <i class="fas fa-minus-circle"></i>
+      </a>
+    </div>
+  </div>
+  {% empty %}
+  <div class="row">
+    <div class="col">
+      <p>No crops. This could be a problem</p>
+    </div>
+  </div>
+  {% endfor %}
+  <div class="row">
+    <div class="col-sm-1"></div>
+    <div class="col">
+      <a href="{% url "farm:add_crop" farm.id %}">
+        <i class="fas fa-plus-circle"></i>
+        Add crops
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <hr/>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <h5>Scenarios</h5>
+    </div>
+  </div>
+  {% for scenario in farm.scenarios.all|slice:":5" %}
+  <div class="row">
+    <div class="col">
+      {{ scenario.name }}&nbsp;
+      <a href="{% url "optimizer:scenario_details" scenario.id %}">
+        <i class="fa fa-arrow-circle-right"></i>
+      </a>
+    </div>
+  </div>
+  {% endfor %}
+  <p>
+    {% if farm.scenarios.count > 5 %}
+    ...<br/>
+    {% endif %}
+    <a href="{% url "optimizer:list" farm.id %}">
+      See all
+    </a>
+  </p>
 </div>
 
 <div class="container">
