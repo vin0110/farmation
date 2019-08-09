@@ -81,13 +81,7 @@ class Scenario(models.Model):
         return self.state_choices[index.index(self.state)][1]
 
     def analyzeScenario(self):
-        crops = []
-        for crop in self.crops.all():
-            crops.append(dict(name=crop.data.name,
-                              lo=crop.lo_acres,
-                              hi=crop.hi_acres))
-
-        mean, std, q1, q2, q3 = analyzeScenario(crops)
+        mean, std, q1, q2, q3 = analyzeScenario(self.crops.all())
         self.mean = mean[1]
         self.mean_partition = json.dumps(mean[0])
         self.q1 = q1[1]
