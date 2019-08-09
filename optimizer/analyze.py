@@ -57,10 +57,11 @@ def cropDistro(prices, yields, cost):
 
 
 def analyzeScenario(crops):
-    # @@@ simple 1000 acre farm
-    fields = [100] * 10
-
     farm = crops.first().scenario.farm
+
+    fields = []
+    for field in farm.fields.all():
+        fields.append(field.acreage)
 
     partitions = mkPartitions(len(fields), crops.count())
     max_mean = (None, 0.)
