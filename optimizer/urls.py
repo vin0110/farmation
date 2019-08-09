@@ -5,6 +5,9 @@ from .views import (scenarioList,
                     scenarioAdd,
                     cropDetails,
                     editCrop,
+                    addPrice,
+                    editPrice,
+                    removePrice,
                     removeCropFromScenario,
                     addCropToScenario,
                     analyze,
@@ -23,6 +26,10 @@ urlpatterns = [
 
     path('crop/details/<int:pk>/', cropDetails, name='crop_details'),
     path('crop/edit/<int:pk>/', editCrop, name='edit_crop'),
+
+    path('crop/price/add/<int:pk>/', addPrice, name='add_price'),
+    path('crop/price/edit/<int:pk>/', editPrice, name='edit_price'),
+    path('crop/price/rm/<int:pk>/', removePrice, name='remove_price'),
 
     path('analyze/<int:pk>/', analyze, name='analyze'),
 

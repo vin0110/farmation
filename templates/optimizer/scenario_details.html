@@ -190,6 +190,32 @@
           </div>
         </div>
       </div>
+      <a href="{% url "optimizer:add_price" crop.id %}">
+        <i class="fas fa-file-invoice-dollar"></i>
+      </a>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-3">
+    </div>
+    <div class="col">
+      {% for price in crop.price_overrides.all %}
+      <div class="row">
+        <div class="col-4">
+          {{ price.units }}
+          {{ price.crop.data.unit }}{{ price.units|pluralize }} at
+          ${{ price.price }} per {{ price.crop.data.unit }}
+        </div>
+        <div class="col">
+        <a href="{% url "optimizer:edit_price" price.id %}">
+          <i class="fas fa-edit"></i>
+         </a>
+        <a href="{% url "optimizer:remove_price" price.id %}">
+          <i class="fas fa-minus-circle"></i>
+         </a>
+        </div>
+      </div>
+      {% endfor %}
     </div>
   </div>
 

@@ -197,5 +197,7 @@ class PriceOverride(models.Model):
     units = models.PositiveSmallIntegerField(default=0)
     price = models.FloatField(default=0.0)
 
+    factor = models.FloatField(default=1.0)
+
     def __str__(self):
         return '{}:{}'.format(self.crop.data.name, self.crop.scenario.name)

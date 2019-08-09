@@ -1,14 +1,21 @@
 {% extends "base.html" %}
 
-{% block head_title %}Scenario|EditCrop{% endblock %}
+{% block head_title %}Scenario|EditPrice{% endblock %}
 
 {% block body %}
 <div class="container">
   <div class="row">
     <div class="col">
       <h3>
-        Set overrides for <em>{{ crop.data.name }}</em>
+        Edit price override for <em>{{ price.crop.data.name }}</em>
       </h3>
+      <p>Set number {{ price.crop.data.unit }}
+      and the price (dollars per {{ price.crop.data.unit }})
+      for this order.
+      Also, select at risk factor.
+      A low risk factor will reserve <em>more</em> acres for this
+      order, which lowers the risk of failing to meet this order.
+      </p>
     </div>
   </div>
 </div>
