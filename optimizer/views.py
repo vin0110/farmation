@@ -210,15 +210,53 @@ def editCrop(request, pk):
     form = CropForm
 
     crop = get_object_or_404(Crop, pk=pk)
+    scenario = crop.scenario
 
     if request.method == "POST":
         theform = form(request.POST, instance=crop)
         if theform.is_valid():
-            print('lo', theform.cleaned_data['lo_acres'])
-            theform.save()
-            return HttpResponseRedirect(
-                reverse('optimizer:scenario_details',
-                        args=(crop.scenario.id, )))
+            valid = True
+            farmcrop = scenario.farm.crops.get(data=crop.data)
+            lo = theform.cleaned_data['lo_acres']
+            hi = theform.cleaned_data['hi_acres']
+            flo = farmcrop.lo_acres
+            fhi = farmcrop.hi_acres
+            if lo > 0:
+                if lo < flo:
+                    messages.error(
+                        request,
+                        'cannot set low limit to less than the '
+                        'farm low limit of {}'.format(flo))
+                    valid = False
+                if fhi > 0 and lo > fhi:
+                    messages.error(
+                        request,
+                        'cannot set low limit to greater than the '
+                        'farm low limit of {}'.format(fhi))
+                    valid = False
+            if hi > 0:
+                if fhi > 0 and hi > fhi:
+                    messages.error(
+                        request,
+                        'cannot set high limit to greater than the '
+                        'farm high limit of {}'.format(fhi))
+                    valid = False
+                if flo > 0 and hi < flo:
+                    messages.error(
+                        request,
+                        'cannot set high limit to less than the '
+                        'farm low limit of {}'.format(flo))
+                    valid = False
+            if hi > 0 and lo > hi:
+                messages.error(
+                    request,
+                    'low limit ({}) is greater than high ({})'.format(lo, hi))
+                valid = False
+            if valid:
+                theform.save()
+                return HttpResponseRedirect(
+                    reverse('optimizer:scenario_details',
+                            args=(scenario.id, )))
     else:
         # GET
         theform = form(instance=crop)

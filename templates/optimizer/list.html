@@ -36,7 +36,7 @@
 
 <div class="container">
 {% for scenario in farm.scenarios.all %}
-<div class="row" {% cycle '' 'bg-light' %}">
+<div class="row {% cycle '' 'bg-light' %}">
   <div class="col-sm">
     <a href="{% url "optimizer:scenario_details" scenario.id %}">
       {{ scenario }}

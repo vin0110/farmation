@@ -99,8 +99,8 @@ def analyzeScenario(crops):
         valid = True
         for i in range(len(partition)):
             pacres = partition[i] * 100		# partition is by fields @@@
-            if pacres < crops[i].lo_acres or \
-               (crops[i].hi_acres > 0 and pacres > crops[i].hi_acres):
+            lo, hi = crops[i].limits()
+            if pacres < lo or (hi > 0 and pacres > hi):
                 # not a valid partition
                 valid = False
                 break
