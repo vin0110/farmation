@@ -111,99 +111,50 @@
         <h3>Crops</h3>
     </div>
   </div>
-  <div class="row">
-    <div class="col-sm">
-      <b>Crop</b>
-    </div>
-    <div class="col-sm" align="right">
-      <b>Price</b>
-    </div>
-    <div class="col-sm" align="right">
-      <b>Yield</b> (per acre)
-    </div>
-    <div class="col-sm" align="right">
-      <b>Cost</b> (per acre)
-    </div>
-    <div class="col-sm" align="right">
-      <b>Limit</b> (acres)
-    </div>
-    <div class="col-sm">
-    </div>
-  </div>
 </div>
 
 <div class="container">
-  {% for crop in scenario.crops.all %}
-  <div class="row" {% cycle '' 'bg-light' %}">
-    <div class="col-sm">
-      <a href="{% url "optimizer:crop_details" crop.id %}">
-        {{ crop.data.name }}
-      </a>
-    </div>
-    <div class="col-sm" align="right">
-      ${{ crop.data.mean_price|floatformat:"2"|intcomma }}
-      / {{ crop.data.unit }}
-    </div>
-    <div class="col-sm" align="right">
-      {% if crop.isYieldOverride %}
-      *
-      {% endif %}
-      {{ crop.net_yield|floatformat:"1"|intcomma  }}
-    </div>
-    <div class="col-sm" align="right">
-      {% if crop.isCostOverride %}
-      *
-      {% endif %}
-      ${{ crop.net_cost|floatformat:"2"|intcomma }}
-    </div>
-    <div class="col-sm" align="right">
-      {{ crop.show_limits }}
-    </div>
-    <div class="col-sm">
-      <a href="{% url "optimizer:edit_crop" crop.id %}">
-        <i class="fas fa-edit"></i>
-      </a>
-      <a data-toggle="modal" href="#removeCrop{{ forloop.counter }}">
-        <i class="fas fa-minus-circle"></i>
-      </a>
-      <!-- Modal -->
-      <div class="modal fade" id="removeCrop{{ forloop.counter }}" tabindex="-1" role="dialog" aria-labelledby="videoTitleLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title" id="cropRemove">
-                Remove Crop: {{ crop.data.name }}
-              </h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-              <input type="button" value="Remove" class="btn btn-primary"
-                     onclick="location.href='{% url 'optimizer:rmCropScenario' crop.id %}'">
-              </input>
-            </div>
+{% for crop in scenario.crops.all %}
+<div class="row" {% cycle '' 'bg-light' %}">
+  <div class="col">
+    <a data-toggle="modal" href="#removeCrop{{ forloop.counter }}">
+      <i class="fas fa-minus-circle"></i>
+    </a>
+    <!-- Modal -->
+    <div class="modal fade" id="removeCrop{{ forloop.counter }}" tabindex="-1" role="dialog" aria-labelledby="videoTitleLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="cropRemove">
+              Remove Crop: {{ crop.data.name }}
+            </h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            <input type="button" value="Remove" class="btn btn-primary"
+                   onclick="location.href='{% url 'optimizer:rmCropScenario' crop.id %}'">
+            </input>
           </div>
         </div>
       </div>
     </div>
+    &nbsp;
+    <a href="{% url "optimizer:crop_details" crop.id %}">
+      {{ crop.data.name }}
+    </a>
   </div>
+</div>
 
-  {% empty %}
-  <div class="row">
-    <div class="col">
-      No crops
-    </div>
+{% empty %}
+<div class="row">
+  <div class="col">
+    No crops
   </div>
-  {% endfor %}
-  <div class="row">
-    <div class="col-sm">
-    </div>
-    <div class="col">
-      (* indicates scenario override)
-    </div>
-  </div>
+</div>
+{% endfor %}
 </div>
 
 <div class="container">

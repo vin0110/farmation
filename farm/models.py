@@ -37,5 +37,9 @@ class Field(models.Model):
         else:
             return str(self.id)
 
+    def farmUser(self):
+        '''for admin'''
+        return self.farm.user
+
     class Meta:
         pass
