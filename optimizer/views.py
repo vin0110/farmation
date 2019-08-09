@@ -15,6 +15,7 @@ from farm.models import Farm
 from .forms import (ScenarioEditForm,
                     CropAcresSetForm,
                     AddMultipleCropForm,
+                    CropForm,
                     )
 
 
@@ -201,3 +202,26 @@ def analyze(request, pk):
             'HTTP_REFERER',
             reverse('optimizer:scenario_details', args=(scenario.id, ))))
 
+
+@login_required
+def editCrop(request, pk):
+    '''edit the overrides in crop'''
+    template_name = 'optimizer/edit_crop.html'
+    form = CropForm
+
+    crop = get_object_or_404(Crop, pk=pk)
+
+    if request.method == "POST":
+        theform = form(request.POST, instance=crop)
+        if theform.is_valid():
+            print('lo', theform.cleaned_data['lo_acres'])
+            theform.save()
+            return HttpResponseRedirect(
+                reverse('optimizer:scenario_details',
+                        args=(crop.scenario.id, )))
+    else:
+        # GET
+        theform = form(instance=crop)
+
+    context = dict(crop=crop, form=theform)
+    return render(request, template_name, context)

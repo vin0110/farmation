@@ -24,6 +24,18 @@ class CropData(models.Model):
     price_histo = models.CharField(max_length=2048, default='')
     yield_histo = models.CharField(max_length=2048, default='')
 
+    def mean_price(self):
+        if self.price_stats:
+            return json.loads(self.price_stats)['average']
+        else:
+            return None
+
+    def mean_yield(self):
+        if self.yield_stats:
+            return json.loads(self.yield_stats)['average']
+        else:
+            return None
+
     def save(self, *args, **kwargs):
         if self.prices:
             prices = json.loads(self.prices)
@@ -69,13 +81,7 @@ class Scenario(models.Model):
         return self.state_choices[index.index(self.state)][1]
 
     def analyzeScenario(self):
-        crops = []
-        for crop in self.crops.all():
-            crops.append(dict(name=crop.data.name,
-                              lo=crop.lo_acres,
-                              hi=crop.hi_acres))
-
-        mean, std, q1, q2, q3 = analyzeScenario(crops)
+        mean, std, q1, q2, q3 = analyzeScenario(self.crops.all())
         self.mean = mean[1]
         self.mean_partition = json.dumps(mean[0])
         self.q1 = q1[1]
@@ -106,6 +112,17 @@ class AbstractCrop(models.Model):
     yield_override = models.FloatField(default=1.0)
     cost_override = models.FloatField(default=0.0)
 
+    def isYieldOverride(self):
+        return self.yield_override != 1.0
+
+    def isCostOverride(self):
+        return self.cost_override != 0.0
+
+    def show_limits(self):
+        return '{} - {}'.format(
+            self.lo_acres,
+            self.hi_acres if self.hi_acres else "")
+
     class Meta:
         abstract = True
         ordering = ('id', )
@@ -116,6 +133,19 @@ class Crop(AbstractCrop):
     scenario = models.ForeignKey(Scenario, on_delete=models.CASCADE,
                                  related_name='crops')
 
+    def farmcrop(self):
+        return self.scenario.farm.crops.get(data=self.data)
+
+    def net_yield(self):
+        return self.data.mean_yield() *\
+            self.yield_override *\
+            self.farmcrop().yield_override
+
+    def net_cost(self):
+        return self.data.cost +\
+            self.cost_override +\
+            self.farmcrop().cost_override
+
     def __str__(self):
         return "{}:{}".format(self.data.name, self.scenario.name)
 
@@ -124,6 +154,15 @@ class FarmCrop(AbstractCrop):
     '''crop that is allowed in this farm'''
     farm = models.ForeignKey('farm.Farm', on_delete=models.CASCADE,
                              related_name='crops')
+
+    def net_yield(self):
+        return self.data.mean_yield() * self.yield_override
+
+    def net_cost(self):
+        return self.data.cost + self.cost_override
+
+    def __str__(self):
+        return "{}:{}".format(self.data.name, self.farm.name)
 
 
 class PriceOverride(models.Model):

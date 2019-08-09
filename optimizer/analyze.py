@@ -1,9 +1,6 @@
 import json
 import numpy as np
 
-# from .models import CropData  # why doesn't this work?!
-import optimizer.models
-
 
 def mkPartitions(size, width):
     '''partitions size elements into width buckets.
@@ -63,7 +60,8 @@ def analyzeScenario(crops):
     nFields = 10  # @@@ simple 1000 acre farm
     # acreage = 100
 
-    nCrops = len(crops)
+    nCrops = crops.count()
+    farm = crops.first().scenario.farm
 
     partitions = mkPartitions(nFields, nCrops)
     max_mean = (None, 0.)
@@ -72,7 +70,26 @@ def analyzeScenario(crops):
     max_q2 = (None, 0.)
     max_q3 = (None, 0.)
 
-    crop_names = [c['name'] for c in crops]
+    # build price, yields, and cost arrays
+    crop_names = []
+    Prices = {}
+    Yields = {}
+    Costs = {}
+    plen = 100
+    ylen = 100
+    for crop in crops.all():
+        cropdata = crop.data
+        crop_name = cropdata.name
+        crop_names.append(crop_name)
+        farmcrop = farm.crops.get(data=cropdata)
+        Prices[crop_name] = json.loads(cropdata.prices)
+        yields = json.loads(cropdata.yields)
+        y_override = farmcrop.yield_override * crop.yield_override
+        Yields[crop_name] = list(map(lambda x: x*y_override, yields))
+        Costs[crop_name] = cropdata.cost + farmcrop.cost_override +\
+            crop.cost_override
+        plen = min(len(Prices[crop_name]), plen)
+        ylen = min(len(Yields[crop_name]), ylen)
 
     for partition in partitions:
         mean = 0.0
@@ -82,8 +99,8 @@ def analyzeScenario(crops):
         valid = True
         for i in range(len(partition)):
             pacres = partition[i] * 100		# partition is by fields @@@
-            if pacres < crops[i]['lo'] or \
-               (crops[i]['hi'] > 0 and pacres > crops[i]['hi']):
+            if pacres < crops[i].lo_acres or \
+               (crops[i].hi_acres > 0 and pacres > crops[i].hi_acres):
                 # not a valid partition
                 valid = False
                 break
@@ -91,7 +108,8 @@ def analyzeScenario(crops):
         if not valid:
             continue
 
-        nets = computeNets(crop_names, partition)
+        nets = computeNets(partition, crop_names, Prices, Yields, Costs,
+                           plen, ylen)
         mean = np.average(nets)
         std = np.std(nets)
         q1, q2, q3 = np.percentile(nets, [25, 50, 75])
@@ -110,25 +128,10 @@ def analyzeScenario(crops):
     return (max_mean, min_std, min_q1, max_q2, max_q3)
 
 
-def computeNets(crop_names, partition, field_size=100):
+def computeNets(partition, crop_names, Prices, Yields, Costs, plen, ylen,
+                field_size=100):
     '''computer nets for a partition'''
     nets = []
-
-    assert len(crop_names) == len(partition)
-
-    # price, yields, and cost arrays
-    Prices = {}
-    Yields = {}
-    Costs = {}
-    plen = 100
-    ylen = 100
-    for crop in crop_names:
-        cropdata = optimizer.models.CropData.objects.get(name=crop)
-        Prices[crop] = json.loads(cropdata.prices)
-        Yields[crop] = json.loads(cropdata.yields)
-        Costs[crop] = cropdata.cost
-        plen = min(len(Prices[crop]), plen)
-        ylen = min(len(Yields[crop]), ylen)
 
     for y in range(ylen):
         for p in range(plen):
@@ -136,9 +139,6 @@ def computeNets(crop_names, partition, field_size=100):
             for part in range(len(partition)):
                 if partition[part] == 0:
                     continue
-                # @@@ temp array method
-                # crop = part
-                # per_acre = Prices[p][crop] * Yields[y][crop] - Cost[part]
                 crop = crop_names[part]
                 per_acre = Prices[crop][p] * Yields[crop][y] - Costs[crop]
                 net += partition[part] * field_size * per_acre

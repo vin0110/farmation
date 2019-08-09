@@ -10,6 +10,7 @@ class FarmAdmin(admin.ModelAdmin):
 def farm_user(field):
     return field.farm.user
 
+
 @admin.register(Field)
 class FieldAdmin(admin.ModelAdmin):
     list_display = ('name', 'farm', farm_user, )

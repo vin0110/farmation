@@ -8,7 +8,7 @@ from django.contrib.auth.decorators import login_required
 
 from .models import (Farm, Field, )
 from optimizer.models import CropData, FarmCrop
-from optimizer.forms import AddMultipleCropForm
+from optimizer.forms import AddMultipleCropForm, FarmCropForm
 
 
 @login_required
@@ -59,15 +59,15 @@ def farm(request, pk):
 
 
 @login_required
-def removeCropFromFarm(request, pk, crop):
+def removeCropFromFarm(request, pk):
     '''remove crop from a farm'''
-    farm = get_object_or_404(Farm, pk=pk)
+    crop = get_object_or_404(FarmCrop, pk=pk)
+    farm = crop.farm
     if farm.user != request.user:
         raise Http404
 
     try:
-        farmcrop = FarmCrop.objects.get(data__name=crop)
-        farmcrop.delete()
+        crop.delete()
         messages.info(request, 'Crop "{}" removed.'.format(crop))
     except ValueError:
         # failed to remove crop
@@ -123,4 +123,27 @@ def addCropToFarm(request, pk):
     theform.fields['crops'].choices = possible_crops
 
     context = dict(farm=farm, form=theform)
+    return render(request, template_name, context)
+
+
+@login_required
+def editFarmCrop(request, pk):
+    '''edit the overrides in farmcrop'''
+    template_name = 'farm/edit_farmcrop.html'
+    form = FarmCropForm
+
+    crop = get_object_or_404(FarmCrop, pk=pk)
+
+    if request.method == "POST":
+        theform = form(request.POST, instance=crop)
+        if theform.is_valid():
+            print('lo', theform.cleaned_data['lo_acres'])
+            theform.save()
+            return HttpResponseRedirect(
+                reverse('farm:farm', args=(crop.farm.id, )))
+    else:
+        # GET
+        theform = form(instance=crop)
+
+    context = dict(crop=crop, form=theform)
     return render(request, template_name, context)
