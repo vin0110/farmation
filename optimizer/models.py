@@ -124,6 +124,11 @@ class AbstractCrop(models.Model):
     def isCostOverride(self):
         return self.cost_override != 0.0
 
+    def show_limits(self):
+        return '{} - {}'.format(
+            self.lo_acres,
+            self.hi_acres if self.hi_acres else "")
+
     class Meta:
         abstract = True
         ordering = ('id', )

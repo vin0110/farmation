@@ -37,7 +37,7 @@
       <b>Cost</b> (per acre)
     </div>
     <div class="col-sm" align="right">
-      <b>Limit</b>
+      <b>Limit</b> (acres)
     </div>
     <div class="col-sm">
     </div>
@@ -67,13 +67,13 @@
       ${{ crop.net_cost|floatformat:"2"|intcomma }}
     </div>
     <div class="col-sm" align="right">
-      
+      {{ crop.show_limits }}
     </div>
     <div class="col-sm">
-      {# <a href="{% url "tbd" farm.id crop %}">#}
+      <a href="{% url "farm:edit_crop" crop.id %}">
         <i class="fas fa-edit"></i>
       </a>
-      <a href="{% url "farm:remove_crop" farm.id crop %}">
+      <a href="{% url "farm:remove_crop" crop.id %}">
         <i class="fas fa-minus-circle"></i>
       </a>
     </div>
@@ -85,6 +85,13 @@
     </div>
   </div>
   {% endfor %}
+  <div class="row">
+    <div class="col-sm">
+    </div>
+    <div class="col">
+      (* indicates farm override)
+    </div>
+  </div>
   <div class="row">
     <div class="col-sm-1"></div>
     <div class="col">

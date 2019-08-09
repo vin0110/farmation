@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block head_title %}Farm|EditCrop{% endblock %}
+
+{% block body %}
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <h3>
+        Set override for <em>{{ crop.data.name }}</em>
+      </h3>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col">
+    <form method="post">{% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Update" />
+    <input type="button" value="Cancel" onclick="location.href='{{ request.META.HTTP_REFERER }}'"/>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
