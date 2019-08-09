@@ -1,7 +1,6 @@
 from django import forms
-from django.conf import settings
 
-from .models import Scenario, FarmCrop
+from .models import Scenario, FarmCrop, Crop
 
 
 class ScenarioEditForm(forms.ModelForm):
@@ -24,4 +23,10 @@ class AddMultipleCropForm(forms.Form):
 class FarmCropForm(forms.ModelForm):
     class Meta:
         model = FarmCrop
+        fields = ['lo_acres', 'hi_acres', 'yield_override', 'cost_override', ]
+
+
+class CropForm(forms.ModelForm):
+    class Meta:
+        model = Crop
         fields = ['lo_acres', 'hi_acres', 'yield_override', 'cost_override', ]
