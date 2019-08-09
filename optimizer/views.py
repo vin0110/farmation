@@ -197,9 +197,12 @@ def analyze(request, pk):
     '''analyze scenario'''
     scenario = get_object_or_404(Scenario, pk=pk, farm__user=request.user)
 
-    scenario.analyzeScenario()
-    messages.info(request,
-                  'Analyzed scenario "{}"'.format(scenario))
+    try:
+        scenario.analyzeScenario()
+        messages.info(request,
+                      'Analyzed scenario "{}"'.format(scenario))
+    except ValueError as e:
+        messages.error(request, e)
 
     return HttpResponseRedirect(
         request.META.get(

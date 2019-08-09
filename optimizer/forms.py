@@ -46,13 +46,15 @@ class CropForm(forms.ModelForm):
 
 class PriceOverrideForm(forms.ModelForm):
     safety = forms.ChoiceField(choices=[
+        ('90', 'Very high'),
         ('q3', 'High'),
-        ('median', 'Medimum'),
-        ('q1', 'Low'), ])
+        ('median', 'Medium'),
+        ('q1', 'Low'),
+        ('10', 'Very low'), ])
 
     class Meta:
         model = PriceOverride
-        fields = ['units', 'price', ]
+        fields = ['units', 'price', 'safety', ]
         help_texts = {
             'units': 'number of units',
             'price': 'price per unit',

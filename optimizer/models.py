@@ -197,6 +197,7 @@ class PriceOverride(models.Model):
     units = models.PositiveSmallIntegerField(default=0)
     price = models.FloatField(default=0.0)
 
+    safety = models.CharField(max_length=6, default='median')
     factor = models.FloatField(default=1.0)
 
     def __str__(self):

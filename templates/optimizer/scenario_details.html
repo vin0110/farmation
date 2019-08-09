@@ -201,7 +201,7 @@
     <div class="col">
       {% for price in crop.price_overrides.all %}
       <div class="row">
-        <div class="col-4">
+        <div class="col-6">
           {{ price.units }}
           {{ price.crop.data.unit }}{{ price.units|pluralize }} at
           ${{ price.price }} per {{ price.crop.data.unit }}

@@ -57,16 +57,20 @@ def cropDistro(prices, yields, cost):
 
 
 def analyzeScenario(crops):
+    '''analyze the scenario: find expected, pessimistic and optimistic'''
+    if crops.count() > 4:
+        raise ValueError('will not analyze more than 4 crops at this time')
+
     farm = crops.first().scenario.farm
 
     fields = [f.acreage for f in farm.fields.all()]
 
     partitions = mkPartitions(len(fields), crops.count())
-    max_mean = (None, 0.)
+    max_mean = (None, -100000.)
     min_std = (None, 1e10)
     min_q1 = (None, 1e10)
-    max_q2 = (None, 0.)
-    max_q3 = (None, 0.)
+    max_q2 = (None, -100000.)
+    max_q3 = (None, -100000.)
 
     # build price, yields, and cost arrays
     cropDict = {}
@@ -86,6 +90,19 @@ def analyzeScenario(crops):
         thisDict['yields'] = list(map(lambda x: x*y_override, yields))
         thisDict['cost'] = cropdata.cost + farmcrop.cost_override +\
             crop.cost_override
+
+        overs = []
+        over_acres = 0
+        for over in crop.price_overrides.all():
+            median_yield = json.loads(cropdata.yield_stats)['median']
+            acres = over.units*over.factor/median_yield
+            over_acres += acres
+            overs.append(dict(
+                units=over.units,
+                price=over.price,
+                acres=acres))
+        thisDict['overs'] = overs
+        thisDict['over_acres'] = over_acres
         cropDict[crop_name] = thisDict
 
         plen = min(len(prices), plen)
@@ -98,10 +115,15 @@ def analyzeScenario(crops):
 
         valid = True
         for i in range(len(partition)):
-            pacres = partition[i] * 100		# partition is by fields @@@
+            pacres = partition[i] * fields[i]
             lo, hi = crops[i].limits()
             if pacres < lo or (hi > 0 and pacres > hi):
                 # not a valid partition
+                valid = False
+                break
+            if pacres < cropDict[crop_names[i]]['over_acres']:
+                # there are not enough acres in this partition to
+                # fulfill the price overrides
                 valid = False
                 break
 
@@ -138,8 +160,17 @@ def computeNets(partition, fields, crop_names, cropDict, plen, ylen):
                 if partition[part] == 0:
                     continue
                 crop = cropDict[crop_names[part]]
-                per_acre = crop['prices'][p] * crop['yields'][y] - crop['cost']
-                net += partition[part] * fields[part] * per_acre
+                size = partition[part] * fields[part]
+                yld = size * crop['yields'][y]
+                cost = size * crop['cost']
+                overUnits = 0
+                overRevenue = 0.
+                for over in crop['overs']:
+                    overUnits += over['units']
+                    overRevenue += over['price'] * over['units']
+                otherRevenue = (yld - overUnits) * crop['prices'][p]
+                gross = overRevenue + otherRevenue - cost
+                net += gross
             nets.append(net)
 
     return nets
