@@ -86,7 +86,8 @@ def analyzeScenario(crops):
         yields = json.loads(cropdata.yields)
         y_override = farmcrop.yield_override * crop.yield_override
         Yields[crop_name] = list(map(lambda x: x*y_override, yields))
-        Costs[crop_name] = cropdata.cost
+        Costs[crop_name] = cropdata.cost + farmcrop.cost_override +\
+            crop.cost_override
         plen = min(len(Prices[crop_name]), plen)
         ylen = min(len(Yields[crop_name]), ylen)
 
