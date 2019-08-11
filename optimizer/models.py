@@ -36,6 +36,13 @@ class CropData(models.Model):
         else:
             return None
 
+    # Returns JSON object formatted so C3.js can plot a line graph.
+    def get_prices_plotdata(self):
+        prices_obj = json.loads(self.prices)
+        prices_obj.insert( 0, 'prices')
+        plotdata = prices_obj
+        return json.dumps(  plotdata )
+
     def save(self, *args, **kwargs):
         if self.prices:
             prices = json.loads(self.prices)

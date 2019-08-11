@@ -14,13 +14,13 @@
 {% endblock %}
 
 {% block body %}
-<div id="chartA"></div>
+
 
 <div class="container">
   <div class="row">
     <div class="col">
       <h3>
-      Crop details {{ crop.name }}
+      Crop Name: <b style="text-transform: uppercase">{{ crop.data.name }}</b>
       </h3>
       <p>
         <a href="{% url "farm:farm" crop.scenario.farm.id %}">
@@ -34,15 +34,6 @@
         </a>
         {{ crop.scenario }}
       </p>
-      <hr/>
-    </div>
-  </div>
-</div>
-
-<div class="container">
-  <div class="row">
-    <div class="col">
-      <h4>Histogram</h4>
     </div>
   </div>
 </div>
@@ -51,7 +42,7 @@
   <div class="row">
     <div class="col">
       <hr/>
-      <h4>Acreage</h4>
+      <h4>Acreage Overrides</h4>
     </div>
   </div>
   <div class="row">
@@ -97,15 +88,16 @@
   <div class="row">
     <div class="col">
       <hr/>
-      <h4>Price</h4>
+      <h4>Price Stats</h4>
+
     </div>
   </div>
   <div class="row">
-    <div class="col-sm">
-      <h5>Distribution</h5>
-    </div>
     <div class="col">
-      &ldquo;histogram&rdquo;
+      <h5>Distribution</h5>
+        <button class="small" onclick="loadHistogram( {{ crop.data.get_prices_plotdata }} )">Show Histogram</button>
+        <button class="small" onclick="loadLineGraph( {{ crop.data.get_prices_plotdata }} )">Show Line Graph</button>
+        <div id="chartA"></div>
     </div>
   </div>
   <div class="row">
@@ -181,6 +173,37 @@
 
 <!-- In this script, functions defining plot generation are defined. 
      A function that generates a plot is bound to a div by "id". -->
-<script src="{% static "js/crop_details.js" %}" type="text/javascript"></script>
+<!-- <script src="{% static "js/crop_details.js" %}" type="text/javascript"></script> -->
+<script> 
+  var chartA = c3.generate({
+      bindto: '#chartA',
+      data: {
+        columns: [ ]
+      }
+  });
+
+  function loadHistogram( json_data ) {
+    console.log( json_data )
+    chartA.load({
+      unload: true,
+      columns: [
+        json_data 
+      ],
+      type: 'bar'
+
+    });
+  }
+
+  function loadLineGraph( json_data ) {
+    chartA.load({
+      unload: true,
+      columns: [
+        json_data
+      ],
+      type: 'line'
+
+    });
+  }
+</script>
 
 {% endblock %}
