@@ -9,6 +9,7 @@
   </div>
 </div>
 
+{% for farm in farms %}
 <div class="row">
   <div class="col">
     Farm: <em>{{ farm.name }}</em>
@@ -20,5 +21,7 @@
     <a href="{% url "optimizer:list" farm.id %}">analyze</a>
   </div>
 </div>
+{% empty %}
+{% endfor %}
 
 {% endblock %}

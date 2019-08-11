@@ -35,14 +35,12 @@ def home(request):
     farms = Farm.objects.filter(user=request.user)
     cnt = farms.count()
     if cnt == 0:
-        farm = create1KFarm(request.user)
-    elif cnt > 1:
-        raise Http404
-    else:
-        farm = farms[0]
+        # no farms; create default and reset queryset
+        create1KFarm(request.user)
+        farms = Farm.objects.filter(user=request.user)
 
     context = dict(
-        farm=farm,
+        farms=farms,
     )
     return HttpResponse(render(request, template_name, context))
 
