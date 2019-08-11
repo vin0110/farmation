@@ -124,14 +124,21 @@
       </a>
     </div>
   </div>
+  {% empty %}
+  <p>
+    None<br/>
+    <a href="{% url "optimizer:scenario_add" farm.id %}">
+      Add a scenario
+    </a>
+  </p>
   {% endfor %}
   <p>
     {% if farm.scenarios.count > 5 %}
     ...<br/>
-    {% endif %}
     <a href="{% url "optimizer:list" farm.id %}">
       See all
     </a>
+    {% endif %}
   </p>
 </div>
 
