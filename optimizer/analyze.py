@@ -66,11 +66,11 @@ def analyzeScenario(crops):
     fields = [f.acreage for f in farm.fields.all()]
 
     partitions = mkPartitions(len(fields), crops.count())
-    max_mean = (None, -100000.)
+    max_mean = (None, -1e10)
     min_std = (None, 1e10)
     min_q1 = (None, 1e10)
-    max_q2 = (None, -100000.)
-    max_q3 = (None, -100000.)
+    max_q2 = (None, -1e10)
+    max_q3 = (None, -1e10)
 
     # build price, yields, and cost arrays
     cropDict = {}

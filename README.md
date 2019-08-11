@@ -7,28 +7,7 @@ First update the instance.
 Use python3 and pipenv.
 
 ```
-python3 -m pip install --user --upgrade pip
 pip3 install --user pipenv
-```
-
-After last line, pip is broken:
-```
-$ pip3
-Traceback (most recent call last):
-  File "/usr/bin/pip3", line 9, in <module>
-    from pip import main
-ImportError: cannot import name 'main'
-```
-This is explained in
-[SO post](https://superuser.com/questions/1432768/how-to-properly-install-pipenv-on-wsl-ubuntu-18-04).
-Solution is:
-```
-$ cat >> .bashrc
-# set PATH so it includes user's private bin if it exists                                 
-if [ -d "$HOME/.local/bin" ] ; then
-    PATH="$HOME/.local/bin:$PATH"
-fi
-$ source .bashrc
 ```
 
 Test if `pip3` is found.
@@ -87,3 +66,23 @@ $
 ```
 The home page is requires a login, so it was redirected to the login
 page.
+
+## Pip install error
+Found on some site that your are to update pip as
+```
+python3 -m pip install --user --upgrade pip
+```
+**Don't do that**.
+Causes the following error.
+```
+$ pip3
+Traceback (most recent call last):
+  File "/usr/bin/pip3", line 9, in <module>
+    from pip import main
+ImportError: cannot import name 'main'
+```
+
+If that happens, unupgrade:
+```
+python3 -m pip uninstall pip
+```
