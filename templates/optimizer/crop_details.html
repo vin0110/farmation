@@ -3,7 +3,7 @@
 {% load static %}
 
 
-{% block head_title %}Crop|Details{% endblock %}
+{% block head_title %}Crop Details{% endblock %}
 {% block extra_head %} 
   <!-- Load c3.css -->
   <link rel="stylesheet" href="{% static "css/c3.min.css" %}">
@@ -19,8 +19,8 @@
 <div class="container">
   <div class="row">
     <div class="col">
-      <h3>
-      Crop Name: <b style="text-transform: uppercase">{{ crop.data.name }}</b>
+      <h3 style="text-align: center">
+      Crop Details : <b style="text-transform: uppercase"><font color="blue">{{ crop.data.name }}</font></b>
       </h3>
       <p>
         <a href="{% url "farm:farm" crop.scenario.farm.id %}">
@@ -143,34 +143,44 @@
   <div class="row">
     <div class="col">
       <hr/>
-      <h4>Cost</h4>
+      <h4>Cost Stats</h4>
     </div>
   </div>
+
   <div class="row">
     <div class="col-sm-2">
-      <h6>$XX.YY / acre</h6>
+      Current Cost:
     </div>
     <div class="col-sm-2">
-      Average cost
-    </div>
-    <div class="col-sm-1">
-      $ZZ.WW
+      ${{ crop.data.cost|floatformat:2}} / {{ crop.data.unit }} 
     </div>
   </div>
+
   <div class="row">
     <div class="col-sm-2">
-      <h5>Override</h5>
+      Average cost:
     </div>
+
     <div class="col-sm-2">
-      my adjust
+      ${{ crop.data.mean_price|floatformat:2}} / {{ crop.data.unit }}
     </div>
-    <div class="col-sm-1">
-      $KK.LL
+  </div>
+
+  <div class="row">
+    <div class="col-sm-2">
+      My Cost:
     </div>
+
+    <div class="col-sm-2">
+
+      ${{crop.net_cost}} / {{ crop.data.unit }}
+    </div>
+
     <div class="col">
       &ldquo;slider: My cost is less ... My cost is greater&rdquo;
     </div>
   </div>
+
 </div>
 
 <!-- In this script, functions defining plot generation are defined. 
