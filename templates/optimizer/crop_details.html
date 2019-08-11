@@ -84,20 +84,21 @@
   </div>
 </div>
 
+<hr>
+<hr>
 <div class="container">
   <div class="row">
     <div class="col">
-      <hr/>
       <h4>Price Stats</h4>
 
     </div>
   </div>
   <div class="row">
     <div class="col">
-      <h5>Distribution</h5>
-        <button class="small" onclick="loadHistogram( {{ crop.data.get_prices_plotdata }} )">Show Histogram</button>
-        <button class="small" onclick="loadLineGraph( {{ crop.data.get_prices_plotdata }} )">Show Line Graph</button>
-        <div id="chartA"></div>
+      <h5 style="text-align: center">Distribution</h5>
+        <button class="small" onclick="loadHistogramPrices( {{ crop.data.get_prices_plotdata }} )">Show Histogram</button>
+        <button class="small" onclick="loadLineGraphPrices( {{ crop.data.get_prices_plotdata }} )">Show Line Graph</button>
+        <div id="pricesChart"></div>
     </div>
   </div>
   <div class="row">
@@ -111,20 +112,21 @@
     </div>
   </div>
 </div>
+<hr>
 
 <div class="container">
   <div class="row">
     <div class="col">
       <hr/>
-      <h4>Yield</h4>
+      <h4>Yield Stats </h4>
     </div>
   </div>
   <div class="row">
     <div class="col-sm">
-      <h5>Distribution</h5>
-    </div>
-    <div class="col">
-      &ldquo;histogram&rdquo;
+      <h5 style="text-align: center" >Distribution</h5>
+        <button class="small" onclick="loadHistogramYields( {{ crop.data.get_yields_plotdata }} )">Show Histogram</button>
+        <button class="small" onclick="loadLineGraphYields( {{ crop.data.get_yields_plotdata }} )">Show Line Graph</button>
+        <div id="yieldsChart"></div>
     </div>
   </div>
   <div class="row">
@@ -173,18 +175,20 @@
 
 <!-- In this script, functions defining plot generation are defined. 
      A function that generates a plot is bound to a div by "id". -->
+
 <!-- <script src="{% static "js/crop_details.js" %}" type="text/javascript"></script> -->
 <script> 
-  var chartA = c3.generate({
-      bindto: '#chartA',
+  /** PRICES plot generation */
+  var pricesChart = c3.generate({
+      bindto: '#pricesChart',
       data: {
         columns: [ ]
       }
   });
 
-  function loadHistogram( json_data ) {
+  function loadHistogramPrices( json_data ) {
     console.log( json_data )
-    chartA.load({
+    pricesChart.load({
       unload: true,
       columns: [
         json_data 
@@ -194,8 +198,39 @@
     });
   }
 
-  function loadLineGraph( json_data ) {
-    chartA.load({
+  function loadLineGraphPrices( json_data ) {
+    pricesChart.load({
+      unload: true,
+      columns: [
+        json_data
+      ],
+      type: 'line'
+
+    });
+  }
+
+  /** YIELDS plot generation */
+  var yieldsChart = c3.generate({
+      bindto: '#yieldsChart',
+      data: {
+        columns: [ ]
+      }
+  });
+
+  function loadHistogramYields( json_data ) {
+    console.log( json_data )
+    yieldsChart.load({
+      unload: true,
+      columns: [
+        json_data 
+      ],
+      type: 'bar'
+
+    });
+  }
+
+  function loadLineGraphYields( json_data ) {
+    yieldsChart.load({
       unload: true,
       columns: [
         json_data
