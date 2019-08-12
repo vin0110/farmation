@@ -130,8 +130,11 @@
     <div class="col-sm">
       <h5>Override</h5>
     </div>
-    <div class="col">
-      &ldquo;slider: I can do worse ... I can do better&rdquo;
+    <div class="col-sm">
+      <input id='yieldSlider' type='range' min='0' max='2' value ='1' step='.05' class='slider' oninput='updateYieldOVRD(this.value)'>
+    </div>
+    <div class="col" id='yieldValue'>
+        Yield Multiplier: 1.0
     </div>
   </div>
 </div>
@@ -167,14 +170,14 @@
     <div class="col-sm-2">
       My Cost:
     </div>
-
     <div class="col-sm-2">
-
       ${{crop.net_cost}} / {{ crop.data.unit }}
     </div>
-
-    <div class="col">
-      &ldquo;slider: My cost is less ... My cost is greater&rdquo;
+    <div class="col-sm-2">
+      <input id='costSlider' type='range' min='-50' max='50' value ='0' step='1' class='slider' oninput='updateCostOVRD(this.value)'>
+    </div>
+    <div class="col-sm-2" id='costValue'>
+        Additional Cost: $0.00
     </div>
   </div>
 
@@ -185,8 +188,14 @@
 
 <!-- <script src="{% static "js/crop_details.js" %}" type="text/javascript"></script> -->
 <script> 
+  // Initializing overrides sliders.
+  var yieldSlider = document.getElementById("yieldSlider");
+
+
+  // Loading data to initialize graphs with.
   var pricesData = JSON.parse( '{{ crop.data.get_prices_plotdata|escapejs }}' )
   var yieldsData = JSON.parse( '{{ crop.data.get_yields_plotdata|escapejs }}' )
+
 
   /** PRICES plot generation */
   var pricesChart = c3.generate({
@@ -197,6 +206,7 @@
       }
   });
 
+  // Used for updating graph data and switching to a histogram display.
   function loadHistogramPrices( json_data ) {
     console.log( json_data )
     pricesChart.load({
@@ -209,6 +219,7 @@
     });
   }
 
+  // Used for updating graph data and switching to a line graph display.
   function loadLineGraphPrices( json_data ) {
     pricesChart.load({
       unload: true,
@@ -229,6 +240,7 @@
       }
   });
 
+  // Used for updating graph data and switching to a histogram display.
   function loadHistogramYields( json_data ) {
     console.log( json_data )
     yieldsChart.load({
@@ -241,6 +253,7 @@
     });
   }
 
+  // Used for updating graph data and switching to a line graph display.
   function loadLineGraphYields( json_data ) {
     yieldsChart.load({
       unload: true,
@@ -250,6 +263,13 @@
       type: 'line'
 
     });
+  }
+  function updateYieldOVRD( newValue ) {
+    document.getElementById("yieldValue").innerHTML = 'Yield Multiplier: ' + document.getElementById("yieldSlider").value
+  }
+
+  function updateCostOVRD( newValue ) {
+    document.getElementById("costValue").innerHTML = 'Additional Cost: $' + document.getElementById("costSlider").value
   }
 </script>
 
