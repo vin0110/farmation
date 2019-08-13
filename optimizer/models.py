@@ -62,7 +62,7 @@ class CropData(models.Model):
         yields_obj = json.loads( self.yield_histo )
 
         # Setting legend text for data like "CORN : YIELD / BUSHEL"
-        yields_obj[ 'counts' ].insert( 0, self.name.upper() + ' Yields( ' + self.unit  + 's / acre )' )
+        yields_obj[ 'counts' ].insert( 0, self.name.upper() + ' Yields ( ' + self.unit  + 's / acre )' )
 
         # Converting edges into bin labels like "1.5 - $2.8"
         bins = [ ]
