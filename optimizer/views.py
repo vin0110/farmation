@@ -97,11 +97,9 @@ def cropDetails(request, pk):
     theform = CropAcresSetForm
 
     crop = get_object_or_404(Crop, pk=pk)
-    crop = get_object_or_404(Crop, pk=pk)
+
     if crop.scenario.farm.user != request.user:
         raise Http404
-
-    context = dict(crop=crop, )
 
     if request.method == "POST":
         form = theform(request.POST)
@@ -123,11 +121,11 @@ def cropDetails(request, pk):
         form = theform(initial={'low': crop.lo_acres,
                                 'high': crop.hi_acres, })
 
-    context = dict(crop=crop, form=form, )
+    context = dict(crop=crop, form=form)
     return render(request, template_name, context)
-    return HttpResponse(render(request, template_name, context))
+    #return HttpResponse(render(request, template_name, context))
 
-
+    
 @login_required
 def removeCropFromScenario(request, pk):
     '''remove crop from a scenario'''

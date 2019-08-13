@@ -1,14 +1,26 @@
 {% extends "base.html" %}
 {% load humanize %}
+{% load static %}
 
-{% block head_title %}Crop|Details{% endblock %}
+
+{% block head_title %}Crop Details{% endblock %}
+{% block extra_head %} 
+  <!-- Load c3.css -->
+  <link rel="stylesheet" href="{% static "css/c3.min.css" %}">
+
+  <!-- Load d3.js and c3.js -->
+  <script src="{% static "js/d3.min.js" %}" charset="utf-8"></script>
+  <script src="{% static "js/c3.min.js" %}"></script>
+{% endblock %}
 
 {% block body %}
+
+
 <div class="container">
   <div class="row">
     <div class="col">
-      <h3>
-      Crop details {{ crop.name }}
+      <h3 style="text-align: center">
+      Crop Details : <b style="text-transform: uppercase"><font color="blue">{{ crop.data.name }}</font></b>
       </h3>
       <p>
         <a href="{% url "farm:farm" crop.scenario.farm.id %}">
@@ -22,7 +34,6 @@
         </a>
         {{ crop.scenario }}
       </p>
-      <hr/>
     </div>
   </div>
 </div>
@@ -30,16 +41,8 @@
 <div class="container">
   <div class="row">
     <div class="col">
-      <h4>Histogram</h4>
-    </div>
-  </div>
-</div>
-
-<div class="container">
-  <div class="row">
-    <div class="col">
-      <hr/>
-      <h4>Acreage</h4>
+      <hr>
+      <h4>Acreage Overrides</h4>
     </div>
   </div>
   <div class="row">
@@ -84,16 +87,14 @@
 <div class="container">
   <div class="row">
     <div class="col">
-      <hr/>
-      <h4>Price</h4>
+      <hr style="color:blue">
+      <h4>Price Stats</h4>
     </div>
   </div>
   <div class="row">
-    <div class="col-sm">
-      <h5>Distribution</h5>
-    </div>
     <div class="col">
-      &ldquo;histogram&rdquo;
+      <h5 style="text-align: center">Distribution</h5>
+        <div id="pricesChart"></div>
     </div>
   </div>
   <div class="row">
@@ -111,24 +112,25 @@
 <div class="container">
   <div class="row">
     <div class="col">
-      <hr/>
-      <h4>Yield</h4>
+      <hr style="color:blue">
+      <h4>Yield Stats </h4>
     </div>
   </div>
   <div class="row">
     <div class="col-sm">
-      <h5>Distribution</h5>
-    </div>
-    <div class="col">
-      &ldquo;histogram&rdquo;
+      <h5 style="text-align: center" >Distribution</h5>
+        <div id="yieldsChart"></div>
     </div>
   </div>
   <div class="row">
     <div class="col-sm">
       <h5>Override</h5>
     </div>
-    <div class="col">
-      &ldquo;slider: I can do worse ... I can do better&rdquo;
+    <div class="col-sm">
+      <input id='yieldSlider' type='range' min='0.01' max='2' value ='1' step='.05' class='slider' oninput='updateYieldOVRD(this.value)'>
+    </div>
+    <div class="col" id='yieldValue'>
+        Yield Multiplier: 1.0
     </div>
   </div>
 </div>
@@ -137,35 +139,125 @@
   <div class="row">
     <div class="col">
       <hr/>
-      <h4>Cost</h4>
+      <h4>Cost Stats</h4>
     </div>
   </div>
+
   <div class="row">
     <div class="col-sm-2">
-      <h6>$XX.YY / acre</h6>
+      Current Cost:
     </div>
     <div class="col-sm-2">
-      Average cost
-    </div>
-    <div class="col-sm-1">
-      $ZZ.WW
+      ${{ crop.data.cost|floatformat:2}} / {{ crop.data.unit }} 
     </div>
   </div>
+
   <div class="row">
     <div class="col-sm-2">
-      <h5>Override</h5>
+      Average cost:
     </div>
+
     <div class="col-sm-2">
-      my adjust
-    </div>
-    <div class="col-sm-1">
-      $KK.LL
-    </div>
-    <div class="col">
-      &ldquo;slider: My cost is less ... My cost is greater&rdquo;
+      ${{ crop.data.mean_price|floatformat:2}} / {{ crop.data.unit }}
     </div>
   </div>
+
+  <div class="row">
+    <div class="col-sm-2">
+      My Cost:
+    </div>
+    <div class="col-sm-2">
+      ${{crop.net_cost}} / {{ crop.data.unit }}
+    </div>
+    <div class="col-sm-2">
+      <input id='costSlider' type='range' min='-50' max='50' value ='0' step='1' class='slider' oninput='updateCostOVRD(this.value)'>
+    </div>
+    <div class="col-sm-2" id='costValue'>
+        Additional Cost: $0.00
+    </div>
+  </div>
+
 </div>
 
+<!-- In this script, functions defining plot generation are defined. 
+     A function that generates a plot is bound to a div by "id". -->
+<script> 
+  // Initializing overrides sliders.
+  var yieldSlider = document.getElementById("yieldSlider");
+
+  function updateYieldOVRD( newValue ) {
+    document.getElementById("yieldValue").innerHTML = 'Yield Multiplier: ' + document.getElementById("yieldSlider").value
+  }
+
+  function updateCostOVRD( newValue ) {
+    document.getElementById("costValue").innerHTML = 'Additional Cost: $' + document.getElementById("costSlider").value
+  }
+
+  // Loads initial data and generates a histogram.
+  var pricesData = JSON.parse( '{{ crop.data.get_prices_plotdata|escapejs }}' )
+  var pricesChart = c3.generate({
+    bindto: '#pricesChart',
+    data: {
+      columns: [ 
+        pricesData[ 'counts' ] 
+      ],
+      type: 'bar',
+    },
+    axis: {
+      x: {
+        categories: pricesData[ 'bins' ],
+        type: 'category',
+        label: 'Price'
+      },
+      y: {
+        label: 'Frequency',
+        tick: { 
+          values: pricesData[ 'y-ticks' ]
+        }
+      }
+    }
+  });
+
+  // Loads initial data and generates a histogram.
+  var yieldsData = JSON.parse( '{{ crop.data.get_yields_plotdata|escapejs }}' )
+  var yieldsChart = c3.generate({
+    bindto: '#yieldsChart',
+    title: {
+      text: yieldsData[ 'title' ]
+    },
+    data: {
+      columns: [ 
+        yieldsData[ 'counts' ] 
+      ],
+      type: 'bar',
+    },
+    axis: {
+      x: {
+        categories: yieldsData[ 'bins' ],
+        type: 'category',
+        label: 'Yield'
+      },
+      y: {
+        label: 'Frequency',
+        tick: { 
+          values: yieldsData[ 'y-ticks' ]
+        }
+      }
+    }
+  });
+ 
+  // Used for updating graph data and switching to a histogram display.
+  function loadHistogramYields( json_data ) {
+    console.log( json_data )
+    yieldsChart.load({
+      unload: true,
+      columns: [
+        json_data 
+      ],
+      type: 'bar'
+    });
+  }
+
+</script>
 
 {% endblock %}
