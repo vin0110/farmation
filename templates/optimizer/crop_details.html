@@ -94,8 +94,6 @@
   <div class="row">
     <div class="col">
       <h5 style="text-align: center">Distribution</h5>
-        <button class="small" onclick="loadHistogramPrices( {{ crop.data.get_prices_plotdata }} )">Show Histogram</button>
-        <button class="small" onclick="loadLineGraphPrices( {{ crop.data.get_prices_plotdata }} )">Show Line Graph</button>
         <div id="pricesChart"></div>
     </div>
   </div>
@@ -121,8 +119,6 @@
   <div class="row">
     <div class="col-sm">
       <h5 style="text-align: center" >Distribution</h5>
-        <button class="small" onclick="loadHistogramYields( {{ crop.data.get_yields_plotdata }} )">Show Histogram</button>
-        <button class="small" onclick="loadLineGraphYields( {{ crop.data.get_yields_plotdata }} )">Show Line Graph</button>
         <div id="yieldsChart"></div>
     </div>
   </div>
@@ -131,7 +127,7 @@
       <h5>Override</h5>
     </div>
     <div class="col-sm">
-      <input id='yieldSlider' type='range' min='0' max='2' value ='1' step='.05' class='slider' oninput='updateYieldOVRD(this.value)'>
+      <input id='yieldSlider' type='range' min='0.01' max='2' value ='1' step='.05' class='slider' oninput='updateYieldOVRD(this.value)' onchange='updateYields(this.value)'>
     </div>
     <div class="col" id='yieldValue'>
         Yield Multiplier: 1.0
@@ -191,53 +187,70 @@
   // Initializing overrides sliders.
   var yieldSlider = document.getElementById("yieldSlider");
 
+  function updateYields( yieldOVRD ) {
+    yieldsData = yieldsData.map( x => isNaN( x ) ? x : x * yieldOVRD )
+    loadHistogramYields( yieldsData )
 
-  // Loading data to initialize graphs with.
+  }
+  function updateYieldOVRD( newValue ) {
+    document.getElementById("yieldValue").innerHTML = 'Yield Multiplier: ' + document.getElementById("yieldSlider").value
+  }
+
+  function updateCostOVRD( newValue ) {
+    document.getElementById("costValue").innerHTML = 'Additional Cost: $' + document.getElementById("costSlider").value
+  }
+
+  // Loads initial data and generates a histogram.
   var pricesData = JSON.parse( '{{ crop.data.get_prices_plotdata|escapejs }}' )
-  var yieldsData = JSON.parse( '{{ crop.data.get_yields_plotdata|escapejs }}' )
-
-
-  /** PRICES plot generation */
   var pricesChart = c3.generate({
-      bindto: '#pricesChart',
-      data: {
-        columns: [ pricesData ],
-        type: 'bar'
+    bindto: '#pricesChart',
+    data: {
+      columns: [ 
+        pricesData[ 'counts' ] 
+      ],
+      type: 'bar',
+    },
+    axis: {
+      x: {
+        categories: pricesData[ 'bins' ],
+        type: 'category',
+        label: 'Price'
+      },
+      y: {
+        label: 'Frequency',
+        tick: { 
+          values: pricesData[ 'y-ticks' ]
+        }
       }
+    }
   });
 
-  // Used for updating graph data and switching to a histogram display.
-  function loadHistogramPrices( json_data ) {
-    console.log( json_data )
-    pricesChart.load({
-      unload: true,
-      columns: [
-        json_data 
-      ],
-      type: 'bar'
-
-    });
-  }
-
-  // Used for updating graph data and switching to a line graph display.
-  function loadLineGraphPrices( json_data ) {
-    pricesChart.load({
-      unload: true,
-      columns: [
-        json_data
-      ],
-      type: 'line'
-
-    });
-  }
-
-  /** YIELDS plot generation */
+  // Loads initial data and generates a histogram.
+  var yieldsData = JSON.parse( '{{ crop.data.get_yields_plotdata|escapejs }}' )
   var yieldsChart = c3.generate({
-      bindto: '#yieldsChart',
-      data: {
-        columns: [ yieldsData ],
-        type: 'bar'
+    bindto: '#yieldsChart',
+    title: {
+      text: 'MY NEW TITLE'
+    },
+    data: {
+      columns: [ 
+        yieldsData[ 'counts' ] 
+      ],
+      type: 'bar',
+    },
+    axis: {
+      x: {
+        categories: yieldsData[ 'bins' ],
+        type: 'category',
+        label: 'Yield'
+      },
+      y: {
+        label: 'Frequency',
+        tick: { 
+          values: yieldsData[ 'y-ticks' ]
+        }
       }
+    }
   });
 
   // Used for updating graph data and switching to a histogram display.
@@ -253,24 +266,6 @@
     });
   }
 
-  // Used for updating graph data and switching to a line graph display.
-  function loadLineGraphYields( json_data ) {
-    yieldsChart.load({
-      unload: true,
-      columns: [
-        json_data
-      ],
-      type: 'line'
-
-    });
-  }
-  function updateYieldOVRD( newValue ) {
-    document.getElementById("yieldValue").innerHTML = 'Yield Multiplier: ' + document.getElementById("yieldSlider").value
-  }
-
-  function updateCostOVRD( newValue ) {
-    document.getElementById("costValue").innerHTML = 'Additional Cost: $' + document.getElementById("costSlider").value
-  }
 </script>
 
 {% endblock %}
