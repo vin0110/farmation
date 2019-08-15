@@ -3,6 +3,11 @@
 
 {% block head_title %}Scenario|Details{% endblock %}
 
+{% block extra_head %}
+  <!-- Loads Google Charts library. -->
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+{% endblock %}
+
 {% block body %}
 <div class="container">
   <div class="row">
@@ -89,6 +94,10 @@
     </div>
     <div class="col-sm">
       {{ scenario.q3_partition }}
+    </div>
+  </div>
+  <div class="row">
+    <div id="cropPartitionsChart">
     </div>
   </div>
 </div>
@@ -250,5 +259,49 @@
     </div>
   </div>
 </div>
+<script>
+  var meanPartition = {{ scenario.mean_partition }}
+  meanPartition.unshift( 'Expected' )
+  meanPartition.push( '${{ scenario.mean|floatformat:"0"|intcomma}}' )
+
+  var q1Partition = {{ scenario.q1_partition }}
+  q1Partition.unshift( 'Pessimistic' )
+  q1Partition.push( '${{ scenario.q1|floatformat:"0"|intcomma}}' )
+
+  var q3Partition = {{ scenario.q3_partition }}
+  q3Partition.unshift( 'Optimistic' )
+  q3Partition.push( '${{ scenario.q3|floatformat:"0"|intcomma}}')
+
+
+  google.charts.load('current', {packages: ['corechart', 'bar']});
+  google.charts.setOnLoadCallback( drawPartitionsChart )
+
+  function drawPartitionsChart() {
+    var data = google.visualization.arrayToDataTable([
+      ['Crops', 'Corn', 'Soybeans', 'Wheat' , { role: 'annotation' } ],
+      meanPartition, 
+      q1Partition,
+      q3Partition,
+    ]);
+
+    var options = {
+      isStacked: 'percent',
+      height: 200,
+      width: 800,
+      legend: { position: 'bottom', maxLines: 3 },
+      haxis: {
+        minValue: 0,
+        ticks: [0, .2, .4, .6, .8, 1 ]
+      },
+      annotations: {
+        alwaysOutside: true,
+      }
+    };
+
+    var chart = new google.visualization.BarChart( document.getElementById( "cropPartitionsChart" ))
+    chart.draw( data, options )
+
+  };
+</script>
 
 {% endblock %}
