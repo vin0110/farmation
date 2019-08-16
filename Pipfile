@@ -9,6 +9,9 @@ verify_ssl = true
 numpy = "*"
 ipython = "*"
 django = "*"
+djangorestframework = "*"
+markdown = "*"
+django-filter = "*"
 
 [requires]
 python_version = "3.6"
