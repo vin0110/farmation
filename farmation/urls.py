@@ -20,6 +20,7 @@ from django.views.generic import TemplateView
 
 from farm import urls as farm_urls
 from optimizer import urls as optimizer_urls
+from api import urls as api_urls
 from farm.views import home
 
 urlpatterns = [
@@ -30,4 +31,6 @@ urlpatterns = [
     path('farm/', include((farm_urls, 'farm'), namespace='farm')),
     path('optimizer/',
          include((optimizer_urls, 'optimizer'), namespace='optimizer')),
+    path('api-auth/', include('rest_framework.urls')),
+    path('api/', include((api_urls, 'api'), namespace='api')),
 ]
