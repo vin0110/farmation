@@ -64,39 +64,6 @@
 
 <div class="container">
   <div class="row">
-    <div class="col-sm">
-      Expected
-    </div>
-    <div class="col-sm">
-      ${{ scenario.mean|floatformat:"0"|intcomma }}
-    </div>
-    <div class="col-sm">
-      {{ scenario.mean_partition }}
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-sm">
-      Pessimistic 
-    </div>
-    <div class="col-sm">
-      ${{ scenario.q1|floatformat:"0"|intcomma }}
-    </div>
-    <div class="col-sm">
-      {{ scenario.q1_partition }}
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-sm">
-      Optimistic
-    </div>
-    <div class="col-sm">
-      ${{ scenario.q3|floatformat:"0"|intcomma }}
-    </div>
-    <div class="col-sm">
-      {{ scenario.q3_partition }}
-    </div>
-  </div>
-  <div class="row">
     <div id="cropPartitionsChart">
     </div>
   </div>
@@ -107,7 +74,6 @@
       <div class="col">
         <p></p>
         <a class="btn btn-primary" href="{% url "optimizer:analyze" scenario.id %}" role="button">
-          Update
         </a>
     </div>
   </div>
@@ -260,48 +226,83 @@
   </div>
 </div>
 <script>
-  var meanPartition = {{ scenario.mean_partition }}
-  meanPartition.unshift( 'Expected' )
-  meanPartition.push( '${{ scenario.mean|floatformat:"0"|intcomma}}' )
 
-  var q1Partition = {{ scenario.q1_partition }}
-  q1Partition.unshift( 'Pessimistic' )
-  q1Partition.push( '${{ scenario.q1|floatformat:"0"|intcomma}}' )
+  // Loads scenario details from API into global variable "scenarioDetails".
+  $.ajax( {
+    url: 'http://localhost:8000/api/v1/scenario/1',
+    type: 'GET',
+    dataType: 'json',
+    success: function( response ) {
+      console.log( "loadScenarioDetails() ran!")
+      return response
+    },
+    error: function ( response ) {
+      return "AJAX FAILURE!"
+    }
+  }).then( (response) => formatPartitions( response ) 
+   ).then( (scd) => drawPartitionsChart(scd));
 
-  var q3Partition = {{ scenario.q3_partition }}
-  q3Partition.unshift( 'Optimistic' )
-  q3Partition.push( '${{ scenario.q3|floatformat:"0"|intcomma}}')
+  // Formats the partitions so they can be used to draw a chart.
+  function formatPartitions( scenarioDetails ) {
+    console.log( "formatPartitions ran!")
+    console.log( scenarioDetails )
+    scenarioDetails[ 'mean_partition' ] = JSON.parse( scenarioDetails[ 'mean_partition' ] );
+    scenarioDetails[ 'q1_partition' ] = JSON.parse( scenarioDetails[ 'q1_partition' ] );
+    scenarioDetails[ 'q3_partition' ] = JSON.parse( scenarioDetails[ 'q3_partition' ] );
 
+    scenarioDetails[ 'mean_partition' ].unshift( 'Expected' );
+    scenarioDetails[ 'q1_partition'   ].unshift( 'Pessimistic' );
+    scenarioDetails[ 'q3_partition'   ].unshift( 'Optimistic' );
 
-  google.charts.load('current', {packages: ['corechart', 'bar']});
-  google.charts.setOnLoadCallback( drawPartitionsChart )
-
-  function drawPartitionsChart() {
-    var data = google.visualization.arrayToDataTable([
-      ['Crops', 'Corn', 'Soybeans', 'Wheat' , { role: 'annotation' } ],
-      meanPartition, 
-      q1Partition,
-      q3Partition,
-    ]);
-
-    var options = {
-      isStacked: 'percent',
-      height: 200,
-      width: 800,
-      legend: { position: 'bottom', maxLines: 3 },
-      haxis: {
-        minValue: 0,
-        ticks: [0, .2, .4, .6, .8, 1 ]
-      },
-      annotations: {
-        alwaysOutside: true,
-      }
-    };
-
-    var chart = new google.visualization.BarChart( document.getElementById( "cropPartitionsChart" ))
-    chart.draw( data, options )
-
+    scenarioDetails[ 'mean_partition' ].push( scenarioDetails['mean'] );
+    scenarioDetails[ 'q1_partition'   ].push( scenarioDetails['q1'] );
+    scenarioDetails[ 'q3_partition'   ].push( scenarioDetails['q3'] );
+    return scenarioDetails
   };
+
+  // Loads the Google Charts packages needed to draw the chart, then draws it.
+  function drawPartitionsChart( scenarioDetails ) {
+    // Loading Google Charts package.
+    google.charts.load('current', {packages: ['corechart', 'bar'] }).then( function() {
+      // Getting list of crops for this scenario.
+      $.ajax({
+        url: 'http://localhost:8000/api/v1/scenario/listcrops/1/',
+        type: 'GET',
+        dataType: 'json',
+        // Drawing the chart. TODO move this to a separate function.
+        success: function( response ) {
+          crops = response['cropnames']
+          crops.unshift( 'Crops' )
+          crops.push( {role: 'annotation'} )
+          
+          var data = google.visualization.arrayToDataTable([
+            crops,
+            scenarioDetails[ 'mean_partition' ],
+            scenarioDetails[ 'q1_partition' ],
+            scenarioDetails[ 'q3_partition' ]
+          ]);
+
+          var options = {
+            isStacked: 'percent',
+            height: 200,
+            width: 800,
+            legend: { position: 'bottom', maxLines: 3 },
+            haxis: {
+              minValue: 0,
+              ticks: [0, .2, .4, .6, .8, 1 ]
+            },
+            annotations: {
+              alwaysOutside: true,
+            }
+          };
+
+          var chart = new google.visualization.BarChart( document.getElementById( "cropPartitionsChart" ))
+          chart.draw( data, options )
+        }
+      })
+    });
+  }
+
 </script>
 
 {% endblock %}
