@@ -147,7 +147,7 @@ class Scenario(models.Model):
 
 class AbstractCrop(models.Model):
     '''generic information about a crop for a scenario and a farm'''
-    data = models.ForeignKey(CropData, on_delete=models.CASCADE)
+    data = models.ForeignKey(CropData, on_delete=models.CASCADE,)
 
     # zero is placeholder for area, but it means NO LIMIT for lo, hi limits
     lo_acres = models.PositiveSmallIntegerField(default=0)
