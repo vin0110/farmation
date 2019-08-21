@@ -2,7 +2,8 @@ from django.urls import path, include
 from .views import (CropDataDetail,
                     CropDataDetailById,
                     ScenarioList,
-                    ScenarioDetail, )
+                    ScenarioDetail, 
+                    ScenarioCropsList,)
 
 v1_patterns = [
     path('cropdata/<str:name>/', CropDataDetail.as_view(), name='cropdata'),
@@ -12,6 +13,8 @@ v1_patterns = [
          name='scenario_list'),
     path('scenario/<int:pk>/', ScenarioDetail.as_view(),
          name='scenario'),
+    path('scenario/listcrops/<int:pk>/', ScenarioCropsList.as_view(),
+         name='scenario_crops_list'),
 ]
 
 urlpatterns = [
