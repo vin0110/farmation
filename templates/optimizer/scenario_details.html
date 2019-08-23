@@ -74,7 +74,11 @@
       <div class="col">
         <p></p>
         <a class="btn btn-primary" href="{% url "optimizer:analyze" scenario.id %}" role="button">
+          Update
         </a>
+        <button onclick="drawCharts()">
+          Update TEST
+        </button>
     </div>
   </div>
 </div>
@@ -227,80 +231,121 @@
 </div>
 <script>
 
-  // Loads scenario details from API into global variable "scenarioDetails".
-  $.ajax( {
-    url: 'http://localhost:8000/api/v1/scenario/1',
-    type: 'GET',
-    dataType: 'json',
-    success: function( response ) {
-      console.log( "loadScenarioDetails() ran!")
-      return response
-    },
-    error: function ( response ) {
-      return "AJAX FAILURE!"
-    }
-  }).then( (response) => formatPartitions( response ) 
-   ).then( (scd) => drawPartitionsChart(scd));
+  // Retrieves the Scenario object for this scenario.
+  // Note that this function returns a Promise, which itself returns/resolves 
+  // the Scenario object.
+  function loadScenarioDetails() {
+    return new Promise( 
+      function( resolve, reject ) {
+        $.ajax({
+          url: 'http://localhost:8000/api/v1/scenario/{{scenario.id}}',
+          type: 'GET',
+          dataType: 'json',
+          success: function( response ) {
+            resolve( response )
+          },
+          error: function ( response ) {
+            reject( "Failed to load Scenario details!" )
+          }
+        })
+      }
+    )
+  }
 
   // Formats the partitions so they can be used to draw a chart.
-  function formatPartitions( scenarioDetails ) {
-    console.log( "formatPartitions ran!")
-    console.log( scenarioDetails )
+  var formatPartitions = function( scenarioDetails ) {
+    // Converts JSON arrays to Javascript objects.
     scenarioDetails[ 'mean_partition' ] = JSON.parse( scenarioDetails[ 'mean_partition' ] );
-    scenarioDetails[ 'q1_partition' ] = JSON.parse( scenarioDetails[ 'q1_partition' ] );
-    scenarioDetails[ 'q3_partition' ] = JSON.parse( scenarioDetails[ 'q3_partition' ] );
+    scenarioDetails[ 'q1_partition'   ] = JSON.parse( scenarioDetails[ 'q1_partition' ] );
+    scenarioDetails[ 'q3_partition'   ] = JSON.parse( scenarioDetails[ 'q3_partition' ] );
 
+    // Prepends the left Y-axis labels to the partition arrays.
     scenarioDetails[ 'mean_partition' ].unshift( 'Expected' );
     scenarioDetails[ 'q1_partition'   ].unshift( 'Pessimistic' );
     scenarioDetails[ 'q3_partition'   ].unshift( 'Optimistic' );
 
+    // Appends the right Y-axis labels to the partition arrays.
     scenarioDetails[ 'mean_partition' ].push( scenarioDetails['mean'] );
     scenarioDetails[ 'q1_partition'   ].push( scenarioDetails['q1'] );
     scenarioDetails[ 'q3_partition'   ].push( scenarioDetails['q3'] );
+
     return scenarioDetails
-  };
+  }
 
-  // Loads the Google Charts packages needed to draw the chart, then draws it.
+  // Loads the list of crop names included for this scenario.
+  // Note that a Promise is returned, which itself returns/resolves the crop name list.
+  var loadScenarioCropNames = function( scenarioDetails ) {
+    return new Promise( 
+      function( resolve, reject ) {
+        $.ajax({
+          url: 'http://localhost:8000/api/v1/scenario/listcrops/{{scenario.id}}/',
+          type: 'GET',
+          dataType: 'json',
+          success: function( response ) {
+            response[ 'cropnames' ].unshift( 'Crops' )
+            response[ 'cropnames' ].push( {role: 'annotation'} )
+            scenarioDetails[ 'cropnames' ] = response[ 'cropnames' ]
+            resolve( scenarioDetails )
+          },
+          error: function( response ) {
+            reject( "ERROR! - loadScenarioCropNames()" )
+          }
+        })
+      }
+    )
+  }
+
+  // Takes data loaded from the loadScenario...() functions and plots it.
   function drawPartitionsChart( scenarioDetails ) {
-    // Loading Google Charts package.
-    google.charts.load('current', {packages: ['corechart', 'bar'] }).then( function() {
-      // Getting list of crops for this scenario.
-      $.ajax({
-        url: 'http://localhost:8000/api/v1/scenario/listcrops/1/',
-        type: 'GET',
-        dataType: 'json',
-        // Drawing the chart. TODO move this to a separate function.
-        success: function( response ) {
-          crops = response['cropnames']
-          crops.unshift( 'Crops' )
-          crops.push( {role: 'annotation'} )
-          
-          var data = google.visualization.arrayToDataTable([
-            crops,
-            scenarioDetails[ 'mean_partition' ],
-            scenarioDetails[ 'q1_partition' ],
-            scenarioDetails[ 'q3_partition' ]
-          ]);
+    var data = google.visualization.arrayToDataTable([
+      scenarioDetails[ 'cropnames' ],
+      scenarioDetails[ 'mean_partition' ],
+      scenarioDetails[ 'q1_partition' ],
+      scenarioDetails[ 'q3_partition' ]
+    ]);
 
-          var options = {
-            isStacked: 'percent',
-            height: 200,
-            width: 800,
-            legend: { position: 'bottom', maxLines: 3 },
-            haxis: {
-              minValue: 0,
-              ticks: [0, .2, .4, .6, .8, 1 ]
-            },
-            annotations: {
-              alwaysOutside: true,
-            }
-          };
+    var options = {
+      isStacked: 'percent',
+      height: 200,
+      width: 800,
+      legend: { position: 'bottom', maxLines: 3 },
+      haxis: {
+        minValue: 0,
+        ticks: [0, .2, .4, .6, .8, 1 ]
+      },
+      annotations: {
+        alwaysOutside: true,
+      }
+    };
 
-          var chart = new google.visualization.BarChart( document.getElementById( "cropPartitionsChart" ))
-          chart.draw( data, options )
-        }
-      })
-    });
+    var chart = new google.visualization.BarChart( document.getElementById( "cropPartitionsChart" ))
+    chart.draw( data, options )
+  }
+
+  // Loads Google Charts. When finished loading, drawCharts() is called.
+  google.charts.load('current', {'packages': ['corechart', 'bar'], 'callback': drawCharts});
+
+  /*
+    Retrieves Scenario data from the backend, then draws or redraws charts.
+    This is called:
+    - When Google Charts packages finish loading (i.e. soon after a page refresh).
+    - When the user clicks "Update".
+
+    Sequence of events:
+      1 - Scenario object is retrieved from backend.
+      2 - Scenario partitions (part of Scenario object) are formatted
+          for Google Charts to take as input.
+      3 - Crop Names for this scenario are retrieved from backend.
+      4 - The partition chart is drawn.
+  */
+  function drawCharts() {
+    // Draws the "Expected-Pessimistic-Optimisic" chart.
+    loadScenarioDetails().
+      then( scDetails => formatPartitions( scDetails )).
+      then( scDetails => loadScenarioCropNames( scDetails )).
+      then( scDetails => drawPartitionsChart( scDetails ))
+
+    // Add more charts here!
   }
 
 </script>
