@@ -44,5 +44,4 @@ class ScenarioCropsList(generics.GenericAPIView):
         scenario = Scenario.objects.get(pk=pk)
         scenario_crops = scenario.crops.all()
         data = { 'cropnames': [ c.data.name for c in scenario_crops ] }
-        return JsonResponse(data, safe=False)
-
+        return JsonResponse(data)
