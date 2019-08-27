@@ -27,7 +27,11 @@ class CropDataDetailById(generics.RetrieveAPIView):
 class ScenarioDetail(generics.RetrieveAPIView):
     '''Return scenario by id'''
     serializer_class = ScenarioDetailSerializer
-    queryset = Scenario.objects.all()
+
+    def get_queryset(self):
+        scenario = Scenario.objects.filter(pk=self.kwargs['pk'])
+        scenario.first().analyzeScenario() 
+        return scenario
 
 
 class ScenarioList(generics.ListAPIView):
@@ -36,6 +40,7 @@ class ScenarioList(generics.ListAPIView):
 
     def get_queryset(self):
         return Scenario.objects.filter(farm__id=self.kwargs['fid'])
+
 
 class ScenarioCropsList(generics.GenericAPIView):
     '''Returns list of crop names in scenario'''
