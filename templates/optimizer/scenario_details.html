@@ -64,7 +64,7 @@
 
 <div class="container">
   <div class="row">
-    <div id="cropPartitionsChart">
+    <div id="cropPartitionsChart" class="col">
     </div>
   </div>
 </div>
@@ -72,7 +72,6 @@
 <div class="container">
     <div class="row">
       <div class="col">
-        <p></p>
         <button class="btn btn-primary" onclick="drawCharts()">
           Update 
         </button>
@@ -250,23 +249,37 @@
   }
 
   // Formats the partitions so they can be used to draw a chart.
-  var formatPartitions = function( scenarioDetails ) {
-    // Converts JSON arrays to Javascript objects.
-    scenarioDetails[ 'mean_partition' ] = JSON.parse( scenarioDetails[ 'mean_partition' ] );
-    scenarioDetails[ 'q1_partition'   ] = JSON.parse( scenarioDetails[ 'q1_partition' ] );
-    scenarioDetails[ 'q3_partition'   ] = JSON.parse( scenarioDetails[ 'q3_partition' ] );
+  function formatPartitions( scDetails ) {
 
-    // Prepends the left Y-axis labels to the partition arrays.
-    scenarioDetails[ 'mean_partition' ].unshift( 'Expected' );
-    scenarioDetails[ 'q1_partition'   ].unshift( 'Pessimistic' );
-    scenarioDetails[ 'q3_partition'   ].unshift( 'Optimistic' );
+    // Determining "maxLength", the largest length integer digits among the "stats".
+    var stats = [ 'mean', 'q1', 'q3' ]
+    ints = stats.map( stat => scDetails[ stat ].toString().split( "." )[0].length )
+    maxLength = Math.max.apply(Math, ints ) - 1
 
-    // Appends the right Y-axis labels to the partition arrays.
-    scenarioDetails[ 'mean_partition' ].push( scenarioDetails['mean'] );
-    scenarioDetails[ 'q1_partition'   ].push( scenarioDetails['q1'] );
-    scenarioDetails[ 'q3_partition'   ].push( scenarioDetails['q3'] );
+    // This represents the total number of characters a currency string should occupy.
+    // It allows right-justification (hackily) by padding with spaces to this value.
+    goalStringLength = maxLength + 7
 
-    return scenarioDetails
+    // and appends an annotation (right y-axis) to match Google Charts format for data.
+    function format( partition, label, stat ) {
+      formattedPart = JSON.parse( partition )
+      formattedPart.unshift( label )
+      // "\xA0 is a 'non-breaking space'. This enables padding with spaces since 
+      // Google Charts strips away whitespace for annotation strings.
+      formattedPart.push( stat.padStart( goalStringLength, '\xA0'))
+      return formattedPart
+    }
+
+    var formatter = new Intl.NumberFormat( 'en-US', {
+      style: 'currency',
+      currency: 'USD',
+    });
+
+    scDetails[ 'mean_partition' ] = format( scDetails[ 'mean_partition' ], 'Expected',    formatter.format( scDetails[ 'mean' ]))
+    scDetails[ 'q1_partition'   ] = format( scDetails[ 'q1_partition'   ], 'Pessimistic', formatter.format( scDetails[ 'q1' ]))
+    scDetails[ 'q3_partition'   ] = format( scDetails[ 'q3_partition'   ], 'Optimistic',  formatter.format( scDetails[ 'q3' ]))
+
+    return scDetails
   }
 
   // Loads the list of crop names included for this scenario.
@@ -305,12 +318,17 @@
       isStacked: 'percent',
       height: 200,
       width: 800,
+      chartArea: { width: "70%", height: "60%" },
       legend: { position: 'bottom', maxLines: 3 },
       haxis: {
         minValue: 0,
         ticks: [0, .2, .4, .6, .8, 1 ]
       },
       annotations: {
+        textStyle: {
+          color: 'black',
+          fontName: 'Cousine'
+        },
         alwaysOutside: true,
       }
     };
