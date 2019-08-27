@@ -242,7 +242,7 @@
             resolve( response )
           },
           error: function ( response ) {
-            reject( "Failed to load Scenario details!" )
+            reject( "ERROR - Failed to load Scenario details!" )
           }
         })
       }
@@ -285,7 +285,7 @@
             resolve( scenarioDetails )
           },
           error: function( response ) {
-            reject( "ERROR! - loadScenarioCropNames()" )
+            reject( "ERROR - Failed to load crop names!" )
           }
         })
       }
