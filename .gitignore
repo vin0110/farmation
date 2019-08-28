@@ -1,3 +1,8 @@
 *~
 *.sqlite3
 env
+env_setup.sh
+.vscode/settings.json
+Pipfile.lock
+Pipfile
+Pipfile.lock

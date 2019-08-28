@@ -94,9 +94,10 @@
   <div class="row">
     <div class="col">
       <h5 style="text-align: center">Distribution</h5>
-        <div id="pricesChart"></div>
+        <div style="text-align: center" id="pricesChart"></div>
     </div>
   </div>
+  <!--
   <div class="row">
     <div class="col-sm">
       <h5>Overrides</h5>
@@ -107,6 +108,7 @@
       &ldquo;list of futures&rdquo;
     </div>
   </div>
+  -->
 </div>
 
 <div class="container">
@@ -119,10 +121,11 @@
   <div class="row">
     <div class="col-sm">
       <h5 style="text-align: center" >Distribution</h5>
-        <div id="yieldsChart"></div>
+        <div style="text-align: center" id="yieldsChart"></div>
     </div>
   </div>
   <div class="row">
+    <!--
     <div class="col-sm">
       <h5>Override</h5>
     </div>
@@ -132,6 +135,7 @@
     <div class="col" id='yieldValue'>
         Yield Multiplier: 1.0
     </div>
+    -->
   </div>
 </div>
 
@@ -167,14 +171,16 @@
       My Cost:
     </div>
     <div class="col-sm-2">
-      ${{crop.net_cost}} / {{ crop.data.unit }}
+      ${{crop.net_cost|floatformat:2}} / {{ crop.data.unit }}
     </div>
+    <!--
     <div class="col-sm-2">
       <input id='costSlider' type='range' min='-50' max='50' value ='0' step='1' class='slider' oninput='updateCostOVRD(this.value)'>
     </div>
     <div class="col-sm-2" id='costValue'>
         Additional Cost: $0.00
     </div>
+    -->
   </div>
 
 </div>
@@ -182,6 +188,9 @@
 <!-- In this script, functions defining plot generation are defined. 
      A function that generates a plot is bound to a div by "id". -->
 <script> 
+
+  /*
+  Non-functional. Leaving these for later.
   // Initializing overrides sliders.
   var yieldSlider = document.getElementById("yieldSlider");
 
@@ -192,11 +201,13 @@
   function updateCostOVRD( newValue ) {
     document.getElementById("costValue").innerHTML = 'Additional Cost: $' + document.getElementById("costSlider").value
   }
+  */
 
   // Loads initial data and generates a histogram.
   var pricesData = JSON.parse( '{{ crop.data.get_prices_plotdata|escapejs }}' )
   var pricesChart = c3.generate({
     bindto: '#pricesChart',
+    legend: { show: false },
     data: {
       columns: [ 
         pricesData[ 'counts' ] 
@@ -207,14 +218,24 @@
       x: {
         categories: pricesData[ 'bins' ],
         type: 'category',
-        label: 'Price'
+        label: {
+          text: 'Average Price',
+          position: 'outer-center'
+        }
       },
       y: {
-        label: 'Frequency',
+        label: {
+          text: 'Count',
+          position: 'outer-left'
+        },
         tick: { 
           values: pricesData[ 'y-ticks' ]
         }
       }
+    },
+    size: {
+      width: 700,
+      height: 200
     }
   });
 
@@ -222,6 +243,7 @@
   var yieldsData = JSON.parse( '{{ crop.data.get_yields_plotdata|escapejs }}' )
   var yieldsChart = c3.generate({
     bindto: '#yieldsChart',
+    legend: { show: false },
     title: {
       text: yieldsData[ 'title' ]
     },
@@ -235,29 +257,26 @@
       x: {
         categories: yieldsData[ 'bins' ],
         type: 'category',
-        label: 'Yield'
+        label: {
+          text: 'Average Yield',
+          position: 'outer-center'
+        }
       },
       y: {
-        label: 'Frequency',
+        label: {
+          text: 'Count',
+          position: 'outer-left'
+        },
         tick: { 
           values: yieldsData[ 'y-ticks' ]
         }
       }
+    },
+    size: {
+      width: 700,
+      height: 200
     }
   });
- 
-  // Used for updating graph data and switching to a histogram display.
-  function loadHistogramYields( json_data ) {
-    console.log( json_data )
-    yieldsChart.load({
-      unload: true,
-      columns: [
-        json_data 
-      ],
-      type: 'bar'
-    });
-  }
-
 </script>
 
 {% endblock %}

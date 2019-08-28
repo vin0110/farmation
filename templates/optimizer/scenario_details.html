@@ -3,6 +3,11 @@
 
 {% block head_title %}Scenario|Details{% endblock %}
 
+{% block extra_head %}
+  <!-- Loads Google Charts library. -->
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+{% endblock %}
+
 {% block body %}
 <div class="container">
   <div class="row">
@@ -59,36 +64,7 @@
 
 <div class="container">
   <div class="row">
-    <div class="col-sm">
-      Expected
-    </div>
-    <div class="col-sm">
-      ${{ scenario.mean|floatformat:"0"|intcomma }}
-    </div>
-    <div class="col-sm">
-      {{ scenario.mean_partition }}
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-sm">
-      Pessimistic 
-    </div>
-    <div class="col-sm">
-      ${{ scenario.q1|floatformat:"0"|intcomma }}
-    </div>
-    <div class="col-sm">
-      {{ scenario.q1_partition }}
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-sm">
-      Optimistic
-    </div>
-    <div class="col-sm">
-      ${{ scenario.q3|floatformat:"0"|intcomma }}
-    </div>
-    <div class="col-sm">
-      {{ scenario.q3_partition }}
+    <div id="cropPartitionsChart" class="col">
     </div>
   </div>
 </div>
@@ -96,10 +72,9 @@
 <div class="container">
     <div class="row">
       <div class="col">
-        <p></p>
-        <a class="btn btn-primary" href="{% url "optimizer:analyze" scenario.id %}" role="button">
-          Update
-        </a>
+        <button class="btn btn-primary" onclick="drawCharts()">
+          Update 
+        </button>
     </div>
   </div>
 </div>
@@ -250,5 +225,144 @@
     </div>
   </div>
 </div>
+<script>
+
+  // Retrieves the Scenario object for this scenario.
+  // Note that this function returns a Promise, which itself returns/resolves 
+  // the Scenario object.
+  function loadScenarioDetails() {
+    return new Promise( 
+      function( resolve, reject ) {
+        $.ajax({
+          url: 'http://localhost:8000/api/v1/scenario/{{scenario.id}}',
+          type: 'GET',
+          dataType: 'json',
+          success: function( response ) {
+            resolve( response )
+          },
+          error: function ( response ) {
+            reject( "ERROR - Failed to load Scenario details!" )
+          }
+        })
+      }
+    )
+  }
+
+  // Formats the partitions so they can be used to draw a chart.
+  function formatPartitions( scDetails ) {
+
+    // Determining "maxLength", the largest length integer digits among the "stats".
+    var stats = [ 'mean', 'q1', 'q3' ]
+    ints = stats.map( stat => scDetails[ stat ].toString().split( "." )[0].length )
+    maxLength = Math.max.apply(Math, ints ) - 1
+
+    // This represents the total number of characters a currency string should occupy.
+    // It allows right-justification (hackily) by padding with spaces to this value.
+    goalStringLength = maxLength + 7
+
+    // and appends an annotation (right y-axis) to match Google Charts format for data.
+    function format( partition, label, stat ) {
+      formattedPart = JSON.parse( partition )
+      formattedPart.unshift( label )
+      // "\xA0 is a 'non-breaking space'. This enables padding with spaces since 
+      // Google Charts strips away whitespace for annotation strings.
+      formattedPart.push( stat.padStart( goalStringLength, '\xA0'))
+      return formattedPart
+    }
+
+    var formatter = new Intl.NumberFormat( 'en-US', {
+      style: 'currency',
+      currency: 'USD',
+    });
+
+    scDetails[ 'mean_partition' ] = format( scDetails[ 'mean_partition' ], 'Expected',    formatter.format( scDetails[ 'mean' ]))
+    scDetails[ 'q1_partition'   ] = format( scDetails[ 'q1_partition'   ], 'Pessimistic', formatter.format( scDetails[ 'q1' ]))
+    scDetails[ 'q3_partition'   ] = format( scDetails[ 'q3_partition'   ], 'Optimistic',  formatter.format( scDetails[ 'q3' ]))
+
+    return scDetails
+  }
+
+  // Loads the list of crop names included for this scenario.
+  // Note that a Promise is returned, which itself returns/resolves the crop name list.
+  var loadScenarioCropNames = function( scenarioDetails ) {
+    return new Promise( 
+      function( resolve, reject ) {
+        $.ajax({
+          url: 'http://localhost:8000/api/v1/scenario/listcrops/{{scenario.id}}/',
+          type: 'GET',
+          dataType: 'json',
+          success: function( response ) {
+            response[ 'cropnames' ].unshift( 'Crops' )
+            response[ 'cropnames' ].push( {role: 'annotation'} )
+            scenarioDetails[ 'cropnames' ] = response[ 'cropnames' ]
+            resolve( scenarioDetails )
+          },
+          error: function( response ) {
+            reject( "ERROR - Failed to load crop names!" )
+          }
+        })
+      }
+    )
+  }
+
+  // Takes data loaded from the loadScenario...() functions and plots it.
+  function drawPartitionsChart( scenarioDetails ) {
+    var data = google.visualization.arrayToDataTable([
+      scenarioDetails[ 'cropnames' ],
+      scenarioDetails[ 'mean_partition' ],
+      scenarioDetails[ 'q1_partition' ],
+      scenarioDetails[ 'q3_partition' ]
+    ]);
+
+    var options = {
+      isStacked: 'percent',
+      height: 200,
+      width: 800,
+      chartArea: { width: "70%", height: "60%" },
+      legend: { position: 'bottom', maxLines: 3 },
+      haxis: {
+        minValue: 0,
+        ticks: [0, .2, .4, .6, .8, 1 ]
+      },
+      annotations: {
+        textStyle: {
+          color: 'black',
+          fontName: 'Cousine'
+        },
+        alwaysOutside: true,
+      }
+    };
+
+    var chart = new google.visualization.BarChart( document.getElementById( "cropPartitionsChart" ))
+    chart.draw( data, options )
+  }
+
+  // Loads Google Charts. When finished loading, drawCharts() is called.
+  google.charts.load('current', {'packages': ['corechart', 'bar'], 'callback': drawCharts});
+
+  /*
+    Retrieves Scenario data from the backend, then draws or redraws charts.
+    This is called:
+    - When Google Charts packages finish loading (i.e. soon after a page refresh).
+    - When the user clicks "Update".
+
+    Sequence of events:
+      1 - Scenario object is retrieved from backend.
+      2 - Scenario partitions (part of Scenario object) are formatted
+          for Google Charts to take as input.
+      3 - Crop Names for this scenario are retrieved from backend.
+      4 - The partition chart is drawn.
+  */
+  function drawCharts() {
+    // Draws the "Expected-Pessimistic-Optimisic" chart.
+    loadScenarioDetails().
+      then( scDetails => formatPartitions( scDetails )).
+      then( scDetails => loadScenarioCropNames( scDetails )).
+      then( scDetails => drawPartitionsChart( scDetails ))
+
+    // Add more charts here!
+  }
+
+</script>
 
 {% endblock %}
