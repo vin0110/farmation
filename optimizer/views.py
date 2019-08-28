@@ -123,9 +123,8 @@ def cropDetails(request, pk):
 
     context = dict(crop=crop, form=form)
     return render(request, template_name, context)
-    #return HttpResponse(render(request, template_name, context))
 
-    
+
 @login_required
 def removeCropFromScenario(request, pk):
     '''remove crop from a scenario'''
