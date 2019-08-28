@@ -45,8 +45,9 @@ class CropData(models.Model):
         bins = [ ]
         num_bins = len( prices_obj['edges'] ) - 1
         for i in range( num_bins ) :
-            bins.append( "${:.2f} - ${:.2f}".format( prices_obj['edges'][ i ],   \
-                                                     prices_obj['edges'][ i + 1 ] ))
+            average = ( prices_obj['edges'][i] + prices_obj['edges'][i + 1] ) / 2
+            bins.append( "${:.2f}".format( average ) )
+
         prices_obj['bins'] = bins
         del prices_obj['edges']
 
@@ -68,8 +69,8 @@ class CropData(models.Model):
         bins = [ ]
         num_bins = len( yields_obj['edges'] ) - 1
         for i in range( num_bins ) :
-            bins.append( "{:.1f} - {:.1f}".format( yields_obj['edges'][ i ],   \
-                                                   yields_obj['edges'][ i + 1 ] ))
+            average = ( yields_obj['edges'][i] + yields_obj['edges'][i + 1] ) / 2
+            bins.append( "{:.1f}".format( average ) )
         yields_obj['bins'] = bins
         del yields_obj['edges']
 
