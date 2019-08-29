@@ -23,7 +23,6 @@ $ which gunicorn
 ```
 #!/bin/bash
 source ./env
-~~/home/vwfreeh/.local/share/virtualenvs/farmation-Ms0p1mkM/bin/gunicorn \~~
 /home/yourusername/.local/share/virtualenvs/farmation-ABC123/bin/gunicorn \
     --pid /run/gunicorn/pid   \
     --bind unix:/run/gunicorn/socket farmation.wsgi
