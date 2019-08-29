@@ -73,8 +73,8 @@ $ sudo systemctl status gunicorn
     Tasks: 6 (limit: 4681)
    CGroup: /system.slice/gunicorn.service
            ├─25735 /bin/bash /home/yourusername/farmation/gunicorn.sh
-           ├─25736 /home/demills/.local/share/virtualenvs/farmation-Q1vSQrLW/bin/python3.6 /ho
-           └─25739 /home/demills/.local/share/virtualenvs/farmation-Q1vSQrLW/bin/python3.6 /ho
+           ├─25736 /home/yourusername/.local/share/virtualenvs/farmation-ABC123/bin/python3.6 /ho
+           └─25739 /home/yourusername/.local/share/virtualenvs/farmation-ABC123/bin/python3.6 /ho
 
 Aug 29 14:35:30 vm18-228.vcl.ncsu.edu systemd[1]: Started gunicorn daemon.
 Aug 29 14:35:30 vm18-228.vcl.ncsu.edu gunicorn.sh[25735]: [2019-08-29 14:35:30 -0400] [25736] 
