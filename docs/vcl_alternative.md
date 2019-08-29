@@ -1,3 +1,14 @@
+* Clone repository. Checkout branch ```32_configure_nginx_gunicorn```.
+```
+git clone https://github.ncsu.edu/vwfreeh/farmation.git
+```
+
+* Move scripts to correct directories. 
+```
+mv ~/farmation/scripts/setup.sh ~/
+mv ~/farmation/scripts/setup2.sh ~/farmation/
+```
+
 * Run first setup script in home directory.
 ```
 $ source setup.sh
