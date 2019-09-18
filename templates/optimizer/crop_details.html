@@ -7,6 +7,7 @@
 {% block extra_head %} 
   <!-- Load c3.css -->
   <link rel="stylesheet" href="{% static "css/c3.min.css" %}">
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 
   <!-- Load d3.js and c3.js -->
   <script src="{% static "js/d3.min.js" %}" charset="utf-8"></script>
@@ -138,6 +139,22 @@
     -->
   </div>
 </div>
+<div class="container">
+
+  <div class="row">
+    <div class="col">
+      <hr style="color:blue">
+      <h4>New Price Stats </h4>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-sm">
+      <h5 style="text-align: center" >Chart</h5>
+        <div style="text-align: center" id="newPriceChart"></div>
+    </div>
+  </div>
+</div>
 
 <div class="container">
   <div class="row">
@@ -188,20 +205,6 @@
 <!-- In this script, functions defining plot generation are defined. 
      A function that generates a plot is bound to a div by "id". -->
 <script> 
-
-  /*
-  Non-functional. Leaving these for later.
-  // Initializing overrides sliders.
-  var yieldSlider = document.getElementById("yieldSlider");
-
-  function updateYieldOVRD( newValue ) {
-    document.getElementById("yieldValue").innerHTML = 'Yield Multiplier: ' + document.getElementById("yieldSlider").value
-  }
-
-  function updateCostOVRD( newValue ) {
-    document.getElementById("costValue").innerHTML = 'Additional Cost: $' + document.getElementById("costSlider").value
-  }
-  */
 
   // Loads initial data and generates a histogram.
   var pricesData = JSON.parse( '{{ crop.data.get_prices_plotdata|escapejs }}' )
@@ -277,6 +280,89 @@
       height: 200
     }
   });
+
+  // Loads Google Charts packages, then calls chartSetup().
+  google.charts.load('current', {'packages': ['corechart', 'controls']});
+  google.charts.setOnLoadCallback( chartSetup )
+
+  /**
+   * Attempts to load an array of crop prices. If loading is successful, the array
+   * is converted to an array of arrays (formatting for Google Charts') and returned.
+   * If loading is unsuccesful, an error is thrown.
+   *
+   * If crop data ever needs to be dynamic, replace this with an AJAX call.
+   */
+  async function loadCropPrices() {
+    const pricesJSON = '{{ crop.data.prices }}'
+    if ( pricesJSON != '' ) {
+      return cropPrices = chunkArray( JSON.parse( pricesJSON ))
+    } else {
+      throw "Error in loadCropPrices()!"
+    }
+  }
+
+  /**
+   * Attempts to load an array of crop yields. If loading is successful, the array
+   * is converted to an array of arrays (formatting for Google Charts') and returned.
+   * If loading is unsuccesful, an error is thrown.
+   *
+   * If crop data ever needs to be dynamic, replace this with an AJAX call.
+   */
+  async function loadCropYields() {
+    const yieldsJSON = '{{ crop.data.yields }}'
+    if ( yieldsJSON != '' ) {
+      return cropYields = chunkArray( JSON.parse( yieldsJSON ) )
+    } else {
+      throw "Error in loadCropYields()!"
+    }
+  }
+
+  // Converts an array to an array of arrays.
+  // e.g. [ 1, 2, 3] => [ [1], [2], [3], ]
+  function chunkArray( array ) {
+    array.forEach( (element, idx) => {
+      array[ idx ] = [ element ]
+    })
+    return array
+  }
+
+  /**
+   * Loads data needed for charts into ChartWrappers, configures the charts,
+   * then plots the data in the DEFAULT_CHART. Users can then select to
+   * plot the data in a different type of chart.
+   */
+  async function chartSetup() {
+    //const DEFAULT_CHART = Charts.ChartType.HISTOGRAM
+
+    var priceChart = new google.visualization.ChartWrapper({
+      chartType: 'LineChart',
+      options: { 'title': 'Price Data'},
+      containerId: 'newPriceChart'
+    });
+    var yieldChart = new google.visualization.ChartWrapper({
+      chartType: 'LineChart',
+      options: { 'title': 'Yield Data'},
+      containerId: 'newYieldChart'
+    });
+
+    // Attempts to load yield and price data.
+    try {
+      const [ cropPrices, cropYields ] = await Promise.all( [ loadCropPrices(), loadCropYields() ] );
+    } catch ( error ) {
+      console.log( error )
+    }
+
+    var data = [];
+
+    data[0] = new google.visualization.DataTable();
+    data[0].addColumn( 'number', 'prices' )
+    data[0].addRows( cropPrices )
+
+    data[1] = new google.visualization.DataTable();
+    data[1].addColumn( 'number', 'yields' )
+    data[1].addRows( cropYields )
+
+  }
 </script>
 
 {% endblock %}
