@@ -98,18 +98,6 @@
         <div style="text-align: center" id="pricesChart"></div>
     </div>
   </div>
-  <!--
-  <div class="row">
-    <div class="col-sm">
-      <h5>Overrides</h5>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col">
-      &ldquo;list of futures&rdquo;
-    </div>
-  </div>
-  -->
 </div>
 
 <div class="container">
@@ -126,17 +114,6 @@
     </div>
   </div>
   <div class="row">
-    <!--
-    <div class="col-sm">
-      <h5>Override</h5>
-    </div>
-    <div class="col-sm">
-      <input id='yieldSlider' type='range' min='0.01' max='2' value ='1' step='.05' class='slider' oninput='updateYieldOVRD(this.value)'>
-    </div>
-    <div class="col" id='yieldValue'>
-        Yield Multiplier: 1.0
-    </div>
-    -->
   </div>
 </div>
 <div class="container">
@@ -152,6 +129,22 @@
     <div class="col-sm">
       <h5 style="text-align: center" >Chart</h5>
         <div style="text-align: center" id="newPriceChart"></div>
+    </div>
+  </div>
+</div>
+<div class="container">
+
+  <div class="row">
+    <div class="col">
+      <hr style="color:blue">
+      <h4>New Yield Stats </h4>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-sm">
+      <h5 style="text-align: center" >Chart</h5>
+        <div style="text-align: center" id="newYieldChart"></div>
     </div>
   </div>
 </div>
@@ -190,14 +183,6 @@
     <div class="col-sm-2">
       ${{crop.net_cost|floatformat:2}} / {{ crop.data.unit }}
     </div>
-    <!--
-    <div class="col-sm-2">
-      <input id='costSlider' type='range' min='-50' max='50' value ='0' step='1' class='slider' oninput='updateCostOVRD(this.value)'>
-    </div>
-    <div class="col-sm-2" id='costValue'>
-        Additional Cost: $0.00
-    </div>
-    -->
   </div>
 
 </div>
@@ -335,12 +320,10 @@
     //const DEFAULT_CHART = Charts.ChartType.HISTOGRAM
 
     var priceChart = new google.visualization.ChartWrapper({
-      chartType: 'LineChart',
       options: { 'title': 'Price Data'},
       containerId: 'newPriceChart'
     });
     var yieldChart = new google.visualization.ChartWrapper({
-      chartType: 'LineChart',
       options: { 'title': 'Yield Data'},
       containerId: 'newYieldChart'
     });
@@ -362,7 +345,16 @@
     data[1].addColumn( 'number', 'yields' )
     data[1].addRows( cropYields )
 
+    drawHistogram( priceChart, data[0] )
+    drawHistogram( yieldChart, data[1] )
   }
+
+  function drawHistogram( chart, data ) {
+    chart.setDataTable( data )
+    chart.setChartType( "Histogram" )
+    chart.draw()
+  }
+
 </script>
 
 {% endblock %}
