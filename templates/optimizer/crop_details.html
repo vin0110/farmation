@@ -5,15 +5,11 @@
 
 {% block head_title %}Crop Details{% endblock %}
 {% block extra_head %} 
-  <!-- Load c3.css -->
-  <link rel="stylesheet" href="{% static "css/c3.min.css" %}">
+
+  <!--  Downloads loader script for Google Charts. -->
   <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 
-  <!-- Load d3.js and c3.js -->
-  <script src="{% static "js/d3.min.js" %}" charset="utf-8"></script>
-  <script src="{% static "js/c3.min.js" %}"></script>
 {% endblock %}
-
 {% block body %}
 
 
@@ -23,12 +19,14 @@
       <h3 style="text-align: center">
       Crop Details : <b style="text-transform: uppercase"><font color="blue">{{ crop.data.name }}</font></b>
       </h3>
+
       <p>
         <a href="{% url "farm:farm" crop.scenario.farm.id %}">
           Farm:
         </a>
         {{ crop.scenario.farm.name }}
       </p>
+
       <p>
         <a href="{% url "optimizer:scenario_details" crop.scenario.id %}">
           Scenario:
@@ -37,51 +35,34 @@
       </p>
     </div>
   </div>
+
+  <div class="row">
+    <div class="col"> 
+      <b>Cost</b>: ${{ crop.data.cost|floatformat:2}} / {{ crop.data.unit }} 
+    </div>
+  </div>
+
 </div>
 
 <div class="container">
   <div class="row">
     <div class="col">
-      <hr>
-      <h4>Acreage Overrides</h4>
+      <hr style="color:blue">
+      <h4>Price Distribution</h3>
     </div>
   </div>
-  <div class="row">
+
+ <div class="row">
     <div class="col">
-      Lower limit: {{ crop.lo_acres }}
+      <div style="text-align: center" id="priceChart"></div>
     </div>
-    <div class="col">
-      Upper limit:
-      {{ crop.hi_acres|default:"No limit" }}
-    </div>
-    <div class="col-sm-1">
-      <a data-toggle="modal" href="#acressetlo">
-        <i class="fas fa-edit fa-lg"></i>
-      </a>
-      <!-- Modal -->
-      <div class="modal fade" id="acressetlo" tabindex="-1" role="dialog" aria-labelledby="videoTitleLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-          <div class="modal-content">
-            <form class="well" method="post">
-              <div class="modal-header">
-                <h5 class="modal-title" id="editplan">Set limits</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-                </button>
-              </div>
-              <div class="modal-body">
-                {% csrf_token %}
-                {{ form.as_p }}
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="submit" class="btn btn-primary">Save changes</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div style="text-align: center" class="col-sm">
+    <label>Histogram<input type="radio" name="priceChartType" id="priceHistogramButton" checked="checked"/></label>
+    <label>Box Plot<input type="radio" name="priceChartType" id="priceBoxplotButton"/></label>
   </div>
 </div>
 
@@ -89,198 +70,49 @@
   <div class="row">
     <div class="col">
       <hr style="color:blue">
-      <h4>Price Stats</h4>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col">
-      <h5 style="text-align: center">Distribution</h5>
-        <div style="text-align: center" id="pricesChart"></div>
-    </div>
-  </div>
-</div>
-
-<div class="container">
-  <div class="row">
-    <div class="col">
-      <hr style="color:blue">
-      <h4>Yield Stats </h4>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-sm">
-      <h5 style="text-align: center" >Distribution</h5>
-        <div style="text-align: center" id="yieldsChart"></div>
-    </div>
-  </div>
-  <div class="row">
-  </div>
-</div>
-<div class="container">
-
-  <div class="row">
-    <div class="col">
-      <hr style="color:blue">
-      <h4>New Price Stats </h4>
+      <h4>Yield Distribution</h4>
     </div>
   </div>
 
   <div class="row">
     <div class="col-sm">
-      <h5 style="text-align: center" >Chart</h5>
-        <div style="text-align: center" id="newPriceChart"></div>
-    </div>
-  </div>
-</div>
-<div class="container">
-
-  <div class="row">
-    <div class="col">
-      <hr style="color:blue">
-      <h4>New Yield Stats </h4>
+      <div style="text-align: center" id="yieldChart"></div>
     </div>
   </div>
 
   <div class="row">
-    <div class="col-sm">
-      <h5 style="text-align: center" >Chart</h5>
-        <div style="text-align: center" id="newYieldChart"></div>
+    <div style="text-align: center" class="col-sm">
+      <label>Histogram<input type="radio" name="yieldChartType" id="yieldHistogramButton" checked="checked"/></label>
+      <label>Box Plot<input type="radio" name="yieldChartType" id="yieldBoxplotButton"/></label>
     </div>
   </div>
 </div>
 
-<div class="container">
-  <div class="row">
-    <div class="col">
-      <hr/>
-      <h4>Cost Stats</h4>
-    </div>
-  </div>
-
-  <div class="row">
-    <div class="col-sm-2">
-      Current Cost:
-    </div>
-    <div class="col-sm-2">
-      ${{ crop.data.cost|floatformat:2}} / {{ crop.data.unit }} 
-    </div>
-  </div>
-
-  <div class="row">
-    <div class="col-sm-2">
-      Average cost:
-    </div>
-
-    <div class="col-sm-2">
-      ${{ crop.data.mean_price|floatformat:2}} / {{ crop.data.unit }}
-    </div>
-  </div>
-
-  <div class="row">
-    <div class="col-sm-2">
-      My Cost:
-    </div>
-    <div class="col-sm-2">
-      ${{crop.net_cost|floatformat:2}} / {{ crop.data.unit }}
-    </div>
-  </div>
-
-</div>
-
-<!-- In this script, functions defining plot generation are defined. 
-     A function that generates a plot is bound to a div by "id". -->
 <script> 
-
-  // Loads initial data and generates a histogram.
-  var pricesData = JSON.parse( '{{ crop.data.get_prices_plotdata|escapejs }}' )
-  var pricesChart = c3.generate({
-    bindto: '#pricesChart',
-    legend: { show: false },
-    data: {
-      columns: [ 
-        pricesData[ 'counts' ] 
-      ],
-      type: 'bar',
-    },
-    axis: {
-      x: {
-        categories: pricesData[ 'bins' ],
-        type: 'category',
-        label: {
-          text: 'Average Price',
-          position: 'outer-center'
-        }
-      },
-      y: {
-        label: {
-          text: 'Count',
-          position: 'outer-left'
-        },
-        tick: { 
-          values: pricesData[ 'y-ticks' ]
-        }
-      }
-    },
-    size: {
-      width: 700,
-      height: 200
-    }
-  });
-
-  // Loads initial data and generates a histogram.
-  var yieldsData = JSON.parse( '{{ crop.data.get_yields_plotdata|escapejs }}' )
-  var yieldsChart = c3.generate({
-    bindto: '#yieldsChart',
-    legend: { show: false },
-    title: {
-      text: yieldsData[ 'title' ]
-    },
-    data: {
-      columns: [ 
-        yieldsData[ 'counts' ] 
-      ],
-      type: 'bar',
-    },
-    axis: {
-      x: {
-        categories: yieldsData[ 'bins' ],
-        type: 'category',
-        label: {
-          text: 'Average Yield',
-          position: 'outer-center'
-        }
-      },
-      y: {
-        label: {
-          text: 'Count',
-          position: 'outer-left'
-        },
-        tick: { 
-          values: yieldsData[ 'y-ticks' ]
-        }
-      }
-    },
-    size: {
-      width: 700,
-      height: 200
-    }
-  });
-
   // Loads Google Charts packages, then calls chartSetup().
   google.charts.load('current', {'packages': ['corechart', 'controls']});
   google.charts.setOnLoadCallback( chartSetup )
 
+  // Global for storing raw data.
+  var data = []
+  // Global for storing options for each chart type.
+  var options = []
+  // Global for storing datatables, formatted for a specific chart type.
+  var tables = []
+
   /**
    * Attempts to load an array of crop prices. If loading is successful, the array
-   * is converted to an array of arrays (formatting for Google Charts') and returned.
-   * If loading is unsuccesful, an error is thrown.
+   * is converted to an array of arrays (formatting for Google Charts) and returned.
+   * If loading is unsuccesful, an error is thrown. The original array is stored 
+   * in "data[ 'prices' ]"....
    *
-   * If crop data ever needs to be dynamic, replace this with an AJAX call.
+   * Should crop data ever need to be dynamic, replace this with an AJAX call.
    */
   async function loadCropPrices() {
     const pricesJSON = '{{ crop.data.prices }}'
+
     if ( pricesJSON != '' ) {
-      return cropPrices = chunkArray( JSON.parse( pricesJSON ))
+      data[ 'prices' ] = JSON.parse( pricesJSON )
     } else {
       throw "Error in loadCropPrices()!"
     }
@@ -295,8 +127,9 @@
    */
   async function loadCropYields() {
     const yieldsJSON = '{{ crop.data.yields }}'
+
     if ( yieldsJSON != '' ) {
-      return cropYields = chunkArray( JSON.parse( yieldsJSON ) )
+      data[ 'yields' ] = JSON.parse( yieldsJSON )
     } else {
       throw "Error in loadCropYields()!"
     }
@@ -305,54 +138,206 @@
   // Converts an array to an array of arrays.
   // e.g. [ 1, 2, 3] => [ [1], [2], [3], ]
   function chunkArray( array ) {
-    array.forEach( (element, idx) => {
-      array[ idx ] = [ element ]
+    var arrayCopy = [...array]
+    arrayCopy.forEach( (element, idx) => {
+      arrayCopy[ idx ] = [ element ]
     })
-    return array
+    return arrayCopy
+  }
+
+  // Global settings for box plots.
+  options[ 'boxplot' ] = {
+    height: 400,
+    legend: {position: 'none'},
+    hAxis: {
+      gridlines: {color: '#fff'}
+      
+    },
+    lineWidth: 1,
+    series: [{'color': '#D3362D'}],
+    intervals: {
+      barWidth: 1,
+      boxWidth: 1,
+      lineWidth: 3,
+      style: 'boxes'
+    },
+    interval: {
+      max: {
+        style: 'bars',
+        fillOpacity: 1,
+        color: '#777'
+      },
+      min: {
+        style: 'bars',
+        fillOpacity: 1,
+        color: '#777'
+      }
+    },
+    orientation: 'vertical'
+  }
+
+  // Global settings for histograms.
+  options[ 'histogram' ] = {
+    height: 400,
+    legend: {position: 'none'},
+    hAxis: {
+      gridlines: {color: '#fff'}
+    },
+    lineWidth: 0
   }
 
   /**
-   * Loads data needed for charts into ChartWrappers, configures the charts,
-   * then plots the data in the DEFAULT_CHART. Users can then select to
-   * plot the data in a different type of chart.
+   * Loads data needed for charts into ChartWrappers, 
+   * configures the charts, then plots the data. 
    */
   async function chartSetup() {
-    //const DEFAULT_CHART = Charts.ChartType.HISTOGRAM
-
-    var priceChart = new google.visualization.ChartWrapper({
+    window.priceChart = new google.visualization.ChartWrapper({
       options: { 'title': 'Price Data'},
-      containerId: 'newPriceChart'
+      containerId: 'priceChart'
     });
-    var yieldChart = new google.visualization.ChartWrapper({
+
+    window.yieldChart = new google.visualization.ChartWrapper({
       options: { 'title': 'Yield Data'},
-      containerId: 'newYieldChart'
+      containerId: 'yieldChart'
     });
 
     // Attempts to load yield and price data.
     try {
-      const [ cropPrices, cropYields ] = await Promise.all( [ loadCropPrices(), loadCropYields() ] );
+      await Promise.all( [ loadCropPrices(), loadCropYields() ] );
     } catch ( error ) {
       console.log( error )
     }
 
-    var data = [];
+    // Configures and draws histograms.
+    setupHistogram( 'yieldHistogram', 'yields', 'yields' ).then( drawYieldHistogram() );
+    setupHistogram( 'priceHistogram', 'prices', 'prices' ).then( drawPriceHistogram() );
 
-    data[0] = new google.visualization.DataTable();
-    data[0].addColumn( 'number', 'prices' )
-    data[0].addRows( cropPrices )
-
-    data[1] = new google.visualization.DataTable();
-    data[1].addColumn( 'number', 'yields' )
-    data[1].addRows( cropYields )
-
-    drawHistogram( priceChart, data[0] )
-    drawHistogram( yieldChart, data[1] )
+    // Configures boxplots to be drawn later. 
+    setupBoxplot( 'priceBoxplot', 'prices' )
+    setupBoxplot( 'yieldBoxplot', 'yields' )
   }
 
-  function drawHistogram( chart, data ) {
-    chart.setDataTable( data )
-    chart.setChartType( "Histogram" )
-    chart.draw()
+  async function setupHistogram( table_key, data_key, attr_name ) {
+    var datatable = new google.visualization.DataTable();
+    datatable.addColumn( 'number', attr_name )
+    datatable.addRows( chunkArray( data[ data_key ] ) )
+    tables[ table_key ] =  datatable
+  }
+  /**
+   * Given an array of numbers (prices, yields, etc) stored in 
+   * "data[ data_key ]", configures a datatable and stores it in
+   * "tables[ table_key]".
+   */
+  async function setupBoxplot( table_key, data_key ) {
+    // Creates array of a shallow copy of price data.
+    var boxplotData = [ [...data[ data_key ]] ]
+
+    boxplotData[ 0 ].unshift( '' )
+    var datatable = new google.visualization.DataTable();
+
+    // Addings N columns for N values in "boxPlotData".
+    datatable.addColumn('string', 'x');
+    for (var i = 1; i < boxplotData[ 0 ].length; i++) {
+      datatable.addColumn( 'number', '')
+    }
+
+    // Adding columns for 'whisker' values.
+    datatable.addColumn( {id:'max', type:'number', role:'interval'} );
+    datatable.addColumn( {id:'min', type:'number', role:'interval'} );
+    datatable.addColumn( {id:'firstQuartile', type:'number', role:'interval'} );
+    datatable.addColumn( {id:'median', type:'number', role:'interval'} );
+    datatable.addColumn( {id:'thirdQuartile', type:'number', role:'interval'} );
+
+    datatable.addRows( await getBoxPlotValues( boxplotData ) )
+    tables[ table_key ] = datatable
+  }
+
+  // Returns median from a sorted array of values.
+  function getMedian( array ) {
+    var length = array.length;
+
+    if (length % 2 === 0) {
+      var midUpper = length / 2;
+      var midLower = midUpper - 1;
+      return ( array[ midUpper ] + array[ midLower ] ) / 2;
+    } else {
+      return array[ Math.floor( length / 2 ) ];
+    }
+  }
+
+  /*
+  * Calculates and appends (in order) the max, min, 1st-quartile, median, and 
+  * 3rd-quartile to "array" so a box plot can be plotted.
+  */
+  function getBoxPlotValues(array) {
+    for (var i = 0; i < array.length; i++) {
+
+      var arr = array[ i ].slice( 1 ).sort( ( a, b ) => {
+        return a - b;
+      });
+
+      var max = arr[ arr.length - 1 ];
+      var min = arr[ 0 ];
+      var median = getMedian( arr );
+      var firstQuartile = getMedian( arr.slice( 0, Math.round( arr.length / 2 )) );
+      var thirdQuartile = getMedian( arr.slice( Math.floor( arr.length / 2 )) );
+
+      array[i].push( max )
+      array[i].push( min )
+      array[i].push( firstQuartile )
+      array[i].push( median )
+      array[i].push( thirdQuartile )
+    }
+
+    return array;
+  }
+
+  function drawPriceHistogram() {
+    window.priceChart.setDataTable( tables[ 'priceHistogram' ] )
+    window.priceChart.setChartType( 'Histogram' )
+    window.priceChart.setOptions( options[ 'histogram' ] )
+    window.priceChart.draw()
+  }
+
+  function drawYieldHistogram() {
+    window.yieldChart.setDataTable( tables[ 'yieldHistogram' ])
+    window.yieldChart.setChartType( 'Histogram' )
+    window.yieldChart.setOptions( options[ 'histogram' ] )
+    window.yieldChart.draw()
+  }
+
+  function drawPriceBoxplot() {
+    window.priceChart.setChartType( 'LineChart' )
+    window.priceChart.setDataTable( tables[ 'priceBoxplot' ] ) 
+    window.priceChart.setOptions( options[ 'boxplot'] )
+    window.priceChart.draw()
+  }
+
+  function drawYieldBoxplot() {
+    window.yieldChart.setChartType( 'LineChart' )
+    window.yieldChart.setDataTable( tables[ 'yieldBoxplot' ] ) 
+    window.yieldChart.setOptions( options[ 'boxplot' ] )
+    window.yieldChart.draw()
+  }
+
+  var priceBoxplotButton = document.getElementById( 'priceBoxplotButton' )
+  priceBoxplotButton.onchange = function () {
+    drawPriceBoxplot()
+  }
+
+  var priceHistogramButton = document.getElementById( 'priceHistogramButton' )
+  priceHistogramButton.onchange = function () {
+    drawPriceHistogram()
+  }
+
+  var yieldBoxplotButton = document.getElementById( 'yieldBoxplotButton' )
+  yieldBoxplotButton.onchange = function () {
+    drawYieldBoxplot()
+  }
+
+  var yieldHistogramButton = document.getElementById( 'yieldHistogramButton' )
+  yieldHistogramButton.onchange = function () {
+    drawYieldHistogram()
   }
 
 </script>
