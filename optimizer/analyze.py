@@ -198,3 +198,64 @@ def mkHistogram(data, bins=6):
     # convert ndarray to native list and int64 to native int
     a_counts = [i for i in map(int, list(counts))]
     return {'counts': a_counts, 'edges': list(edges), }
+
+
+def trianglePoints(triple):
+    lo, peak, hi = triple['lo'], triple['peak'], triple['hi']
+    peakHeight = 2.0 / (hi - lo)
+    points = {
+        'lo': {'x': lo, 'y': 0.0},
+        'peak': {'x': peak, 'y': peakHeight},
+        'hi': {'x': hi, 'y': 0.0}
+    }
+    return points
+
+
+'''
+    Given an array of triples (lo, peak, hi), returns an object
+    with the format:
+        {
+            'points': trianglePoints(triple),
+            'stats': <stats on group triangles>}
+        }
+    Where 'stats' is a dict with statistics on the set of triples
+    passed in. These statistics can be used for setting common
+    options for plotting this group of triangles, like axis bounds.
+'''
+def getTriangles(triples):
+    minValue = float('inf')
+    maxValue = float('-inf')
+    minHeight = float('inf')
+    maxHeight = float('-inf')
+
+    # Stores sets of triangle coordinates along with stats about the data.
+    points = []
+
+    for triple in triples:
+        # Calculates coordinates for this triple.
+        triangle = trianglePoints(triple)
+        points.append(triangle)
+
+        # Updates stats.
+        if triple['lo'] < minValue:
+            minValue = triple['lo']
+        if triple['hi'] > maxValue:
+            maxValue = triple['hi']
+        if triangle['peak']['y'] > maxHeight:
+            maxHeight = triangle['peak']['y']
+        if triangle['peak']['y'] < minHeight:
+            minHeight = triangle['peak']['y']
+
+    triangles = {}
+
+    # Adding array of triangle coordinate triples.
+    triangles['points'] = points
+
+    # Adding stats about the triangles.
+    triangles['stats'] = {
+            'minValue': minValue,
+            'maxValue': maxValue,
+            'minHeight': minHeight,
+            'maxHeight': maxHeight
+    }
+    return triangles
