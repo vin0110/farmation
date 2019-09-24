@@ -154,6 +154,7 @@
   // Global settings for box plots.
   options[ 'boxplot' ] = {
     height: 400,
+    width: 650,
     legend: {position: 'none'},
     hAxis: {
       gridlines: {color: '#fff'}
@@ -185,6 +186,7 @@
   // Global settings for histograms.
   options[ 'histogram' ] = {
     height: 400,
+    width: 650,
     legend: {position: 'none'},
     hAxis: {
       gridlines: {color: '#fff'}
@@ -192,18 +194,18 @@
     lineWidth: 0
   }
 
+
+
   /**
    * Loads data needed for charts into ChartWrappers, 
    * configures the charts, then plots the data. 
    */
   async function chartSetup() {
     window.priceChart = new google.visualization.ChartWrapper({
-      options: { 'title': 'Price Data'},
       containerId: 'priceChart'
     });
 
     window.yieldChart = new google.visualization.ChartWrapper({
-      options: { 'title': 'Yield Data'},
       containerId: 'yieldChart'
     });
 
@@ -215,10 +217,20 @@
     }
 
     // Configures and draws triangle distributions.
+    /*
     setupTriangle( 'yieldTriangle', 'yield_stats', 'yield_triangle' ).
       then( drawChart( window.yieldChart, 'AreaChart', 'yieldTriangle', 'yield_triangle') );
     setupTriangle( 'priceTriangle', 'price_stats', 'price_triangle' ).
       then( drawChart( window.priceChart, 'AreaChart', 'priceTriangle', 'price_triangle') );
+      */
+    await Promise.all( [ 
+      setupTriangle( 'yieldTriangle', 'yield_stats', 'yield_triangle' ),
+      setupTriangle( 'priceTriangle', 'price_stats', 'price_triangle' )
+    ]);
+
+    drawChart( window.yieldChart, 'AreaChart', 'yieldTriangle', 'yield_triangle')
+    drawChart( window.priceChart, 'AreaChart', 'priceTriangle', 'price_triangle')
+
 
     // Preparing charts which will be drawn when their button is selected.
     setupHistogram( 'yieldHistogram', 'yields', 'yields' )
@@ -226,29 +238,66 @@
     setupBoxplot( 'priceBoxplot', 'prices' )
     setupBoxplot( 'yieldBoxplot', 'yields' )
 
+    attachEventListeners()
+
   }
 
-  async function setTriChartOptions( distStats, optionsKey ) {
+    // Global settings for triangle plots for prices.
+  options[ 'price_triangle' ] = {
+    hAxis: {
+      format: 'currency'
+    }
+  }
+
+  // Global settings for triangle plots for yields.
+  options[ 'yield_triangle' ] =  {
+  }
+  
+  async function setTriChartOptions( trianglePoints, optionsKey) {
+    // X-coordinates of min and max values for crop data.
+    var hi = trianglePoints[ 'hi' ][ 0 ]
+    var lo = trianglePoints[ 'lo' ][ 0 ]
+
+    var offset = (hi - lo) * 0.2
+    var xAxisUpperBound = Math.round( hi + offset )
+    var xAxisLowerBound = Math.round( lo - offset )
+
+    // Appends options common to all triangle plots.
+    // Search "object spread operator" for explanation of ellipses.
     options[ optionsKey ] =  {
       height: 400,
+      width: 650,
+      hAxis: {
+        // Appending additional 'hAxis' options 
+        ...options[ optionsKey ][ 'hAxis' ],
+        ...{
+          viewWindow : {
+            min: xAxisLowerBound,
+            max: xAxisUpperBound
+          }
+        }
+      },
+      vAxis: {
+        format: 'percent'
+      }
     }
   }
 
   async function setupTriangle( tableKey, dataKey, optionsKey ) {
     // Sets chart options for displaying a triangle distribution.
-    setTriChartOptions( data[ dataKey ][ 'tri_dist' ], optionsKey )
+    trianglePoints = data[ dataKey ][ 'tri_dist' ]
+    setTriChartOptions( trianglePoints, optionsKey )
 
     var datatable = new google.visualization.DataTable();
-    datatable.addColumn('number', 'x')
-    datatable.addColumn('number', 'y')
+    datatable.addColumn('number', 'value')
+    datatable.addColumn('number', 'probability')
     datatable.addRows( [
-      [1,0],
-      [4,4],
-      [6,0]
+      trianglePoints[ 'lo' ],
+      trianglePoints[ 'peak' ],
+      trianglePoints[ 'hi' ]
     ])
     tables[ tableKey ] = datatable
   }
-
 
   async function setupHistogram( tableKey, dataKey, attrName ) {
     var datatable = new google.visualization.DataTable();
@@ -256,6 +305,7 @@
     datatable.addRows( chunkArray( data[ dataKey ] ) )
     tables[ tableKey ] =  datatable
   }
+
   /**
    * Given an array of numbers (prices, yields, etc) stored in 
    * "data[ dataKey ]", configures a datatable and stores it in
@@ -325,44 +375,53 @@
     return array;
   }
 
-  function drawChart( chartElement, chartType, tableKey, optionsKey ) {
-    chartElement.setChartType( chartType )
-    chartElement.setDataTable( tables[ tableKey ] ) 
-    chartElement.setOptions( options[ optionsKey ] )
-    chartElement.draw()
+  
+  // Draws the chart 
+  function drawChart( chartWrapper, chartType, tableKey, optionsKey ) {
+    chartWrapper.setChartType( chartType )
+    chartWrapper.setDataTable( tables[ tableKey ] ) 
+    chartWrapper.setOptions( options[ optionsKey ] )
+    chartWrapper.draw()
   }
 
-  var priceBoxplotButton = document.getElementById( 'priceBoxplotButton' )
-  priceBoxplotButton.onchange = function () {
-    drawChart( window.priceChart, 'LineChart', 'priceBoxplot', 'boxplot')
+  // Attaches event listeners to the buttons defined in ButtonWrappers.
+  function attachEventListeners() {
+    class ButtonWrapper {
+      constructor( elementID, params ) {
+        // HTML ID for the button element.
+        this.elementID = elementID
+        // Parameters to pass to drawChart().
+        this.params = params
+      }
+    }
+
+    // Stores IDs for button elements and associated arguments for drawChart(), 
+    // which is attached as an EventListener to each element.
+    var ButtonWrappers = [
+      new ButtonWrapper( 'priceBoxplotButton', 
+        [ window.priceChart, 'LineChart', 'priceBoxplot', 'boxplot']),
+      new ButtonWrapper( 'priceHistogramButton', 
+        [ window.priceChart, 'Histogram', 'priceHistogram', 'histogram']),
+      new ButtonWrapper(  'priceTriangleButton', 
+        [ window.priceChart, 'AreaChart', 'priceTriangle', 'price_triangle']),
+      new ButtonWrapper(  'yieldBoxplotButton', 
+        [ window.yieldChart, 'LineChart', 'yieldBoxplot', 'boxplot']),
+      new ButtonWrapper(  'yieldHistogramButton',
+        [ window.yieldChart, 'Histogram', 'yieldHistogram', 'histogram']),
+      new ButtonWrapper(  'yieldTriangleButton',
+        [ window.yieldChart, 'AreaChart', 'yieldTriangle', 'yield_triangle'])
+    ];
+
+    ButtonWrappers.forEach( ( wrapper ) => {
+      var button = document.getElementById( wrapper.elementID )
+      button.addEventListener( 'change', 
+        function() {
+          drawChart(...wrapper.params)
+        },
+        { passive:true }
+      );
+    });
   }
-
-  var priceHistogramButton = document.getElementById( 'priceHistogramButton' )
-  priceHistogramButton.onchange = function () {
-    drawChart( window.priceChart, 'Histogram', 'priceHistogram', 'histogram')
-  }
-
-  var yieldBoxplotButton = document.getElementById( 'yieldBoxplotButton' )
-  yieldBoxplotButton.onchange = function () {
-    drawChart( window.yieldChart, 'LineChart', 'yieldBoxplot', 'boxplot')
-  }
-
-  var yieldHistogramButton = document.getElementById( 'yieldHistogramButton' )
-  yieldHistogramButton.onchange = function () {
-    drawChart( window.yieldChart, 'Histogram', 'yieldHistogram', 'histogram')
-  }
-
-  var priceTriangleButton = document.getElementById( 'priceTriangleButton' )
-  priceTriangleButton.onchange = function () {
-    drawChart( window.priceChart, 'LineChart', 'priceTriangle', 'price_triangle')
-  }
-
-  var yieldTriangleButton = document.getElementById( 'yieldTriangleButton' )
-  yieldTriangleButton.onchange = function () {
-    drawChart( window.yieldChart, 'LineChart', 'yieldTriangle', 'yield_triangle')
-  }
-
-
 
 </script>
 

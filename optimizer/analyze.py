@@ -210,8 +210,9 @@ def trianglePoints(triple):
     lo, peak, hi = triple['lo'], triple['peak'], triple['hi']
     peakHeight = 2.0 / (hi - lo)
     points = {
-        'lo': {'x': lo, 'y': 0.0},
-        'peak': {'x': peak, 'y': peakHeight},
-        'hi': {'x': hi, 'y': 0.0}
+        'lo': [lo, 0.0],
+        'peak': [peak, peakHeight],
+        'hi': [hi, 0.0]
     }
+
     return points
