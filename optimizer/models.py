@@ -36,50 +36,11 @@ class CropData(models.Model):
         else:
             return None
 
-    # Returns JSON object formatted so C3.js can plot a graph.
-    def get_prices_plotdata(self):
-        prices_obj = json.loads(self.price_histo)
-        prices_obj[ 'counts' ].insert( 0, self.name.upper() + ' Prices')
-
-        # Converting edges into bin labels like "$1.50 - $2.75"
-        bins = [ ]
-        num_bins = len( prices_obj['edges'] ) - 1
-        for i in range( num_bins ) :
-            average = ( prices_obj['edges'][i] + prices_obj['edges'][i + 1] ) / 2
-            bins.append( "${:.2f}".format( average ) )
-
-        prices_obj['bins'] = bins
-        del prices_obj['edges']
-
-        # Creating list of ticks for the y-axis.
-        y_tick_buffer = 5
-        y_tick_max = max( prices_obj[ 'counts'][1:] ) + y_tick_buffer
-        prices_obj['y-ticks'] = list( range( 1, y_tick_max ))
-
-        return json.dumps( prices_obj )
-
-    # Returns JSON object formatted so C3.js can plot a graph.
-    def get_yields_plotdata(self):
-        yields_obj = json.loads( self.yield_histo )
-
-        # Setting legend text for data like "CORN : YIELD / BUSHEL"
-        yields_obj[ 'counts' ].insert( 0, self.name.upper() + ' Yields ( ' + self.unit  + 's / acre )' )
-
-        # Converting edges into bin labels like "1.5 - $2.8"
-        bins = [ ]
-        num_bins = len( yields_obj['edges'] ) - 1
-        for i in range( num_bins ) :
-            average = ( yields_obj['edges'][i] + yields_obj['edges'][i + 1] ) / 2
-            bins.append( "{:.1f}".format( average ) )
-        yields_obj['bins'] = bins
-        del yields_obj['edges']
-
-        # Creating list of ticks for the y-axis.
-        y_tick_buffer = 5
-        y_tick_max = max( yields_obj[ 'counts'][1:] ) + y_tick_buffer
-        yields_obj['y-ticks'] = list( range( 1, y_tick_max ))
-
-        return json.dumps( yields_obj )
+    def update_stats(self):
+        prices = json.loads(self.prices)
+        yields = json.loads(self.yields)
+        self.price_stats = json.dumps(describeData(prices))
+        self.yield_stats = json.dumps(describeData(yields))
 
     def save(self, *args, **kwargs):
         if self.prices:

@@ -180,14 +180,20 @@ def describeData(data):
     '''data is a list of floats'''
     stats = {}
     stats['average'] = np.average(data)
-    steps = np.percentile(data, [10, 25, 50, 75, 90])
-    stats['10'] = steps[0]
-    stats['q1'] = steps[1]
-    stats['median'] = steps[2]
-    stats['q3'] = steps[3]
-    stats['90'] = steps[4]
+    steps = np.percentile(data, [0, 10, 25, 50, 75, 90, 100])
+    stats['lo'] = steps[0]
+    stats['10'] = steps[1]
+    stats['q1'] = steps[2]
+    stats['median'] = steps[3]
+    stats['q3'] = steps[4]
+    stats['90'] = steps[5]
+    stats['hi'] = steps[6]
     stats['std'] = np.std(data)
-
+    stats['tri_dist'] = trianglePoints({
+        'lo': stats['lo'],
+        'peak': stats['median'],
+        'hi': stats['hi']
+    })
     return stats
 
 
@@ -209,53 +215,3 @@ def trianglePoints(triple):
         'hi': {'x': hi, 'y': 0.0}
     }
     return points
-
-
-'''
-    Given an array of triples (lo, peak, hi), returns an object
-    with the format:
-        {
-            'points': trianglePoints(triple),
-            'stats': <stats on group triangles>}
-        }
-    Where 'stats' is a dict with statistics on the set of triples
-    passed in. These statistics can be used for setting common
-    options for plotting this group of triangles, like axis bounds.
-'''
-def getTriangles(triples):
-    minValue = float('inf')
-    maxValue = float('-inf')
-    minHeight = float('inf')
-    maxHeight = float('-inf')
-
-    # Stores sets of triangle coordinates along with stats about the data.
-    points = []
-
-    for triple in triples:
-        # Calculates coordinates for this triple.
-        triangle = trianglePoints(triple)
-        points.append(triangle)
-
-        # Updates stats.
-        if triple['lo'] < minValue:
-            minValue = triple['lo']
-        if triple['hi'] > maxValue:
-            maxValue = triple['hi']
-        if triangle['peak']['y'] > maxHeight:
-            maxHeight = triangle['peak']['y']
-        if triangle['peak']['y'] < minHeight:
-            minHeight = triangle['peak']['y']
-
-    triangles = {}
-
-    # Adding array of triangle coordinate triples.
-    triangles['points'] = points
-
-    # Adding stats about the triangles.
-    triangles['stats'] = {
-            'minValue': minValue,
-            'maxValue': maxValue,
-            'minHeight': minHeight,
-            'maxHeight': maxHeight
-    }
-    return triangles
