@@ -61,7 +61,8 @@
 
 <div class="row">
   <div style="text-align: center" class="col-sm">
-    <label>Histogram<input type="radio" name="priceChartType" id="priceHistogramButton" checked="checked"/></label>
+    <label>Triangle Distribution<input type="radio" name="priceChartType" id="priceTriangleButton" checked="checked"/></label>
+    <label>Histogram<input type="radio" name="priceChartType" id="priceHistogramButton" /></label>
     <label>Box Plot<input type="radio" name="priceChartType" id="priceBoxplotButton"/></label>
   </div>
 </div>
@@ -82,14 +83,15 @@
 
   <div class="row">
     <div style="text-align: center" class="col-sm">
-      <label>Histogram<input type="radio" name="yieldChartType" id="yieldHistogramButton" checked="checked"/></label>
+      <label>Triangle Distribution<input type="radio" name="yieldChartType" id="yieldTriangleButton" checked="checked"/></label>
+      <label>Histogram<input type="radio" name="yieldChartType" id="yieldHistogramButton" /></label>
       <label>Box Plot<input type="radio" name="yieldChartType" id="yieldBoxplotButton"/></label>
     </div>
   </div>
 </div>
 
 <script> 
-  // Loads Google Charts packages, then calls chartSetup().
+  // Loads Google Charts packages, then calls chartSetup()
   google.charts.load('current', {'packages': ['corechart', 'controls']});
   google.charts.setOnLoadCallback( chartSetup )
 
@@ -110,9 +112,11 @@
    */
   async function loadCropPrices() {
     const pricesJSON = '{{ crop.data.prices }}'
+    const priceStatsJSON = '{{ crop.data.price_stats|escapejs }}'
 
-    if ( pricesJSON != '' ) {
+    if ( pricesJSON != '' && priceStatsJSON != '' ) {
       data[ 'prices' ] = JSON.parse( pricesJSON )
+      data[ 'price_stats' ] = JSON.parse( priceStatsJSON )
     } else {
       throw "Error in loadCropPrices()!"
     }
@@ -127,9 +131,11 @@
    */
   async function loadCropYields() {
     const yieldsJSON = '{{ crop.data.yields }}'
+    const yieldStatsJSON = '{{ crop.data.yield_stats|escapejs }}'
 
-    if ( yieldsJSON != '' ) {
+    if ( yieldsJSON != '' && yieldStatsJSON != '') {
       data[ 'yields' ] = JSON.parse( yieldsJSON )
+      data[ 'yield_stats' ] = JSON.parse( yieldStatsJSON )
     } else {
       throw "Error in loadCropYields()!"
     }
@@ -208,29 +214,56 @@
       console.log( error )
     }
 
-    // Configures and draws histograms.
-    setupHistogram( 'yieldHistogram', 'yields', 'yields' ).then( drawYieldHistogram() );
-    setupHistogram( 'priceHistogram', 'prices', 'prices' ).then( drawPriceHistogram() );
+    // Configures and draws triangle distributions.
+    setupTriangle( 'yieldTriangle', 'yield_stats', 'yield_triangle' ).
+      then( drawChart( window.yieldChart, 'AreaChart', 'yieldTriangle', 'yield_triangle') );
+    setupTriangle( 'priceTriangle', 'price_stats', 'price_triangle' ).
+      then( drawChart( window.priceChart, 'AreaChart', 'priceTriangle', 'price_triangle') );
 
-    // Configures boxplots to be drawn later. 
+    // Preparing charts which will be drawn when their button is selected.
+    setupHistogram( 'yieldHistogram', 'yields', 'yields' )
+    setupHistogram( 'priceHistogram', 'prices', 'prices' )
     setupBoxplot( 'priceBoxplot', 'prices' )
     setupBoxplot( 'yieldBoxplot', 'yields' )
+
   }
 
-  async function setupHistogram( table_key, data_key, attr_name ) {
+  async function setTriChartOptions( distStats, optionsKey ) {
+    options[ optionsKey ] =  {
+      height: 400,
+    }
+  }
+
+  async function setupTriangle( tableKey, dataKey, optionsKey ) {
+    // Sets chart options for displaying a triangle distribution.
+    setTriChartOptions( data[ dataKey ][ 'tri_dist' ], optionsKey )
+
     var datatable = new google.visualization.DataTable();
-    datatable.addColumn( 'number', attr_name )
-    datatable.addRows( chunkArray( data[ data_key ] ) )
-    tables[ table_key ] =  datatable
+    datatable.addColumn('number', 'x')
+    datatable.addColumn('number', 'y')
+    datatable.addRows( [
+      [1,0],
+      [4,4],
+      [6,0]
+    ])
+    tables[ tableKey ] = datatable
+  }
+
+
+  async function setupHistogram( tableKey, dataKey, attrName ) {
+    var datatable = new google.visualization.DataTable();
+    datatable.addColumn( 'number', attrName )
+    datatable.addRows( chunkArray( data[ dataKey ] ) )
+    tables[ tableKey ] =  datatable
   }
   /**
    * Given an array of numbers (prices, yields, etc) stored in 
-   * "data[ data_key ]", configures a datatable and stores it in
-   * "tables[ table_key]".
+   * "data[ dataKey ]", configures a datatable and stores it in
+   * "tables[ tableKey]".
    */
-  async function setupBoxplot( table_key, data_key ) {
+  async function setupBoxplot( tableKey, dataKey ) {
     // Creates array of a shallow copy of price data.
-    var boxplotData = [ [...data[ data_key ]] ]
+    var boxplotData = [ [...data[ dataKey ]] ]
 
     boxplotData[ 0 ].unshift( '' )
     var datatable = new google.visualization.DataTable();
@@ -249,7 +282,7 @@
     datatable.addColumn( {id:'thirdQuartile', type:'number', role:'interval'} );
 
     datatable.addRows( await getBoxPlotValues( boxplotData ) )
-    tables[ table_key ] = datatable
+    tables[ tableKey ] = datatable
   }
 
   // Returns median from a sorted array of values.
@@ -292,53 +325,44 @@
     return array;
   }
 
-  function drawPriceHistogram() {
-    window.priceChart.setDataTable( tables[ 'priceHistogram' ] )
-    window.priceChart.setChartType( 'Histogram' )
-    window.priceChart.setOptions( options[ 'histogram' ] )
-    window.priceChart.draw()
-  }
-
-  function drawYieldHistogram() {
-    window.yieldChart.setDataTable( tables[ 'yieldHistogram' ])
-    window.yieldChart.setChartType( 'Histogram' )
-    window.yieldChart.setOptions( options[ 'histogram' ] )
-    window.yieldChart.draw()
-  }
-
-  function drawPriceBoxplot() {
-    window.priceChart.setChartType( 'LineChart' )
-    window.priceChart.setDataTable( tables[ 'priceBoxplot' ] ) 
-    window.priceChart.setOptions( options[ 'boxplot'] )
-    window.priceChart.draw()
-  }
-
-  function drawYieldBoxplot() {
-    window.yieldChart.setChartType( 'LineChart' )
-    window.yieldChart.setDataTable( tables[ 'yieldBoxplot' ] ) 
-    window.yieldChart.setOptions( options[ 'boxplot' ] )
-    window.yieldChart.draw()
+  function drawChart( chartElement, chartType, tableKey, optionsKey ) {
+    chartElement.setChartType( chartType )
+    chartElement.setDataTable( tables[ tableKey ] ) 
+    chartElement.setOptions( options[ optionsKey ] )
+    chartElement.draw()
   }
 
   var priceBoxplotButton = document.getElementById( 'priceBoxplotButton' )
   priceBoxplotButton.onchange = function () {
-    drawPriceBoxplot()
+    drawChart( window.priceChart, 'LineChart', 'priceBoxplot', 'boxplot')
   }
 
   var priceHistogramButton = document.getElementById( 'priceHistogramButton' )
   priceHistogramButton.onchange = function () {
-    drawPriceHistogram()
+    drawChart( window.priceChart, 'Histogram', 'priceHistogram', 'histogram')
   }
 
   var yieldBoxplotButton = document.getElementById( 'yieldBoxplotButton' )
   yieldBoxplotButton.onchange = function () {
-    drawYieldBoxplot()
+    drawChart( window.yieldChart, 'LineChart', 'yieldBoxplot', 'boxplot')
   }
 
   var yieldHistogramButton = document.getElementById( 'yieldHistogramButton' )
   yieldHistogramButton.onchange = function () {
-    drawYieldHistogram()
+    drawChart( window.yieldChart, 'Histogram', 'yieldHistogram', 'histogram')
   }
+
+  var priceTriangleButton = document.getElementById( 'priceTriangleButton' )
+  priceTriangleButton.onchange = function () {
+    drawChart( window.priceChart, 'LineChart', 'priceTriangle', 'price_triangle')
+  }
+
+  var yieldTriangleButton = document.getElementById( 'yieldTriangleButton' )
+  yieldTriangleButton.onchange = function () {
+    drawChart( window.yieldChart, 'LineChart', 'yieldTriangle', 'yield_triangle')
+  }
+
+
 
 </script>
 
