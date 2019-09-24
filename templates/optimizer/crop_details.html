@@ -52,18 +52,10 @@
     </div>
   </div>
 
- <div class="row">
+  <div class="row">
     <div class="col">
       <div style="text-align: center" id="priceChart"></div>
     </div>
-  </div>
-</div>
-
-<div class="row">
-  <div style="text-align: center" class="col-sm">
-    <label>Triangle Distribution<input type="radio" name="priceChartType" id="priceTriangleButton" checked="checked"/></label>
-    <label>Histogram<input type="radio" name="priceChartType" id="priceHistogramButton" /></label>
-    <label>Box Plot<input type="radio" name="priceChartType" id="priceBoxplotButton"/></label>
   </div>
 </div>
 
@@ -78,14 +70,6 @@
   <div class="row">
     <div class="col-sm">
       <div style="text-align: center" id="yieldChart"></div>
-    </div>
-  </div>
-
-  <div class="row">
-    <div style="text-align: center" class="col-sm">
-      <label>Triangle Distribution<input type="radio" name="yieldChartType" id="yieldTriangleButton" checked="checked"/></label>
-      <label>Histogram<input type="radio" name="yieldChartType" id="yieldHistogramButton" /></label>
-      <label>Box Plot<input type="radio" name="yieldChartType" id="yieldBoxplotButton"/></label>
     </div>
   </div>
 </div>
@@ -103,19 +87,14 @@
   var tables = []
 
   /**
-   * Attempts to load an array of crop prices. If loading is successful, the array
-   * is converted to an array of arrays (formatting for Google Charts) and returned.
-   * If loading is unsuccesful, an error is thrown. The original array is stored 
-   * in "data[ 'prices' ]"....
-   *
-   * Should crop data ever need to be dynamic, replace this with an AJAX call.
+   * Attempts to load stats for crop prices. If loading is unsuccesful, 
+   * an error is thrown. Should crop data ever need to be dynamic, 
+   * replace this with an AJAX call.
    */
   async function loadCropPrices() {
-    const pricesJSON = '{{ crop.data.prices }}'
     const priceStatsJSON = '{{ crop.data.price_stats|escapejs }}'
 
-    if ( pricesJSON != '' && priceStatsJSON != '' ) {
-      data[ 'prices' ] = JSON.parse( pricesJSON )
+    if ( priceStatsJSON != '' ) {
       data[ 'price_stats' ] = JSON.parse( priceStatsJSON )
     } else {
       throw "Error in loadCropPrices()!"
@@ -123,78 +102,21 @@
   }
 
   /**
-   * Attempts to load an array of crop yields. If loading is successful, the array
+   * Attempts to stats for crop yields. If loading is successful, the array
    * is converted to an array of arrays (formatting for Google Charts') and returned.
    * If loading is unsuccesful, an error is thrown.
    *
    * If crop data ever needs to be dynamic, replace this with an AJAX call.
    */
   async function loadCropYields() {
-    const yieldsJSON = '{{ crop.data.yields }}'
     const yieldStatsJSON = '{{ crop.data.yield_stats|escapejs }}'
 
-    if ( yieldsJSON != '' && yieldStatsJSON != '') {
-      data[ 'yields' ] = JSON.parse( yieldsJSON )
+    if ( yieldStatsJSON != '') {
       data[ 'yield_stats' ] = JSON.parse( yieldStatsJSON )
     } else {
       throw "Error in loadCropYields()!"
     }
   }
-
-  // Converts an array to an array of arrays.
-  // e.g. [ 1, 2, 3] => [ [1], [2], [3], ]
-  function chunkArray( array ) {
-    var arrayCopy = [...array]
-    arrayCopy.forEach( (element, idx) => {
-      arrayCopy[ idx ] = [ element ]
-    })
-    return arrayCopy
-  }
-
-  // Global settings for box plots.
-  options[ 'boxplot' ] = {
-    height: 400,
-    width: 650,
-    legend: {position: 'none'},
-    hAxis: {
-      gridlines: {color: '#fff'}
-      
-    },
-    lineWidth: 1,
-    series: [{'color': '#D3362D'}],
-    intervals: {
-      barWidth: 1,
-      boxWidth: 1,
-      lineWidth: 3,
-      style: 'boxes'
-    },
-    interval: {
-      max: {
-        style: 'bars',
-        fillOpacity: 1,
-        color: '#777'
-      },
-      min: {
-        style: 'bars',
-        fillOpacity: 1,
-        color: '#777'
-      }
-    },
-    orientation: 'vertical'
-  }
-
-  // Global settings for histograms.
-  options[ 'histogram' ] = {
-    height: 400,
-    width: 650,
-    legend: {position: 'none'},
-    hAxis: {
-      gridlines: {color: '#fff'}
-    },
-    lineWidth: 0
-  }
-
-
 
   /**
    * Loads data needed for charts into ChartWrappers, 
@@ -217,32 +139,13 @@
     }
 
     // Configures and draws triangle distributions.
-    /*
     setupTriangle( 'yieldTriangle', 'yield_stats', 'yield_triangle' ).
-      then( drawChart( window.yieldChart, 'AreaChart', 'yieldTriangle', 'yield_triangle') );
+      then( drawChart( window.yieldChart, 'AreaChart', 'yieldTriangle', 'yield_triangle'))
     setupTriangle( 'priceTriangle', 'price_stats', 'price_triangle' ).
-      then( drawChart( window.priceChart, 'AreaChart', 'priceTriangle', 'price_triangle') );
-      */
-    await Promise.all( [ 
-      setupTriangle( 'yieldTriangle', 'yield_stats', 'yield_triangle' ),
-      setupTriangle( 'priceTriangle', 'price_stats', 'price_triangle' )
-    ]);
-
-    drawChart( window.yieldChart, 'AreaChart', 'yieldTriangle', 'yield_triangle')
-    drawChart( window.priceChart, 'AreaChart', 'priceTriangle', 'price_triangle')
-
-
-    // Preparing charts which will be drawn when their button is selected.
-    setupHistogram( 'yieldHistogram', 'yields', 'yields' )
-    setupHistogram( 'priceHistogram', 'prices', 'prices' )
-    setupBoxplot( 'priceBoxplot', 'prices' )
-    setupBoxplot( 'yieldBoxplot', 'yields' )
-
-    attachEventListeners()
-
+      then( drawChart( window.priceChart, 'AreaChart', 'priceTriangle', 'price_triangle'))
   }
 
-    // Global settings for triangle plots for prices.
+  // Global settings for triangle plots for prices.
   options[ 'price_triangle' ] = {
     hAxis: {
       format: 'currency'
@@ -250,9 +153,11 @@
   }
 
   // Global settings for triangle plots for yields.
-  options[ 'yield_triangle' ] =  {
-  }
+  options[ 'yield_triangle' ] =  {}
   
+  /**
+   * Appends common options for triangle charts to options[ optionsKey ].
+   */
   async function setTriChartOptions( trianglePoints, optionsKey) {
     // X-coordinates of min and max values for crop data.
     var hi = trianglePoints[ 'hi' ][ 0 ]
@@ -263,12 +168,12 @@
     var xAxisLowerBound = Math.round( lo - offset )
 
     // Appends options common to all triangle plots.
-    // Search "object spread operator" for explanation of ellipses.
     options[ optionsKey ] =  {
       height: 400,
       width: 650,
       hAxis: {
         // Appending additional 'hAxis' options 
+        // See "object spread operator" for explanation of ellipses.
         ...options[ optionsKey ][ 'hAxis' ],
         ...{
           viewWindow : {
@@ -283,6 +188,11 @@
     }
   }
 
+  /**
+   * For each triangle chart on the page, values from data[ dataKey] are 
+   * formatted into a datatable and stored in tables[ tableKey ]. Options 
+   * are set for options[ optionsKey ].
+   */
   async function setupTriangle( tableKey, dataKey, optionsKey ) {
     // Sets chart options for displaying a triangle distribution.
     trianglePoints = data[ dataKey ][ 'tri_dist' ]
@@ -295,88 +205,11 @@
       trianglePoints[ 'lo' ],
       trianglePoints[ 'peak' ],
       trianglePoints[ 'hi' ]
-    ])
+    ]);
     tables[ tableKey ] = datatable
   }
 
-  async function setupHistogram( tableKey, dataKey, attrName ) {
-    var datatable = new google.visualization.DataTable();
-    datatable.addColumn( 'number', attrName )
-    datatable.addRows( chunkArray( data[ dataKey ] ) )
-    tables[ tableKey ] =  datatable
-  }
-
-  /**
-   * Given an array of numbers (prices, yields, etc) stored in 
-   * "data[ dataKey ]", configures a datatable and stores it in
-   * "tables[ tableKey]".
-   */
-  async function setupBoxplot( tableKey, dataKey ) {
-    // Creates array of a shallow copy of price data.
-    var boxplotData = [ [...data[ dataKey ]] ]
-
-    boxplotData[ 0 ].unshift( '' )
-    var datatable = new google.visualization.DataTable();
-
-    // Addings N columns for N values in "boxPlotData".
-    datatable.addColumn('string', 'x');
-    for (var i = 1; i < boxplotData[ 0 ].length; i++) {
-      datatable.addColumn( 'number', '')
-    }
-
-    // Adding columns for 'whisker' values.
-    datatable.addColumn( {id:'max', type:'number', role:'interval'} );
-    datatable.addColumn( {id:'min', type:'number', role:'interval'} );
-    datatable.addColumn( {id:'firstQuartile', type:'number', role:'interval'} );
-    datatable.addColumn( {id:'median', type:'number', role:'interval'} );
-    datatable.addColumn( {id:'thirdQuartile', type:'number', role:'interval'} );
-
-    datatable.addRows( await getBoxPlotValues( boxplotData ) )
-    tables[ tableKey ] = datatable
-  }
-
-  // Returns median from a sorted array of values.
-  function getMedian( array ) {
-    var length = array.length;
-
-    if (length % 2 === 0) {
-      var midUpper = length / 2;
-      var midLower = midUpper - 1;
-      return ( array[ midUpper ] + array[ midLower ] ) / 2;
-    } else {
-      return array[ Math.floor( length / 2 ) ];
-    }
-  }
-
-  /*
-  * Calculates and appends (in order) the max, min, 1st-quartile, median, and 
-  * 3rd-quartile to "array" so a box plot can be plotted.
-  */
-  function getBoxPlotValues(array) {
-    for (var i = 0; i < array.length; i++) {
-
-      var arr = array[ i ].slice( 1 ).sort( ( a, b ) => {
-        return a - b;
-      });
-
-      var max = arr[ arr.length - 1 ];
-      var min = arr[ 0 ];
-      var median = getMedian( arr );
-      var firstQuartile = getMedian( arr.slice( 0, Math.round( arr.length / 2 )) );
-      var thirdQuartile = getMedian( arr.slice( Math.floor( arr.length / 2 )) );
-
-      array[i].push( max )
-      array[i].push( min )
-      array[i].push( firstQuartile )
-      array[i].push( median )
-      array[i].push( thirdQuartile )
-    }
-
-    return array;
-  }
-
-  
-  // Draws the chart 
+  // Draws or redraws a chart.
   function drawChart( chartWrapper, chartType, tableKey, optionsKey ) {
     chartWrapper.setChartType( chartType )
     chartWrapper.setDataTable( tables[ tableKey ] ) 
@@ -384,45 +217,5 @@
     chartWrapper.draw()
   }
 
-  // Attaches event listeners to the buttons defined in ButtonWrappers.
-  function attachEventListeners() {
-    class ButtonWrapper {
-      constructor( elementID, params ) {
-        // HTML ID for the button element.
-        this.elementID = elementID
-        // Parameters to pass to drawChart().
-        this.params = params
-      }
-    }
-
-    // Stores IDs for button elements and associated arguments for drawChart(), 
-    // which is attached as an EventListener to each element.
-    var ButtonWrappers = [
-      new ButtonWrapper( 'priceBoxplotButton', 
-        [ window.priceChart, 'LineChart', 'priceBoxplot', 'boxplot']),
-      new ButtonWrapper( 'priceHistogramButton', 
-        [ window.priceChart, 'Histogram', 'priceHistogram', 'histogram']),
-      new ButtonWrapper(  'priceTriangleButton', 
-        [ window.priceChart, 'AreaChart', 'priceTriangle', 'price_triangle']),
-      new ButtonWrapper(  'yieldBoxplotButton', 
-        [ window.yieldChart, 'LineChart', 'yieldBoxplot', 'boxplot']),
-      new ButtonWrapper(  'yieldHistogramButton',
-        [ window.yieldChart, 'Histogram', 'yieldHistogram', 'histogram']),
-      new ButtonWrapper(  'yieldTriangleButton',
-        [ window.yieldChart, 'AreaChart', 'yieldTriangle', 'yield_triangle'])
-    ];
-
-    ButtonWrappers.forEach( ( wrapper ) => {
-      var button = document.getElementById( wrapper.elementID )
-      button.addEventListener( 'change', 
-        function() {
-          drawChart(...wrapper.params)
-        },
-        { passive:true }
-      );
-    });
-  }
-
 </script>
-
 {% endblock %}
