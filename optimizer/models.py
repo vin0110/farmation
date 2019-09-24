@@ -44,12 +44,12 @@ class Scenario(models.Model):
 
     def analyzeScenario(self):
         res = analyzeScenario(self.crops.all())
-        self.min = json.dumps(res[0][1])
-        self.min_partition = json.dumps(res[0][0])
-        self.peak = json.dumps(res[1][1])
-        self.peak_partition = json.dumps(res[1][0])
-        self.max = json.dumps(res[2][1])
-        self.max_partition = json.dumps(res[2][0])
+        self.min = json.dumps(res[0][0])
+        self.min_partition = json.dumps(res[0][1])
+        self.peak = json.dumps(res[1][0])
+        self.peak_partition = json.dumps(res[1][1])
+        self.max = json.dumps(res[2][0])
+        self.max_partition = json.dumps(res[2][1])
         self.save()
 
     def __str__(self):

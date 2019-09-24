@@ -323,3 +323,14 @@ def removePrice(request, pk):
     price.delete()
     return HttpResponseRedirect(
         reverse('optimizer:scenario_details', args=(scenario.id, )))
+
+
+@login_required
+def updateScenario(request, pk):
+    '''update scenario analysis'''
+    scenario = get_object_or_404(Scenario, pk=pk)
+    if scenario.farm.user != request.user:
+        raise Http404
+    scenario.analyzeScenario()
+    return HttpResponseRedirect(
+        reverse('optimizer:scenario_details', args=(pk, )))

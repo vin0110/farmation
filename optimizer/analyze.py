@@ -74,7 +74,7 @@ def analyzeScenario(crops):
         cropDict[crop_name] = thisDict
 
     for partition in partitions:
-        totals = (0.0, 0.0, 0.0, )
+        totals = [0.0, 0.0, 0.0, ]
 
         valid = True
         for i in range(len(partition)):
@@ -101,11 +101,11 @@ def analyzeScenario(crops):
         if not valid:
             continue
 
-        if totals[0] > max_min[0][1]:
+        if totals[0] > max_min[0][0]:
             max_min = (totals, partition)
         if totals[1] > max_peak[0][1]:
             max_peak = (totals, partition)
-        if totals[2] > max_max[0][1]:
+        if totals[2] > max_max[0][2]:
             max_max = (totals, partition)
 
     return (max_min, max_peak, max_max)
