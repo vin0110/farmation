@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Scenario, FarmCrop, Crop, PriceOverride
+from .models import Scenario, FarmCrop, Crop, PriceOrder
 
 
 class ScenarioEditForm(forms.ModelForm):
@@ -44,7 +44,7 @@ class CropForm(forms.ModelForm):
         help_texts = HELP_TEXTS
 
 
-class PriceOverrideForm(forms.ModelForm):
+class PriceOrderForm(forms.ModelForm):
     safety = forms.ChoiceField(choices=[
         ('90', 'Very high'),
         ('q3', 'High'),
@@ -53,7 +53,7 @@ class PriceOverrideForm(forms.ModelForm):
         ('10', 'Very low'), ])
 
     class Meta:
-        model = PriceOverride
+        model = PriceOrder
         fields = ['units', 'price', 'safety', ]
         help_texts = {
             'units': 'number of units',
