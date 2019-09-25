@@ -17,77 +17,45 @@ def mkPartitions(size, width):
     return partitions
 
 
-def positiveDistro(mu, sigma, limit=0.5, count=20, seed=None):
-    '''produces a list of count many values using a normal distribution.
-    if value is less than the limit, get another value.
-    the seed is used to get repeatable values'''
-
-    if seed:
-        np.random.seed(seed)
-
-    prices = np.random.normal(mu, sigma, count)
-    # check for too small prices
-    for i in range(count):
-        while prices[i] < limit:
-            prices[i] = np.random.normal(mu, sigma)
-
-    # json cannot convert ndarray, convert to list
-    return list(prices)
-
-
-def cropDistro(prices, yields, cost):
-    '''create discrete distribution of
-    prices and yields then create the cross-product to get
-    the overall prices. then look for the optimal solution.'''
-
-    # create a discrete set of net profits
-    nets = []
-    for p in prices:
-        for y in yields:
-            nets.append(p*y - cost)
-
-    mean = np.average(nets)
-    std = np.std(nets)
-    quartiles = np.percentile(nets, [25, 50, 75])
-    histogram = np.histogram(nets, bins=6)
-
-    # json cannot convert ndarray, convert to list
-    # historgram is too complex for json, use pickle (and leave it alone)
-    return (mean, std, list(quartiles), histogram)
-
-
 def analyzeScenario(crops):
     '''analyze the scenario: find expected, pessimistic and optimistic'''
-    if crops.count() > 4:
-        raise ValueError('will not analyze more than 4 crops at this time')
+
+    if len(crops) == 0:
+        # cannot analyze
+        return ('', 0.0), ('', 0.0), ('', 0.0)
 
     farm = crops.first().scenario.farm
 
     fields = [f.acreage for f in farm.fields.all()]
 
     partitions = mkPartitions(len(fields), crops.count())
-    max_mean = (None, -1e10)
-    min_std = (None, 1e10)
-    min_q1 = (None, 1e10)
-    max_q2 = (None, -1e10)
-    max_q3 = (None, -1e10)
+    max_min = ((-1e10, 0.0, 0.0), None, )
+    max_peak = ((0.0, -1e10, 0.0), None, )
+    max_max = ((0.0, 0.0, -1e10), None, )
 
     # build price, yields, and cost arrays
     cropDict = {}
     crop_names = []
-    plen = 100
-    ylen = 100
+
     for crop in crops.all():
         thisDict = {}
         cropdata = crop.data
         crop_name = cropdata.name
         crop_names.append(crop_name)
-        farmcrop = farm.crops.get(data=cropdata)
-        prices = json.loads(cropdata.prices)
-        thisDict['prices'] = prices
-        yields = json.loads(cropdata.yields)
-        y_override = farmcrop.yield_override * crop.yield_override
-        thisDict['yields'] = list(map(lambda x: x*y_override, yields))
+        farmcrop = crop.farmcrop
+        if farmcrop.price_override != '':
+            prices = json.loads(farmcrop.price_override)
+        else:
+            prices = json.loads(crop.prices())
+        if farmcrop.yield_override != '':
+            yields = json.loads(farmcrop.yield_override)
+        else:
+            yields = json.loads(crop.yields())
+        thisDict['gross'] = [
+            prices[0] * yields[0],
+            prices[1] * yields[1],
+            prices[2] * yields[2],
+        ]
         thisDict['cost'] = cropdata.cost + farmcrop.cost_override +\
             crop.cost_override
 
@@ -105,96 +73,39 @@ def analyzeScenario(crops):
         thisDict['over_acres'] = over_acres
         cropDict[crop_name] = thisDict
 
-        plen = min(len(prices), plen)
-        ylen = min(len(yields), ylen)
-
     for partition in partitions:
-        mean = 0.0
-        q1 = 0.0
-        q3 = 0.0
+        totals = [0.0, 0.0, 0.0, ]
 
         valid = True
         for i in range(len(partition)):
+            dcrop = cropDict[crop_names[i]]
             pacres = partition[i] * fields[i]
             lo, hi = crops[i].limits()
             if pacres < lo or (hi > 0 and pacres > hi):
                 # not a valid partition
                 valid = False
                 break
-            if pacres < cropDict[crop_names[i]]['over_acres']:
+            if pacres < dcrop['over_acres']:
                 # there are not enough acres in this partition to
                 # fulfill the price overrides
                 valid = False
                 break
 
+            per_acre = dcrop['gross'][0] - dcrop['cost']
+            totals[0] += pacres * per_acre
+            per_acre = dcrop['gross'][1] - dcrop['cost']
+            totals[1] += pacres * per_acre
+            per_acre = dcrop['gross'][2] - dcrop['cost']
+            totals[2] += pacres * per_acre
+
         if not valid:
             continue
 
-        nets = computeNets(partition, fields, crop_names, cropDict, plen, ylen)
-        mean = np.average(nets)
-        std = np.std(nets)
-        q1, q2, q3 = np.percentile(nets, [25, 50, 75])
+        if totals[0] > max_min[0][0]:
+            max_min = (totals, partition)
+        if totals[1] > max_peak[0][1]:
+            max_peak = (totals, partition)
+        if totals[2] > max_max[0][2]:
+            max_max = (totals, partition)
 
-        if mean > max_mean[1]:
-            max_mean = (partition, mean)
-        if std < min_std[1]:
-            min_std = (partition, std)
-        if q1 < min_q1[1]:
-            min_q1 = (partition, q1)
-        if q2 > max_q2[1]:
-            max_q2 = (partition, q2)
-        if q3 > max_q3[1]:
-            max_q3 = (partition, q3)
-
-    return (max_mean, min_std, min_q1, max_q2, max_q3)
-
-
-def computeNets(partition, fields, crop_names, cropDict, plen, ylen):
-    '''computer nets for a partition'''
-    nets = []
-
-    for y in range(ylen):
-        for p in range(plen):
-            net = 0.0
-            for part in range(len(partition)):
-                if partition[part] == 0:
-                    continue
-                crop = cropDict[crop_names[part]]
-                size = partition[part] * fields[part]
-                yld = size * crop['yields'][y]
-                cost = size * crop['cost']
-                overUnits = 0
-                overRevenue = 0.
-                for over in crop['overs']:
-                    overUnits += over['units']
-                    overRevenue += over['price'] * over['units']
-                otherRevenue = (yld - overUnits) * crop['prices'][p]
-                gross = overRevenue + otherRevenue - cost
-                net += gross
-            nets.append(net)
-
-    return nets
-
-
-def describeData(data):
-    '''data is a list of floats'''
-    stats = {}
-    stats['average'] = np.average(data)
-    steps = np.percentile(data, [10, 25, 50, 75, 90])
-    stats['10'] = steps[0]
-    stats['q1'] = steps[1]
-    stats['median'] = steps[2]
-    stats['q3'] = steps[3]
-    stats['90'] = steps[4]
-    stats['std'] = np.std(data)
-
-    return stats
-
-
-def mkHistogram(data, bins=6):
-    '''create a histogram'''
-    counts, edges = np.histogram(data, bins=bins)
-    # numpy.ndarray and numpy.int64 are not json serializable
-    # convert ndarray to native list and int64 to native int
-    a_counts = [i for i in map(int, list(counts))]
-    return {'counts': a_counts, 'edges': list(edges), }
+    return (max_min, max_peak, max_max)

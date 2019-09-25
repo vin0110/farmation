@@ -2,7 +2,7 @@ import json
 
 from django.db import models
 
-from .analyze import analyzeScenario, describeData, mkHistogram
+from .analyze import analyzeScenario
 
 
 class CropData(models.Model):
@@ -15,82 +15,6 @@ class CropData(models.Model):
     prices = models.CharField(max_length=4096, default='')
     yields = models.CharField(max_length=4096, default='')
     cost = models.FloatField(default=0.0)
-
-    # holds derived stats about prices and yields (dict in json format)
-    price_stats = models.CharField(max_length=2048, default='')
-    yield_stats = models.CharField(max_length=2048, default='')
-
-    # holds derived stats about prices and yields (tuple in json format)
-    price_histo = models.CharField(max_length=2048, default='')
-    yield_histo = models.CharField(max_length=2048, default='')
-
-    def mean_price(self):
-        if self.price_stats:
-            return json.loads(self.price_stats)['average']
-        else:
-            return None
-
-    def mean_yield(self):
-        if self.yield_stats:
-            return json.loads(self.yield_stats)['average']
-        else:
-            return None
-
-    # Returns JSON object formatted so C3.js can plot a graph.
-    def get_prices_plotdata(self):
-        prices_obj = json.loads(self.price_histo)
-        prices_obj[ 'counts' ].insert( 0, self.name.upper() + ' Prices')
-
-        # Converting edges into bin labels like "$1.50 - $2.75"
-        bins = [ ]
-        num_bins = len( prices_obj['edges'] ) - 1
-        for i in range( num_bins ) :
-            average = ( prices_obj['edges'][i] + prices_obj['edges'][i + 1] ) / 2
-            bins.append( "${:.2f}".format( average ) )
-
-        prices_obj['bins'] = bins
-        del prices_obj['edges']
-
-        # Creating list of ticks for the y-axis.
-        y_tick_buffer = 5
-        y_tick_max = max( prices_obj[ 'counts'][1:] ) + y_tick_buffer
-        prices_obj['y-ticks'] = list( range( 1, y_tick_max ))
-
-        return json.dumps( prices_obj )
-
-    # Returns JSON object formatted so C3.js can plot a graph.
-    def get_yields_plotdata(self):
-        yields_obj = json.loads( self.yield_histo )
-
-        # Setting legend text for data like "CORN : YIELD / BUSHEL"
-        yields_obj[ 'counts' ].insert( 0, self.name.upper() + ' Yields ( ' + self.unit  + 's / acre )' )
-
-        # Converting edges into bin labels like "1.5 - $2.8"
-        bins = [ ]
-        num_bins = len( yields_obj['edges'] ) - 1
-        for i in range( num_bins ) :
-            average = ( yields_obj['edges'][i] + yields_obj['edges'][i + 1] ) / 2
-            bins.append( "{:.1f}".format( average ) )
-        yields_obj['bins'] = bins
-        del yields_obj['edges']
-
-        # Creating list of ticks for the y-axis.
-        y_tick_buffer = 5
-        y_tick_max = max( yields_obj[ 'counts'][1:] ) + y_tick_buffer
-        yields_obj['y-ticks'] = list( range( 1, y_tick_max ))
-
-        return json.dumps( yields_obj )
-
-    def save(self, *args, **kwargs):
-        if self.prices:
-            prices = json.loads(self.prices)
-            self.price_stats = json.dumps(describeData(prices))
-            self.price_histo = json.dumps(mkHistogram(prices))
-        if self.yields:
-            yields = json.loads(self.yields)
-            self.yield_stats = json.dumps(describeData(yields))
-            self.yield_histo = json.dumps(mkHistogram(yields))
-        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
@@ -106,34 +30,26 @@ class Scenario(models.Model):
     farm = models.ForeignKey('farm.Farm', on_delete=models.CASCADE,
                              related_name='scenarios')
 
-    state_choices = (
-        ('M', 'Modified', ),
-        ('A', 'Analyzed', ), )
+    lo = models.FloatField(default=0.0)
+    peak = models.FloatField(default=0.0)
+    hi = models.FloatField(default=0.0)
 
-    state = models.CharField(max_length=1,
-                             choices=state_choices,
-                             default='M')
-
-    mean = models.FloatField(default=0.0)
-    mean_partition = models.CharField(max_length=2048)
-    q1 = models.FloatField(default=0.0)
-    q1_partition = models.CharField(max_length=2048)
-    q3 = models.FloatField(default=0.0)
-    q3_partition = models.CharField(max_length=2048)
-
-    def getState(self):
-        index = [l for l, w in self.state_choices]
-        return self.state_choices[index.index(self.state)][1]
+    # analyzed
+    min = models.CharField(max_length=512, default='')
+    min_partition = models.CharField(max_length=512, default='')
+    peak = models.CharField(max_length=512, default='')
+    peak_partition = models.CharField(max_length=512, default='')
+    max = models.CharField(max_length=512, default='')
+    max_partition = models.CharField(max_length=512, default='')
 
     def analyzeScenario(self):
-        mean, std, q1, q2, q3 = analyzeScenario(self.crops.all())
-        self.mean = mean[1]
-        self.mean_partition = json.dumps(mean[0])
-        self.q1 = q1[1]
-        self.q1_partition = json.dumps(q1[0])
-        self.q3 = q3[1]
-        self.q3_partition = json.dumps(q3[0])
-        self.state = "A"
+        res = analyzeScenario(self.crops.all())
+        self.min = json.dumps(res[0][0])
+        self.min_partition = json.dumps(res[0][1])
+        self.peak = json.dumps(res[1][0])
+        self.peak_partition = json.dumps(res[1][1])
+        self.max = json.dumps(res[2][0])
+        self.max_partition = json.dumps(res[2][1])
         self.save()
 
     def __str__(self):
@@ -154,17 +70,50 @@ class AbstractCrop(models.Model):
     lo_acres = models.PositiveSmallIntegerField(default=0)
     hi_acres = models.PositiveSmallIntegerField(default=0)
 
-    yield_override = models.FloatField(default=1.0)
+    price_override = models.CharField(max_length=128, default='')
+    yield_override = models.CharField(max_length=128, default='')
     cost_override = models.FloatField(default=0.0)
 
+    def gross(self):
+        p = json.loads(self.prices())
+        y = json.loads(self.yields())
+        return [p[i] * y[i] for i in range(3)]
+
+    def prices(self):
+        if self.isPriceOverride():
+            return self.price_override
+        else:
+            return self.data.prices
+
+    def yields(self):
+        if self.isYieldOverride():
+            return self.yield_override
+        else:
+            return self.data.yields
+
+    def isPriceOverride(self):
+        return self.price_override != ''
+
     def isYieldOverride(self):
-        return self.yield_override != 1.0
+        return self.yield_override != ''
 
     def isCostOverride(self):
         return self.cost_override != 0.0
 
     def isLimitOverride(self):
         return self.lo_acres != 0 or self.hi_acres != 0
+
+    def triangle(self, which, area=10, x0=0, y0=0):
+        lo, peak, hi = json.dumps(which)
+        assert lo < peak < hi, 'invalid triangle'
+        hgt = area/(hi - lo)
+        return (lo + x0, y0), (peak + x0, hgt + y0), (hi + x0, y0)
+
+    def price_triangle(self):
+        return self.triangle(self.prices())
+
+    def yield_triangle(self):
+        return self.triangle(self.yields())
 
     def limits(self):
         return (self.lo_acres, self.hi_acres)
@@ -178,27 +127,44 @@ class AbstractCrop(models.Model):
         ordering = ('id', )
 
 
+class FarmCrop(AbstractCrop):
+    '''crop that is allowed in this farm'''
+    farm = models.ForeignKey('farm.Farm', on_delete=models.CASCADE,
+                             related_name='crops')
+
+    def net_cost(self):
+        return self.data.cost + self.cost_override
+
+    def __str__(self):
+        return "{}:{}".format(self.data.name, self.farm.name)
+
+
 class Crop(AbstractCrop):
     '''Scenario crop object'''
     scenario = models.ForeignKey(Scenario, on_delete=models.CASCADE,
                                  related_name='crops')
+    farmcrop = models.ForeignKey(FarmCrop, on_delete=models.CASCADE)
 
-    def farmcrop(self):
-        return self.scenario.farm.crops.get(data=self.data)
+    def prices(self):
+        if self.isPriceOverride():
+            return self.price_override
+        else:
+            return self.data.prices
 
-    def net_yield(self):
-        return self.data.mean_yield() *\
-            self.yield_override *\
-            self.farmcrop().yield_override
+    def yields(self):
+        if self.farmcrop.isYieldOverride():
+            return self.farmcrop.yields()
+        else:
+            return super().yields()
 
     def net_cost(self):
         return self.data.cost +\
             self.cost_override +\
-            self.farmcrop().cost_override
+            self.farmcrop.cost_override
 
     def limits(self):
-        farmcrop = self.farmcrop()
-        flo, fhi = farmcrop.lo_acres, farmcrop.hi_acres
+        self.farmcrop
+        flo, fhi = self.farmcrop.lo_acres, self.farmcrop.hi_acres
         lo, hi = self.lo_acres, self.hi_acres
 
         if lo > 0:
@@ -219,23 +185,8 @@ class Crop(AbstractCrop):
         return "{}:{}".format(self.data.name, self.scenario.name)
 
 
-class FarmCrop(AbstractCrop):
-    '''crop that is allowed in this farm'''
-    farm = models.ForeignKey('farm.Farm', on_delete=models.CASCADE,
-                             related_name='crops')
-
-    def net_yield(self):
-        return self.data.mean_yield() * self.yield_override
-
-    def net_cost(self):
-        return self.data.cost + self.cost_override
-
-    def __str__(self):
-        return "{}:{}".format(self.data.name, self.farm.name)
-
-
-class PriceOverride(models.Model):
-    '''hold price override info for a crop in a scenario'''
+class PriceOrder(models.Model):
+    '''hold price order info for a crop in a scenario'''
     crop = models.ForeignKey(Crop, on_delete=models.CASCADE,
                              related_name='price_overrides')
 
