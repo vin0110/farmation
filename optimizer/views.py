@@ -11,7 +11,7 @@ from django.contrib.auth.decorators import login_required
 from .models import (Scenario,
                      Crop,
                      CropData,
-                     PriceOverride,
+                     PriceOrder,
                      )
 from farm.models import Farm
 
@@ -19,7 +19,7 @@ from .forms import (ScenarioEditForm,
                     CropAcresSetForm,
                     AddMultipleCropForm,
                     CropForm,
-                    PriceOverrideForm,
+                    PriceOrderForm,
                     )
 
 
@@ -60,6 +60,7 @@ def scenarioAdd(request, pk):
     for crop in crops:
         Crop.objects.create(
             data=crop.data,
+            farmcrop=crop,
             scenario=scenario, )
 
     return HttpResponseRedirect(
@@ -166,7 +167,10 @@ def addCropToScenario(request, pk):
             selected_crops = theform.cleaned_data['crops']
             for new_crop in selected_crops:
                 data = CropData.objects.get(name=new_crop)
-                crop = Crop.objects.create(data=data, scenario=scenario)
+                crop = Crop.objects.create(
+                    data=data,
+                    farmcrop=farm_crops.get(data=data),
+                    scenario=scenario)
                 scenario.crops.add(crop)
             return HttpResponseRedirect(
                 reverse('optimizer:scenario_details', args=(scenario.id, )))
@@ -276,7 +280,7 @@ def addPrice(request, pk):
     crop = get_object_or_404(Crop, pk=pk)
     if crop.scenario.farm.user != request.user:
         raise Http404
-    price = PriceOverride.objects.create(crop=crop)
+    price = PriceOrder.objects.create(crop=crop)
 
     return HttpResponseRedirect(
         reverse('optimizer:edit_price', args=(price.id, )))
@@ -286,9 +290,9 @@ def addPrice(request, pk):
 def editPrice(request, pk):
     '''edit the price override'''
     template_name = 'optimizer/edit_price.html'
-    form = PriceOverrideForm
+    form = PriceOrderForm
 
-    price = get_object_or_404(PriceOverride, pk=pk)
+    price = get_object_or_404(PriceOrder, pk=pk)
     scenario = price.crop.scenario
 
     if request.method == "POST":
@@ -312,7 +316,7 @@ def editPrice(request, pk):
 @login_required
 def removePrice(request, pk):
     '''remove price from crop'''
-    price = get_object_or_404(PriceOverride, pk=pk)
+    price = get_object_or_404(PriceOrder, pk=pk)
     scenario = price.crop.scenario
     if scenario.farm.user != request.user:
         raise Http404
@@ -320,3 +324,14 @@ def removePrice(request, pk):
     price.delete()
     return HttpResponseRedirect(
         reverse('optimizer:scenario_details', args=(scenario.id, )))
+
+
+@login_required
+def updateScenario(request, pk):
+    '''update scenario analysis'''
+    scenario = get_object_or_404(Scenario, pk=pk)
+    if scenario.farm.user != request.user:
+        raise Http404
+    scenario.analyzeScenario()
+    return HttpResponseRedirect(
+        reverse('optimizer:scenario_details', args=(pk, )))

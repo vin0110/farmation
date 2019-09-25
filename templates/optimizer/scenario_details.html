@@ -62,7 +62,7 @@
   </div>
 </div>
 
-<div class="container">
+{% comment %}<div class="container">
   <div class="row">
     <div id="cropPartitionsChart" class="col">
     </div>
@@ -78,6 +78,59 @@
     </div>
   </div>
 </div>
+{% endcomment %}
+
+<div class="container">
+  <div class="row">
+    <div class="col-sm">
+    </div>
+    <div class="col-md-6">
+      <b>Profit profile</b>
+    </div>
+    <div class="col-sm">
+      <b>Partition</b>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm">
+      Best worst case
+    </div>
+    <div class="col-md-6">
+      {{ scenario.min }}
+    </div>
+    <div class="col-sm">
+      {{ scenario.min_partition }}
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm">
+      Best expected
+    </div>
+    <div class="col-md-6">
+      {{ scenario.peak }}
+    </div>
+    <div class="col-sm">
+      {{ scenario.peak_partition }}
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm">
+      Best best case
+    </div>
+    <div class="col-md-6">
+      {{ scenario.max }}
+    </div>
+    <div class="col-sm">
+      {{ scenario.max_partition }}
+    </div>
+  </div>
+  <div class="row">
+    <br/>
+  </div>
+  <div class="row">
+    <a href="{% url "optimizer:updateScenario" scenario.id %}" class="btn btn-primary btn-lg active" role="button" aria-pressed="true">Update</a>
+  </div>
+</div>
 
 <div class="container">
     <div class="row">
@@ -90,13 +143,16 @@
     <div class="col-sm">
       <b>Crop</b>
     </div>
-    <div class="col-sm" align="right">
-      <b>Price</b>
+    <div class="col-md-2" align="right">
+      <b>Gross</b> (per acre)
     </div>
-    <div class="col-sm" align="right">
+    <div class="col-md-2" align="right">
+      <b>Price</b> (per acre)
+    </div>
+    <div class="col-md-2" align="right">
       <b>Yield</b> (per acre)
     </div>
-    <div class="col-sm" align="right">
+    <div class="col-md-2" align="right">
       <b>Cost</b> (per acre)
     </div>
     <div class="col-sm" align="right">
@@ -115,17 +171,19 @@
         {{ crop.data.name }}
       </a>
     </div>
-    <div class="col-sm" align="right">
-      ${{ crop.data.mean_price|floatformat:"2"|intcomma }}
-      / {{ crop.data.unit }}
+    <div class="col-md-2" align="right">
+      {{ crop.gross }}
     </div>
-    <div class="col-sm" align="right">
+    <div class="col-md-2" align="right">
+      {{ crop.prices }}
+    </div>
+    <div class="col-md-2" align="right">
       {% if crop.isYieldOverride %}
       *
       {% endif %}
-      {{ crop.net_yield|floatformat:"1"|intcomma  }}
+      {{ crop.yields }}
     </div>
-    <div class="col-sm" align="right">
+    <div class="col-md-2" align="right">
       {% if crop.isCostOverride %}
       *
       {% endif %}

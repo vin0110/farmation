@@ -1,0 +1,79 @@
+[
+{
+  "model": "optimizer.cropdata",
+  "pk": 1,
+  "fields": {
+    "name": "corn",
+    "unit": "bu",
+    "prices": "[3.35, 4.35, 5.35]",
+    "yields": "[54.0, 115.0, 157.0]",
+    "cost": 461.36
+  }
+},
+{
+  "model": "optimizer.cropdata",
+  "pk": 2,
+  "fields": {
+    "name": "cotton",
+    "unit": "lb",
+    "prices": "[0.62, 0.82, 0.76]",
+    "yields": "[430.0, 900.0, 1060.0]",
+    "cost": 703.55
+  }
+},
+{
+  "model": "optimizer.cropdata",
+  "pk": 3,
+  "fields": {
+    "name": "peanuts",
+    "unit": "lb",
+    "prices": "[0.21, 0.23, 0.26]",
+    "yields": "[1712.0, 4075.0, 5053.0]",
+    "cost": 885.44
+  }
+},
+{
+  "model": "optimizer.cropdata",
+  "pk": 4,
+  "fields": {
+    "name": "soybeans",
+    "unit": "bu",
+    "prices": "[7.7, 8.7, 9.7]",
+    "yields": "[20.0, 40.0, 50.0]",
+    "cost": 289.6
+  }
+},
+{
+  "model": "optimizer.cropdata",
+  "pk": 5,
+  "fields": {
+    "name": "sweet potatoes",
+    "unit": "cwt",
+    "prices": "[15.0, 19.0, 24.9]",
+    "yields": "[110.0, 218.0, 246.0]",
+    "cost": 2585.87
+  }
+},
+{
+  "model": "optimizer.cropdata",
+  "pk": 6,
+  "fields": {
+    "name": "tobacco",
+    "unit": "lb",
+    "prices": "[1.85, 1.91, 2.01]",
+    "yields": "[1185.0, 1950.0, 2130.0]",
+    "cost": 1200.0
+  }
+},
+{
+  "model": "optimizer.cropdata",
+  "pk": 7,
+  "fields": {
+    "name": "wheat",
+    "unit": "bu",
+    "prices": "[4.0, 4.8, 5.6]",
+    "yields": "[30.0, 58.0, 75.0]",
+    "cost": 231.42
+  }
+}
+]

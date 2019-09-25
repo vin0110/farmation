@@ -28,10 +28,13 @@
       <b>Crop</b>
     </div>
     <div class="col-sm" align="right">
-      <b>Price</b>
+      <b>Price</b> (per acre)
     </div>
     <div class="col-sm" align="right">
       <b>Yield</b> (per acre)
+    </div>
+    <div class="col-sm" align="right">
+      <b>Gross</b> (per acre)
     </div>
     <div class="col-sm" align="right">
       <b>Cost</b> (per acre)
@@ -51,14 +54,19 @@
       {{ crop.data.name }}
     </div>
     <div class="col-sm" align="right">
-      ${{ crop.data.mean_price|floatformat:"2"|intcomma }}
-      / {{ crop.data.unit }}
+      {% if crop.isPriceOverride %}
+      *
+      {% endif %}
+       {{ crop.prices }}
     </div>
     <div class="col-sm" align="right">
       {% if crop.isYieldOverride %}
       *
       {% endif %}
-      {{ crop.net_yield|floatformat:"1"|intcomma  }}
+       {{ crop.yields }}
+    </div>
+    <div class="col-sm" align="right">
+       {{ crop.gross }}
     </div>
     <div class="col-sm" align="right">
       {% if crop.isCostOverride %}
