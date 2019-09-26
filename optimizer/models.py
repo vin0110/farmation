@@ -104,9 +104,9 @@ class AbstractCrop(models.Model):
         return self.lo_acres != 0 or self.hi_acres != 0
 
     def triangle(self, which, area=10, x0=0, y0=0):
-        lo, peak, hi = json.dumps(which)
+        lo, peak, hi = json.loads(which)
         assert lo < peak < hi, 'invalid triangle'
-        hgt = area/(hi - lo)
+        hgt = (area * 2) / (hi - lo)
         return (lo + x0, y0), (peak + x0, hgt + y0), (hi + x0, y0)
 
     def price_triangle(self):
@@ -114,6 +114,35 @@ class AbstractCrop(models.Model):
 
     def yield_triangle(self):
         return self.triangle(self.yields())
+
+    '''
+    Given "data", a JSON array of [lo, peak, hi], this returns coordinates 
+    for a corresponding triangle distribution. The area parameter passed to 
+    triangle() is chosen so that the resultant height of the triangle is 
+    "desired_height".
+    '''
+    def scaled_triangle(self, data, desired_height):
+        lo, peak, hi = json.loads( data )
+        scaled_area = desired_height * (hi - lo) / 2.0
+        return self.triangle(data, scaled_area)
+
+    def price_triangle_json(self):
+        lo, peak, hi = self.scaled_triangle(self.prices(), desired_height=10)
+        points = {
+            'lo': lo,
+            'peak': peak,
+            'hi': hi
+        }
+        return json.dumps( points )
+
+    def yield_triangle_json(self):
+        lo, peak, hi = self.scaled_triangle(self.yields(), desired_height=10)
+        points = {
+            'lo': lo,
+            'peak': peak,
+            'hi': hi
+        }
+        return json.dumps( points )
 
     def limits(self):
         return (self.lo_acres, self.hi_acres)

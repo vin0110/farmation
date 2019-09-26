@@ -8,6 +8,11 @@
 
   <!--  Downloads loader script for Google Charts. -->
   <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <style>
+    div.chart_div {
+      display: inline-block;
+    }
+  </style>
 
 {% endblock %}
 {% block body %}
@@ -44,32 +49,27 @@
 
 </div>
 
-<div class="container">
+<div class="container" style="text-align:center">
   <div class="row">
     <div class="col">
       <hr style="color:blue">
       <h4>Price Distribution</h3>
     </div>
-  </div>
 
-  <div class="row">
-    <div class="col">
-      <div style="text-align: center" id="priceChart"></div>
-    </div>
-  </div>
-</div>
-
-<div class="container">
-  <div class="row">
     <div class="col">
       <hr style="color:blue">
       <h4>Yield Distribution</h4>
     </div>
+
   </div>
 
   <div class="row">
-    <div class="col-sm">
-      <div style="text-align: center" id="yieldChart"></div>
+    <div class="col">
+      <div id="priceChart" class="chart_div"></div>
+    </div>
+
+    <div class="col">
+      <div id="yieldChart" class="chart_div"></div>
     </div>
   </div>
 </div>
@@ -92,10 +92,10 @@
    * replace this with an AJAX call.
    */
   async function loadCropPrices() {
-    const priceStatsJSON = '{{ crop.data.price_stats|escapejs }}'
+    const priceStatsJSON =  '{{ crop.price_triangle_json|escapejs }}'
 
     if ( priceStatsJSON != '' ) {
-      data[ 'price_stats' ] = JSON.parse( priceStatsJSON )
+      data[ 'price_triangle' ] = JSON.parse( priceStatsJSON )
     } else {
       throw "Error in loadCropPrices()!"
     }
@@ -109,10 +109,10 @@
    * If crop data ever needs to be dynamic, replace this with an AJAX call.
    */
   async function loadCropYields() {
-    const yieldStatsJSON = '{{ crop.data.yield_stats|escapejs }}'
+    const yieldStatsJSON = '{{ crop.yield_triangle_json|escapejs }}'
 
     if ( yieldStatsJSON != '') {
-      data[ 'yield_stats' ] = JSON.parse( yieldStatsJSON )
+      data[ 'yield_triangle' ] = JSON.parse( yieldStatsJSON )
     } else {
       throw "Error in loadCropYields()!"
     }
@@ -139,21 +139,26 @@
     }
 
     // Configures and draws triangle distributions.
-    setupTriangle( 'yieldTriangle', 'yield_stats', 'yield_triangle' ).
+    setupTriangle( 'yieldTriangle', 'yield_triangle', 'yield_triangle' ).
       then( drawChart( window.yieldChart, 'AreaChart', 'yieldTriangle', 'yield_triangle'))
-    setupTriangle( 'priceTriangle', 'price_stats', 'price_triangle' ).
+    setupTriangle( 'priceTriangle', 'price_triangle', 'price_triangle' ).
       then( drawChart( window.priceChart, 'AreaChart', 'priceTriangle', 'price_triangle'))
   }
 
   // Global settings for triangle plots for prices.
   options[ 'price_triangle' ] = {
     hAxis: {
-      format: 'currency'
+      format: 'currency',
+      title: 'Price (dollar / {{crop.data.unit}})'
     }
   }
 
   // Global settings for triangle plots for yields.
-  options[ 'yield_triangle' ] =  {}
+  options[ 'yield_triangle' ] =  {
+    hAxis: {
+      title: 'Yield ({{crop.data.unit}} / acre)'
+    }
+  }
   
   /**
    * Appends common options for triangle charts to options[ optionsKey ].
@@ -166,11 +171,10 @@
     var offset = (hi - lo) * 0.2
     var xAxisUpperBound = Math.round( hi + offset )
     var xAxisLowerBound = Math.round( lo - offset )
+    var yAxisUpperBound = Math.round( trianglePoints[ 'peak' ][ 1 ] * 1.15 )
 
     // Appends options common to all triangle plots.
     options[ optionsKey ] =  {
-      height: 400,
-      width: 650,
       hAxis: {
         // Appending additional 'hAxis' options 
         // See "object spread operator" for explanation of ellipses.
@@ -183,8 +187,15 @@
         }
       },
       vAxis: {
-        format: 'percent'
+        title: 'Relative Probability',
+        viewWindow: {
+          max: yAxisUpperBound
+        }
+      },
+      legend: {
+        position: 'none'
       }
+      
     }
   }
 
@@ -195,12 +206,18 @@
    */
   async function setupTriangle( tableKey, dataKey, optionsKey ) {
     // Sets chart options for displaying a triangle distribution.
-    trianglePoints = data[ dataKey ][ 'tri_dist' ]
+    trianglePoints = data[ dataKey ]
     setTriChartOptions( trianglePoints, optionsKey )
+
+    // Adding annotations for points.
+    trianglePoints['lo'].push( 'Minimum: ' + trianglePoints['lo'][0] )
+    trianglePoints['peak'].push( 'Peak: ' + trianglePoints['peak'][0] ) 
+    trianglePoints['hi'].push( 'Maximum: ' + trianglePoints['hi'][0] )
 
     var datatable = new google.visualization.DataTable();
     datatable.addColumn('number', 'value')
-    datatable.addColumn('number', 'probability')
+    datatable.addColumn('number', 'relative probability')
+    datatable.addColumn( {type:'string', role:'tooltip'} )
     datatable.addRows( [
       trianglePoints[ 'lo' ],
       trianglePoints[ 'peak' ],
