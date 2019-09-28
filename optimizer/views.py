@@ -98,7 +98,6 @@ def cropDetails(request, pk):
     theform = CropAcresSetForm
 
     crop = get_object_or_404(Crop, pk=pk)
-    crop.data.update_stats()
 
     if crop.scenario.farm.user != request.user:
         raise Http404
