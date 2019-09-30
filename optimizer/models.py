@@ -33,19 +33,36 @@ class Scenario(models.Model):
     # analyzed
     min_triangle = models.CharField(max_length=512, default='')
     min_partition = models.CharField(max_length=512, default='')
+    min_expense = models.FloatField(default=0.0)
     mean_triangle = models.CharField(max_length=512, default='')
     mean_partition = models.CharField(max_length=512, default='')
+    mean_expense = models.FloatField(default=0.0)
     max_triangle = models.CharField(max_length=512, default='')
     max_partition = models.CharField(max_length=512, default='')
+    max_expense = models.FloatField(default=0.0)
 
     def analyzeScenario(self):
         res = analyzeScenario(self.crops.all())
-        self.min_triangle = json.dumps(res[0][0])
-        self.min_partition = json.dumps(res[0][1])
-        self.mean_triangle = json.dumps(res[1][0])
-        self.mean_partition = json.dumps(res[1][1])
-        self.max_triangle = json.dumps(res[2][0])
-        self.max_partition = json.dumps(res[2][1])
+        if res is None:
+            self.min_triangle = ''
+            self.min_partition = ''
+            self.min_expense = 0.0
+            self.mean_triangle = ''
+            self.mean_partition = ''
+            self.mean_expense = 0.0
+            self.max_triangle = ''
+            self.max_partition = ''
+            self.max_expense = 0.0
+        else:
+            self.min_triangle = json.dumps(res[0][0])
+            self.min_partition = json.dumps(res[0][1])
+            self.min_expense = json.dumps(res[0][2])
+            self.mean_triangle = json.dumps(res[1][0])
+            self.mean_partition = json.dumps(res[1][1])
+            self.mean_expense = json.dumps(res[1][2])
+            self.max_triangle = json.dumps(res[2][0])
+            self.max_partition = json.dumps(res[2][1])
+            self.max_expense = json.dumps(res[2][2])
         self.save()
 
     def __str__(self):
