@@ -323,6 +323,80 @@
     }
   }
 
+async function setupMultiTriangle( triples, options ) {
+
+    for ( var triple of triples ) {
+        triple[ 'points' ] = getCoordinates( triple[ 'values' ] )
+    }
+
+    var stats = {
+        'maxHi' : Math.max( ...triples.map( trip => trip[ 'values' ][ 2 ]) ),
+        'minLo' : Math.min( ...triples.map( trip => trip[ 'values' ][ 0 ]) ),
+        'maxHeight' : Math.max( ...triples.map( trip => trip[ 'points' ][ 1 ][ 1 ]) ),
+        'minHeight' : Math.min( ...triples.map( trip => trip[ 'points' ][ 1 ][ 1 ]) ),
+    }
+
+    // Sets options for the bounds of the chart, which are dependent
+    // on the values stores in 'stats'.
+    setTriChartOptions( stats, options )
+
+    var dtable = await buildDataTable( triples )
+
+    return dtable
+}
+
+// Builds a rows.length x 4 array and sorts it by its first column. 
+// This is needed for building a datable 
+async function buildDataTable( triples, rows ) {
+
+    var dtable = new google.visualization.DataTable();
+
+    dtable.addColumn( 'number', 'value' )
+    dtable.addColumn( 'number', 'Best worse case' )
+    dtable.addColumn( {type:'string', role:'tooltip'} )
+    dtable.addColumn( 'number', 'Best expected' )
+    dtable.addColumn( {type:'string', role:'tooltip'} )
+    dtable.addColumn( 'number', 'Best best case' )
+    dtable.addColumn( {type:'string', role:'tooltip'} )
+
+    var formatter = new Intl.NumberFormat( 'en-US', {
+      style: 'currency',
+      currency: 'USD',
+    })
+
+    var rows = Array.from( Array( 9 ), _ => Array( 7 ).fill( null ) );
+    for ( var i in triples ) {
+        var triple = triples[ i ][ 'points' ]
+        var row = i * 3
+        var col = i * 2
+        rows[ row     ][ 0 ]       = triple[ 0 ][ 0 ]
+        rows[ row     ][ col + 1 ] = triple[ 0 ][ 1 ]
+        rows[ row     ][ col + 2 ] = 'Min: '  + formatter.format( triple[ 0 ][ 0 ] )
+
+        rows[ row + 1 ][ 0 ]       = triple[ 1 ][ 0 ]
+        rows[ row + 1 ][ col + 1 ] = triple[ 1 ][ 1 ]
+        rows[ row + 1 ][ col + 2 ] = 'Peak: ' + formatter.format( triple[ 1 ][ 0 ] )
+
+        rows[ row + 2 ][ 0 ]       = triple[ 2 ][ 0 ]
+        rows[ row + 2 ][ col + 1 ] = triple[ 2 ][ 1 ]
+        rows[ row + 2 ][ col + 2 ] = 'Max: '  + formatter.format( triple[ 2 ][ 0 ] )
+    }
+
+    rows.sort( (a, b) => {
+        if ( a[ 0 ] === b[ 0 ] ) {
+            return 0
+        } else { 
+            return ( a[ 0 ] < b[ 0 ] ) ? -1 : 1
+        }
+    });
+
+    rows.forEach( row => {
+        dtable.addRow( row )
+    })
+ 
+    return dtable
+}
+
   // Loads data, then populates and configures datables.
   async function chartSetup() {
 
@@ -354,7 +428,6 @@
       tables[ 'scenarios' ], options[ 'scnrio_tris' ]);
 
     // Generating ChartWrappers for divs.
-    /*
     cropnames = crops.map( crop => crop.name)
     cropnames.forEach( name => {
       chartWrappers[ name ] = {
@@ -369,7 +442,6 @@
         })
       }
     })
-    */
   }
 </script>
 
