@@ -1,5 +1,4 @@
 import json
-import numpy as np
 
 
 def mkPartitions(size, width):
@@ -29,8 +28,9 @@ def analyzeScenario(crops):
     fields = [f.acreage for f in farm.fields.all()]
 
     partitions = mkPartitions(len(fields), crops.count())
+    best_mean = -1e10
     max_min = ((-1e10, 0.0, 0.0), None, )
-    max_peak = ((0.0, -1e10, 0.0), None, )
+    max_mean = ((0.0, -1e10, 0.0), None, )
     max_max = ((0.0, 0.0, -1e10), None, )
 
     # build price, yields, and cost arrays
@@ -103,9 +103,11 @@ def analyzeScenario(crops):
 
         if totals[0] > max_min[0][0]:
             max_min = (totals, partition)
-        if totals[1] > max_peak[0][1]:
-            max_peak = (totals, partition)
+        this_mean = sum(totals)/3.0
+        if this_mean > best_mean:
+            best_mean = this_mean
+            max_mean = (totals, partition)
         if totals[2] > max_max[0][2]:
             max_max = (totals, partition)
 
-    return (max_min, max_peak, max_max)
+    return (max_min, max_mean, max_max)

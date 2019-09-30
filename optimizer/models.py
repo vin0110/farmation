@@ -30,25 +30,21 @@ class Scenario(models.Model):
     farm = models.ForeignKey('farm.Farm', on_delete=models.CASCADE,
                              related_name='scenarios')
 
-    lo = models.FloatField(default=0.0)
-    peak = models.FloatField(default=0.0)
-    hi = models.FloatField(default=0.0)
-
     # analyzed
-    min = models.CharField(max_length=512, default='')
+    min_triangle = models.CharField(max_length=512, default='')
     min_partition = models.CharField(max_length=512, default='')
-    peak = models.CharField(max_length=512, default='')
-    peak_partition = models.CharField(max_length=512, default='')
-    max = models.CharField(max_length=512, default='')
+    mean_triangle = models.CharField(max_length=512, default='')
+    mean_partition = models.CharField(max_length=512, default='')
+    max_triangle = models.CharField(max_length=512, default='')
     max_partition = models.CharField(max_length=512, default='')
 
     def analyzeScenario(self):
         res = analyzeScenario(self.crops.all())
-        self.min = json.dumps(res[0][0])
+        self.min_triangle = json.dumps(res[0][0])
         self.min_partition = json.dumps(res[0][1])
-        self.peak = json.dumps(res[1][0])
-        self.peak_partition = json.dumps(res[1][1])
-        self.max = json.dumps(res[2][0])
+        self.mean_triangle = json.dumps(res[1][0])
+        self.mean_partition = json.dumps(res[1][1])
+        self.max_triangle = json.dumps(res[2][0])
         self.max_partition = json.dumps(res[2][1])
         self.save()
 
@@ -102,18 +98,6 @@ class AbstractCrop(models.Model):
 
     def isLimitOverride(self):
         return self.lo_acres != 0 or self.hi_acres != 0
-
-    def triangle(self, which, area=10, x0=0, y0=0):
-        lo, peak, hi = json.dumps(which)
-        assert lo < peak < hi, 'invalid triangle'
-        hgt = area/(hi - lo)
-        return (lo + x0, y0), (peak + x0, hgt + y0), (hi + x0, y0)
-
-    def price_triangle(self):
-        return self.triangle(self.prices())
-
-    def yield_triangle(self):
-        return self.triangle(self.yields())
 
     def limits(self):
         return (self.lo_acres, self.hi_acres)
