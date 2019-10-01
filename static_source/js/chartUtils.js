@@ -46,22 +46,22 @@ function getCoordinates( triple ) {
 }
 
 //Appends common options for triangle charts to 'options'.
-function setTriChartOptions( stats, options ) {
-    var hi = stats[ 'maxHi' ]
-    var lo = stats[ 'minLo' ]
-    var maxHeight = stats[ 'maxHeight' ]
+function setTriChartOptions( triples, options ) {
+
+    var hi = Math.max( ...triples.map( trip => trip[ 'values' ][ 2 ]) )
+    var lo = Math.min( ...triples.map( trip => trip[ 'values' ][ 0 ]) )
+    var maxHeight = Math.max( ...triples.map( trip => trip[ 'points' ][ 1 ][ 1 ]) )
 
     const HOR_PADDING_FACTOR = 0.05
     const VER_PADDING_FACTOR = 1.10
 
     // Determining bounds for X-axis.
     var horizOffset = ( hi - lo ) * HOR_PADDING_FACTOR 
-    var xAxisUpperBound = Math.round( hi + horizOffset )
-    var xAxisLowerBound = Math.round( lo - horizOffset )
+    var xAxisUpperBound = hi + horizOffset
+    var xAxisLowerBound = lo - horizOffset
 
     // Determining upper bound for Y-axis
     var yAxisUpperBound = maxHeight * VER_PADDING_FACTOR
-
 
     // Appends additional options for the horizonatal axis.
     options[ 'hAxis' ] = {
@@ -86,15 +86,17 @@ function setTriChartOptions( stats, options ) {
 }
 
 // Builds a datatable for plotting a single triangular distribution
-async function setupTriangle( triple ) {
+async function setupTriangle( triple, options, formatter ) {
 
     // Converts [lo, peak, hi] to x-y coordinates. 
-    triple = await getCoordinates( triple )
+    triple[ 'points' ] = await getCoordinates( triple[ 'values' ])
+
+    setTriChartOptions( [ triple ], options )
 
     // Adding annotations for points.
-    triple[ 0 ].push( 'Minimum: ' + triple[ 0 ][ 0 ] )
-    triple[ 1 ].push( 'Peak: '    + triple[ 1 ][ 0 ] ) 
-    triple[ 2 ].push( 'Maximum: ' + triple[ 2 ][ 0 ] )
+    triple[ 'points' ][ 0 ].push( 'Minimum: ' + formatter.format( triple[ 'points' ][ 0 ][ 0 ] ) )
+    triple[ 'points' ][ 1 ].push( 'Peak: '    + formatter.format( triple[ 'points' ][ 1 ][ 0 ] ) )
+    triple[ 'points' ][ 2 ].push( 'Maximum: ' + formatter.format( triple[ 'points' ][ 2 ][ 0 ] ) )
 
     // Building the datatable.
     var dtable = new google.visualization.DataTable();
@@ -102,13 +104,15 @@ async function setupTriangle( triple ) {
     dtable.addColumn('number', '')
     dtable.addColumn( {type:'string', role:'tooltip'} )
     dtable.addRows( [
-        triple[ 0 ],
-        triple[ 1 ],
-        triple[ 2 ]
+        triple[ 'points' ][ 0 ],
+        triple[ 'points' ][ 1 ],
+        triple[ 'points' ][ 2 ]
     ]);
     return dtable
 }
 
+// Given a ChartWrapper, its type ('AreaChart', 'Histogram', etc), a 
+// datatable and options object, this draws or redraws the chart.
 function drawChart( chartWrapper, chartType, dtable, options ) {
     chartWrapper.setChartType( chartType )
     chartWrapper.setDataTable( dtable ) 

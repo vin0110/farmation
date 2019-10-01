@@ -326,16 +326,9 @@ async function setupMultiTriangle( triples, options ) {
         triple[ 'points' ] = getCoordinates( triple[ 'values' ] )
     }
 
-    var stats = {
-        'maxHi' : Math.max( ...triples.map( trip => trip[ 'values' ][ 2 ]) ),
-        'minLo' : Math.min( ...triples.map( trip => trip[ 'values' ][ 0 ]) ),
-        'maxHeight' : Math.max( ...triples.map( trip => trip[ 'points' ][ 1 ][ 1 ]) ),
-        'minHeight' : Math.min( ...triples.map( trip => trip[ 'points' ][ 1 ][ 1 ]) ),
-    }
-
     // Sets options for the bounds of the chart, which are dependent
     // on the values stores in 'stats'.
-    setTriChartOptions( stats, options )
+    setTriChartOptions( triples, options )
 
     var dtable = await buildDataTable( triples )
 
@@ -431,6 +424,7 @@ async function buildDataTable( triples, rows ) {
       tables[ 'scenarios' ], options[ 'scnrio_tris' ]);
 
   }
+
 </script>
 
 {% endblock %}

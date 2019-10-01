@@ -8,6 +8,7 @@
 
   <!--  Downloads loader script for Google Charts. -->
   <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <script type="text/javascript" src="{% static "js/chartUtils.js" %}"></script>
   <style>
     div.chart_div {
       display: inline-block;
@@ -79,12 +80,41 @@
   google.charts.load('current', {'packages': ['corechart', 'controls']});
   google.charts.setOnLoadCallback( chartSetup )
 
-  // Global for storing raw data.
-  var data = []
   // Global for storing options for each chart type.
   var options = []
-  // Global for storing datatables, formatted for a specific chart type.
-  var tables = []
+
+  // Global settings for triangle plots for prices.
+  options[ 'price_triangle' ] = {
+    hAxis: {
+      format: 'currency',
+      title: 'Price (dollar / {{crop.data.unit}})'
+    },
+    vAxis: {
+      textPosition: 'none',
+      gridlines: {
+        count: 0
+      }
+    },
+    legend: {
+      position: 'none'
+    }
+  }
+
+  // Global settings for triangle plots for yields.
+  options[ 'yield_triangle' ] =  {
+    hAxis: {
+      title: 'Yield ({{crop.data.unit}} / acre)'
+    },
+    vAxis: {
+      textPosition: 'none',
+      gridlines: {
+        count: 0
+      }
+    },
+    legend: {
+      position: 'none'
+    }
+  }
 
   /**
    * Attempts to load stats for crop prices. If loading is unsuccesful, 
@@ -92,10 +122,12 @@
    * replace this with an AJAX call.
    */
   async function loadCropPrices() {
-    const priceStatsJSON =  '{{ crop.price_triangle_json|escapejs }}'
+    const priceStatsJSON =  '{{ crop.prices|escapejs }}'
 
     if ( priceStatsJSON != '' ) {
-      data[ 'price_triangle' ] = JSON.parse( priceStatsJSON )
+      return {
+        'values': JSON.parse( priceStatsJSON )
+      }
     } else {
       throw "Error in loadCropPrices()!"
     }
@@ -109,10 +141,12 @@
    * If crop data ever needs to be dynamic, replace this with an AJAX call.
    */
   async function loadCropYields() {
-    const yieldStatsJSON = '{{ crop.yield_triangle_json|escapejs }}'
+    const yieldStatsJSON = '{{ crop.yields|escapejs }}'
 
     if ( yieldStatsJSON != '') {
-      data[ 'yield_triangle' ] = JSON.parse( yieldStatsJSON )
+      return {
+        'values': JSON.parse( yieldStatsJSON )
+      }
     } else {
       throw "Error in loadCropYields()!"
     }
@@ -123,116 +157,39 @@
    * configures the charts, then plots the data. 
    */
   async function chartSetup() {
-    window.priceChart = new google.visualization.ChartWrapper({
+    var priceChart = new google.visualization.ChartWrapper({
       containerId: 'priceChart'
     });
 
-    window.yieldChart = new google.visualization.ChartWrapper({
+    var yieldChart = new google.visualization.ChartWrapper({
       containerId: 'yieldChart'
     });
 
     // Attempts to load yield and price data.
     try {
-      await Promise.all( [ loadCropPrices(), loadCropYields() ] );
+      [ prices, yields ] = await Promise.all( [ loadCropPrices(), loadCropYields() ] );
     } catch ( error ) {
       console.log( error )
     }
 
+    var priceFormatter = new Intl.NumberFormat( 'en-US', {
+      style: 'currency',
+      currency: 'USD',
+    })
+
+    var yieldFormatter = new Intl.NumberFormat( 'en-US', {
+      style: 'decimal',
+    })
+
+
     // Configures and draws triangle distributions.
-    setupTriangle( 'yieldTriangle', 'yield_triangle', 'yield_triangle' ).
-      then( drawChart( window.yieldChart, 'AreaChart', 'yieldTriangle', 'yield_triangle'))
-    setupTriangle( 'priceTriangle', 'price_triangle', 'price_triangle' ).
-      then( drawChart( window.priceChart, 'AreaChart', 'priceTriangle', 'price_triangle'))
-  }
+    setupTriangle( prices, options[ 'price_triangle' ], priceFormatter ).
+      then( priceTable => drawChart( priceChart, 'AreaChart', priceTable, options[ 'price_triangle' ]))
 
-  // Global settings for triangle plots for prices.
-  options[ 'price_triangle' ] = {
-    hAxis: {
-      format: 'currency',
-      title: 'Price (dollar / {{crop.data.unit}})'
-    }
-  }
-
-  // Global settings for triangle plots for yields.
-  options[ 'yield_triangle' ] =  {
-    hAxis: {
-      title: 'Yield ({{crop.data.unit}} / acre)'
-    }
-  }
-  
-  /**
-   * Appends common options for triangle charts to options[ optionsKey ].
-   */
-  async function setTriChartOptions( trianglePoints, optionsKey) {
-    // X-coordinates of min and max values for crop data.
-    var hi = trianglePoints[ 'hi' ][ 0 ]
-    var lo = trianglePoints[ 'lo' ][ 0 ]
-
-    var offset = (hi - lo) * 0.2
-    var xAxisUpperBound = Math.round( hi + offset )
-    var xAxisLowerBound = Math.round( lo - offset )
-    var yAxisUpperBound = Math.round( trianglePoints[ 'peak' ][ 1 ] * 1.15 )
-
-    // Appends options common to all triangle plots.
-    options[ optionsKey ] =  {
-      hAxis: {
-        // Appending additional 'hAxis' options 
-        // See "object spread operator" for explanation of ellipses.
-        ...options[ optionsKey ][ 'hAxis' ],
-        ...{
-          viewWindow : {
-            min: xAxisLowerBound,
-            max: xAxisUpperBound
-          }
-        }
-      },
-      vAxis: {
-        title: 'Relative Probability',
-        viewWindow: {
-          max: yAxisUpperBound
-        }
-      },
-      legend: {
-        position: 'none'
-      }
-      
-    }
-  }
-
-  /**
-   * For each triangle chart on the page, values from data[ dataKey] are 
-   * formatted into a datatable and stored in tables[ tableKey ]. Options 
-   * are set for options[ optionsKey ].
-   */
-  async function setupTriangle( tableKey, dataKey, optionsKey ) {
-    // Sets chart options for displaying a triangle distribution.
-    trianglePoints = data[ dataKey ]
-    setTriChartOptions( trianglePoints, optionsKey )
-
-    // Adding annotations for points.
-    trianglePoints['lo'].push( 'Minimum: ' + trianglePoints['lo'][0] )
-    trianglePoints['peak'].push( 'Peak: ' + trianglePoints['peak'][0] ) 
-    trianglePoints['hi'].push( 'Maximum: ' + trianglePoints['hi'][0] )
-
-    var datatable = new google.visualization.DataTable();
-    datatable.addColumn('number', 'value')
-    datatable.addColumn('number', 'relative probability')
-    datatable.addColumn( {type:'string', role:'tooltip'} )
-    datatable.addRows( [
-      trianglePoints[ 'lo' ],
-      trianglePoints[ 'peak' ],
-      trianglePoints[ 'hi' ]
-    ]);
-    tables[ tableKey ] = datatable
-  }
-
-  // Draws or redraws a chart.
-  function drawChart( chartWrapper, chartType, tableKey, optionsKey ) {
-    chartWrapper.setChartType( chartType )
-    chartWrapper.setDataTable( tables[ tableKey ] ) 
-    chartWrapper.setOptions( options[ optionsKey ] )
-    chartWrapper.draw()
+    setupTriangle( yields, options[ 'yield_triangle' ], yieldFormatter ).
+      then( yieldTable => drawChart( yieldChart, 'AreaChart', yieldTable, options[ 'yield_triangle' ]))
   }
 
 </script>
+
 {% endblock %}
