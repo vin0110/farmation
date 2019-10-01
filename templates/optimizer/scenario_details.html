@@ -1,11 +1,13 @@
 {% extends "base.html" %}
 {% load humanize %}
+{% load static %}
 
 {% block head_title %}Scenario|Details{% endblock %}
 
 {% block extra_head %}
   <!-- Loads Google Charts library. -->
   <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <script type="text/javascript" src="{% static "js/chartUtils.js" %}"></script>
 {% endblock %}
 
 {% block body %}
@@ -81,6 +83,12 @@
 {% endcomment %}
 
 <div class="container">
+
+  <div class="row">
+    <div class="col" >
+      <div id="scenarioChart"></div>
+    </div>
+  </div>
   <div class="row">
     <div class="col-sm">
     </div>
@@ -199,6 +207,7 @@
       {% if crop.isCostOverride %}
       *
       {% endif %}
+
       ${{ crop.net_cost|floatformat:"2"|intcomma }}
     </div>
     <div class="col-sm" align="right">
@@ -297,140 +306,135 @@
 </div>
 <script>
 
-  // Retrieves the Scenario object for this scenario.
-  // Note that this function returns a Promise, which itself returns/resolves 
-  // the Scenario object.
-  function loadScenarioDetails() {
-    return new Promise( 
-      function( resolve, reject ) {
-        $.ajax({
-          url: 'http://localhost:8000/api/v1/scenario/{{scenario.id}}',
-          type: 'GET',
-          dataType: 'json',
-          success: function( response ) {
-            resolve( response )
-          },
-          error: function ( response ) {
-            reject( "ERROR - Failed to load Scenario details!" )
-          }
-        })
-      }
-    )
+// Loads Google Charts. When finished loading, drawCharts() is called.
+google.charts.load('current', {'packages': ['corechart', 'bar']});
+google.charts.setOnLoadCallback( chartSetup )
+
+// Globals for storing stuff.
+var scenarios = [], crops = [], charts = [], tables = [], options = []
+
+options[ 'scnrio_tris' ] = {
+  hAxis: {
+    format: 'currency',
+  },
+  vAxis: {
+    textPosition: 'none'
+  },
+  interpolateNulls: true,
+  legend: {
+    position: 'top'
+  },
+  height: 450,
+  width: 1000,
+  areaOpacity: 0.15,
+  explorer: {
+    zoomDelta: 1.05
   }
+}
 
-  // Formats the partitions so they can be used to draw a chart.
-  function formatPartitions( scDetails ) {
+async function setupMultiTriangle( triples, options ) {
 
-    // Determining "maxLength", the largest length integer digits among the "stats".
-    var stats = [ 'mean', 'q1', 'q3' ]
-    ints = stats.map( stat => scDetails[ stat ].toString().split( "." )[0].length )
-    maxLength = Math.max.apply(Math, ints ) - 1
-
-    // This represents the total number of characters a currency string should occupy.
-    // It allows right-justification (hackily) by padding with spaces to this value.
-    goalStringLength = maxLength + 7
-
-    // and appends an annotation (right y-axis) to match Google Charts format for data.
-    function format( partition, label, stat ) {
-      formattedPart = JSON.parse( partition )
-      formattedPart.unshift( label )
-      // "\xA0 is a 'non-breaking space'. This enables padding with spaces since 
-      // Google Charts strips away whitespace for annotation strings.
-      formattedPart.push( stat.padStart( goalStringLength, '\xA0'))
-      return formattedPart
+    for ( var triple of triples ) {
+        triple[ 'points' ] = getCoordinates( triple[ 'values' ] )
     }
+
+    // Sets options for the bounds of the chart, which are dependent
+    // on the values stores in 'stats'.
+    setTriChartOptions( triples, options )
+
+    var dtable = await buildDataTable( triples )
+
+    return dtable
+}
+
+// Builds a datatable for plotting the three-scenarios triangle chart. 
+async function buildDataTable( triples, rows ) {
+
+    var dtable = new google.visualization.DataTable();
+
+    // Configures a 7-column table. The first column is the x-coordinate and
+    // the each other 'number' column is the y-coordinate for that point.
+    dtable.addColumn( 'number', 'value' )
+    dtable.addColumn( 'number', 'Best worse case' )
+    dtable.addColumn( {type:'string', role:'tooltip'} )
+    dtable.addColumn( 'number', 'Best expected' )
+    dtable.addColumn( {type:'string', role:'tooltip'} )
+    dtable.addColumn( 'number', 'Best best case' )
+    dtable.addColumn( {type:'string', role:'tooltip'} )
 
     var formatter = new Intl.NumberFormat( 'en-US', {
       style: 'currency',
       currency: 'USD',
+    })
+
+    // Initializes a 9x7 array with all cells nulled.
+    var rows = Array.from( Array( 9 ), _ => Array( 7 ).fill( null ) );
+
+    // For each triangle to be plotted, three points are added along with
+    // annotations (Min, Peak, or Max) for the point.
+    for ( var i in triples ) {
+        var triple = triples[ i ][ 'points' ]
+        var row = i * 3
+        var col = i * 2
+
+        rows[ row     ][ 0 ]       = triple[ 0 ][ 0 ]
+        rows[ row     ][ col + 1 ] = triple[ 0 ][ 1 ]
+        rows[ row     ][ col + 2 ] = 'Min: '  + formatter.format( triple[ 0 ][ 0 ] )
+
+        rows[ row + 1 ][ 0 ]       = triple[ 1 ][ 0 ]
+        rows[ row + 1 ][ col + 1 ] = triple[ 1 ][ 1 ]
+        rows[ row + 1 ][ col + 2 ] = 'Peak: ' + formatter.format( triple[ 1 ][ 0 ] )
+
+        rows[ row + 2 ][ 0 ]       = triple[ 2 ][ 0 ]
+        rows[ row + 2 ][ col + 1 ] = triple[ 2 ][ 1 ]
+        rows[ row + 2 ][ col + 2 ] = 'Max: '  + formatter.format( triple[ 2 ][ 0 ] )
+    }
+
+    // Sorts by first column (the x-coordinates of all triangle points).
+    rows.sort( (a, b) => {
+        if ( a[ 0 ] === b[ 0 ] ) {
+            return 0
+        } else { 
+            return ( a[ 0 ] < b[ 0 ] ) ? -1 : 1
+        }
     });
 
-    scDetails[ 'mean_partition' ] = format( scDetails[ 'mean_partition' ], 'Expected',    formatter.format( scDetails[ 'mean' ]))
-    scDetails[ 'q1_partition'   ] = format( scDetails[ 'q1_partition'   ], 'Pessimistic', formatter.format( scDetails[ 'q1' ]))
-    scDetails[ 'q3_partition'   ] = format( scDetails[ 'q3_partition'   ], 'Optimistic',  formatter.format( scDetails[ 'q3' ]))
+    rows.forEach( row => {
+        dtable.addRow( row )
+    })
+ 
+    return dtable
+}
 
-    return scDetails
-  }
+  // Loads data, then populates and configures datables.
+  async function chartSetup() {
 
-  // Loads the list of crop names included for this scenario.
-  // Note that a Promise is returned, which itself returns/resolves the crop name list.
-  var loadScenarioCropNames = function( scenarioDetails ) {
-    return new Promise( 
-      function( resolve, reject ) {
-        $.ajax({
-          url: 'http://localhost:8000/api/v1/scenario/listcrops/{{scenario.id}}/',
-          type: 'GET',
-          dataType: 'json',
-          success: function( response ) {
-            response[ 'cropnames' ].unshift( 'Crops' )
-            response[ 'cropnames' ].push( {role: 'annotation'} )
-            scenarioDetails[ 'cropnames' ] = response[ 'cropnames' ]
-            resolve( scenarioDetails )
-          },
-          error: function( response ) {
-            reject( "ERROR - Failed to load crop names!" )
-          }
-        })
-      }
-    )
-  }
+    // Aliasing this to a shorter function.
+    var ChartWrapper = google.visualization.ChartWrapper
 
-  // Takes data loaded from the loadScenario...() functions and plots it.
-  function drawPartitionsChart( scenarioDetails ) {
-    var data = google.visualization.arrayToDataTable([
-      scenarioDetails[ 'cropnames' ],
-      scenarioDetails[ 'mean_partition' ],
-      scenarioDetails[ 'q1_partition' ],
-      scenarioDetails[ 'q3_partition' ]
-    ]);
+    charts[ 'scenarios' ] = new ChartWrapper( { containerId: 'scenarioChart'  } )
 
-    var options = {
-      isStacked: 'percent',
-      height: 200,
-      width: 800,
-      chartArea: { width: "70%", height: "60%" },
-      legend: { position: 'bottom', maxLines: 3 },
-      haxis: {
-        minValue: 0,
-        ticks: [0, .2, .4, .6, .8, 1 ]
-      },
-      annotations: {
-        textStyle: {
-          color: 'black',
-          fontName: 'Cousine'
-        },
-        alwaysOutside: true,
-      }
-    };
+    // Attempting to retrieve data from backend.
+    regex = '[0-9]+(?=\/$)'
+    var scenario_pk = location.pathname.match( regex )[ 0 ]
+    try {
+      [ scenarios, crops ] = await Promise.all( [ loadScenarioData( scenario_pk ), 
+                                                  loadCropData( scenario_pk ) ]);
+    } catch ( error ) {
+      console.log( error )
+    }
 
-    var chart = new google.visualization.BarChart( document.getElementById( "cropPartitionsChart" ))
-    chart.draw( data, options )
-  }
+    // Configures the charts and builds its datatable.
+    tables[ 'scenarios' ] = await setupMultiTriangle( [
+      { values: scenarios[ 'min' ],  desc: 'Pessimistic' },
+      { values: scenarios[ 'peak' ], desc: 'Expected' },
+      { values: scenarios[ 'max' ],  desc: 'Optimistic' }
+    ], options[ 'scnrio_tris' ]);
 
-  // Loads Google Charts. When finished loading, drawCharts() is called.
-  google.charts.load('current', {'packages': ['corechart', 'bar'], 'callback': drawCharts});
+    // Renders the chart.
+    drawChart( charts[ 'scenarios' ], 'AreaChart', 
+      tables[ 'scenarios' ], options[ 'scnrio_tris' ]);
 
-  /*
-    Retrieves Scenario data from the backend, then draws or redraws charts.
-    This is called:
-    - When Google Charts packages finish loading (i.e. soon after a page refresh).
-    - When the user clicks "Update".
-
-    Sequence of events:
-      1 - Scenario object is retrieved from backend.
-      2 - Scenario partitions (part of Scenario object) are formatted
-          for Google Charts to take as input.
-      3 - Crop Names for this scenario are retrieved from backend.
-      4 - The partition chart is drawn.
-  */
-  function drawCharts() {
-    // Draws the "Expected-Pessimistic-Optimisic" chart.
-    loadScenarioDetails().
-      then( scDetails => formatPartitions( scDetails )).
-      then( scDetails => loadScenarioCropNames( scDetails )).
-      then( scDetails => drawPartitionsChart( scDetails ))
-
-    // Add more charts here!
   }
 
 </script>

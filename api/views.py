@@ -8,6 +8,7 @@ from optimizer.models import (CropData,
 from .serializers import (CropDataSerializer,
                           ScenarioListSerializer,
                           ScenarioDetailSerializer, 
+                          CropSerializer,
                           )
 
 
@@ -50,3 +51,18 @@ class ScenarioCropsList(generics.GenericAPIView):
         scenario_crops = scenario.crops.all()
         data = { 'cropnames': [ c.data.name for c in scenario_crops ] }
         return JsonResponse(data)
+
+
+class CropTriangles(generics.RetrieveAPIView):
+    '''Return cropdata by name'''
+    serializer_class = CropSerializer
+    queryset = Crop.objects.all()
+
+
+class CropList(generics.ListAPIView):
+    '''list scenarios by farm'''
+    serializer_class = CropSerializer
+
+    def get_queryset(self):
+        return Crop.objects.filter(scenario_id=self.kwargs['pk'])
+

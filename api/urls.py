@@ -3,7 +3,9 @@ from .views import (CropDataDetail,
                     CropDataDetailById,
                     ScenarioList,
                     ScenarioDetail, 
-                    ScenarioCropsList,)
+                    ScenarioCropsList,
+                    CropTriangles,
+                    CropList)
 
 v1_patterns = [
     path('cropdata/<str:name>/', CropDataDetail.as_view(), name='cropdata'),
@@ -15,6 +17,10 @@ v1_patterns = [
          name='scenario'),
     path('scenario/listcrops/<int:pk>/', ScenarioCropsList.as_view(),
          name='scenario_crops_list'),
+    path('crop/<int:pk>/', CropTriangles.as_view(),
+         name='croptriangles'),
+    path('scenario/crops/<int:pk>/', CropList.as_view(),
+         name='scenariocrops'),
 ]
 
 urlpatterns = [

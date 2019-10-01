@@ -5,14 +5,17 @@
 
 {% block head_title %}Crop Details{% endblock %}
 {% block extra_head %} 
-  <!-- Load c3.css -->
-  <link rel="stylesheet" href="{% static "css/c3.min.css" %}">
 
-  <!-- Load d3.js and c3.js -->
-  <script src="{% static "js/d3.min.js" %}" charset="utf-8"></script>
-  <script src="{% static "js/c3.min.js" %}"></script>
+  <!--  Downloads loader script for Google Charts. -->
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <script type="text/javascript" src="{% static "js/chartUtils.js" %}"></script>
+  <style>
+    div.chart_div {
+      display: inline-block;
+    }
+  </style>
+
 {% endblock %}
-
 {% block body %}
 
 
@@ -22,12 +25,14 @@
       <h3 style="text-align: center">
       Crop Details : <b style="text-transform: uppercase"><font color="blue">{{ crop.data.name }}</font></b>
       </h3>
+
       <p>
         <a href="{% url "farm:farm" crop.scenario.farm.id %}">
           Farm:
         </a>
         {{ crop.scenario.farm.name }}
       </p>
+
       <p>
         <a href="{% url "optimizer:scenario_details" crop.scenario.id %}">
           Scenario:
@@ -36,247 +41,155 @@
       </p>
     </div>
   </div>
-</div>
 
-<div class="container">
   <div class="row">
-    <div class="col">
-      <hr>
-      <h4>Acreage Overrides</h4>
+    <div class="col"> 
+      <b>Cost</b>: ${{ crop.data.cost|floatformat:2}} / {{ crop.data.unit }} 
     </div>
   </div>
-  <div class="row">
-    <div class="col">
-      Lower limit: {{ crop.lo_acres }}
-    </div>
-    <div class="col">
-      Upper limit:
-      {{ crop.hi_acres|default:"No limit" }}
-    </div>
-    <div class="col-sm-1">
-      <a data-toggle="modal" href="#acressetlo">
-        <i class="fas fa-edit fa-lg"></i>
-      </a>
-      <!-- Modal -->
-      <div class="modal fade" id="acressetlo" tabindex="-1" role="dialog" aria-labelledby="videoTitleLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-          <div class="modal-content">
-            <form class="well" method="post">
-              <div class="modal-header">
-                <h5 class="modal-title" id="editplan">Set limits</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-                </button>
-              </div>
-              <div class="modal-body">
-                {% csrf_token %}
-                {{ form.as_p }}
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="submit" class="btn btn-primary">Save changes</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+
 </div>
 
-<div class="container">
+<div class="container" style="text-align:center">
   <div class="row">
     <div class="col">
       <hr style="color:blue">
-      <h4>Price Stats</h4>
+      <h4>Price Distribution</h3>
     </div>
-  </div>
-  <div class="row">
-    <div class="col">
-      <h5 style="text-align: center">Distribution</h5>
-        <div style="text-align: center" id="pricesChart"></div>
-    </div>
-  </div>
-  <!--
-  <div class="row">
-    <div class="col-sm">
-      <h5>Overrides</h5>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col">
-      &ldquo;list of futures&rdquo;
-    </div>
-  </div>
-  -->
-</div>
 
-<div class="container">
-  <div class="row">
     <div class="col">
       <hr style="color:blue">
-      <h4>Yield Stats </h4>
+      <h4>Yield Distribution</h4>
     </div>
-  </div>
-  <div class="row">
-    <div class="col-sm">
-      <h5 style="text-align: center" >Distribution</h5>
-        <div style="text-align: center" id="yieldsChart"></div>
-    </div>
-  </div>
-  <div class="row">
-    <!--
-    <div class="col-sm">
-      <h5>Override</h5>
-    </div>
-    <div class="col-sm">
-      <input id='yieldSlider' type='range' min='0.01' max='2' value ='1' step='.05' class='slider' oninput='updateYieldOVRD(this.value)'>
-    </div>
-    <div class="col" id='yieldValue'>
-        Yield Multiplier: 1.0
-    </div>
-    -->
-  </div>
-</div>
 
-<div class="container">
+  </div>
+
   <div class="row">
     <div class="col">
-      <hr/>
-      <h4>Cost Stats</h4>
+      <div id="priceChart" class="chart_div"></div>
+    </div>
+
+    <div class="col">
+      <div id="yieldChart" class="chart_div"></div>
     </div>
   </div>
-
-  <div class="row">
-    <div class="col-sm-2">
-      Current Cost:
-    </div>
-    <div class="col-sm-2">
-      ${{ crop.data.cost|floatformat:2}} / {{ crop.data.unit }} 
-    </div>
-  </div>
-
-  <div class="row">
-    <div class="col-sm-2">
-      Average cost:
-    </div>
-
-    <div class="col-sm-2">
-      ${{ crop.data.mean_price|floatformat:2}} / {{ crop.data.unit }}
-    </div>
-  </div>
-
-  <div class="row">
-    <div class="col-sm-2">
-      My Cost:
-    </div>
-    <div class="col-sm-2">
-      ${{crop.net_cost|floatformat:2}} / {{ crop.data.unit }}
-    </div>
-    <!--
-    <div class="col-sm-2">
-      <input id='costSlider' type='range' min='-50' max='50' value ='0' step='1' class='slider' oninput='updateCostOVRD(this.value)'>
-    </div>
-    <div class="col-sm-2" id='costValue'>
-        Additional Cost: $0.00
-    </div>
-    -->
-  </div>
-
 </div>
 
-<!-- In this script, functions defining plot generation are defined. 
-     A function that generates a plot is bound to a div by "id". -->
 <script> 
+  // Loads Google Charts packages, then calls chartSetup()
+  google.charts.load('current', {'packages': ['corechart', 'controls']});
+  google.charts.setOnLoadCallback( chartSetup )
 
-  /*
-  Non-functional. Leaving these for later.
-  // Initializing overrides sliders.
-  var yieldSlider = document.getElementById("yieldSlider");
+  // Global for storing options for each chart type.
+  var options = []
 
-  function updateYieldOVRD( newValue ) {
-    document.getElementById("yieldValue").innerHTML = 'Yield Multiplier: ' + document.getElementById("yieldSlider").value
-  }
-
-  function updateCostOVRD( newValue ) {
-    document.getElementById("costValue").innerHTML = 'Additional Cost: $' + document.getElementById("costSlider").value
-  }
-  */
-
-  // Loads initial data and generates a histogram.
-  var pricesData = JSON.parse( '{{ crop.data.get_prices_plotdata|escapejs }}' )
-  var pricesChart = c3.generate({
-    bindto: '#pricesChart',
-    legend: { show: false },
-    data: {
-      columns: [ 
-        pricesData[ 'counts' ] 
-      ],
-      type: 'bar',
+  // Global settings for triangle plots for prices.
+  options[ 'price_triangle' ] = {
+    hAxis: {
+      format: 'currency',
+      title: 'Price (dollar / {{crop.data.unit}})'
     },
-    axis: {
-      x: {
-        categories: pricesData[ 'bins' ],
-        type: 'category',
-        label: {
-          text: 'Average Price',
-          position: 'outer-center'
-        }
-      },
-      y: {
-        label: {
-          text: 'Count',
-          position: 'outer-left'
-        },
-        tick: { 
-          values: pricesData[ 'y-ticks' ]
-        }
+    vAxis: {
+      textPosition: 'none',
+      gridlines: {
+        count: 0
       }
     },
-    size: {
-      width: 700,
-      height: 200
+    legend: {
+      position: 'none'
     }
-  });
+  }
 
-  // Loads initial data and generates a histogram.
-  var yieldsData = JSON.parse( '{{ crop.data.get_yields_plotdata|escapejs }}' )
-  var yieldsChart = c3.generate({
-    bindto: '#yieldsChart',
-    legend: { show: false },
-    title: {
-      text: yieldsData[ 'title' ]
+  // Global settings for triangle plots for yields.
+  options[ 'yield_triangle' ] =  {
+    hAxis: {
+      title: 'Yield ({{crop.data.unit}} / acre)'
     },
-    data: {
-      columns: [ 
-        yieldsData[ 'counts' ] 
-      ],
-      type: 'bar',
-    },
-    axis: {
-      x: {
-        categories: yieldsData[ 'bins' ],
-        type: 'category',
-        label: {
-          text: 'Average Yield',
-          position: 'outer-center'
-        }
-      },
-      y: {
-        label: {
-          text: 'Count',
-          position: 'outer-left'
-        },
-        tick: { 
-          values: yieldsData[ 'y-ticks' ]
-        }
+    vAxis: {
+      textPosition: 'none',
+      gridlines: {
+        count: 0
       }
     },
-    size: {
-      width: 700,
-      height: 200
+    legend: {
+      position: 'none'
     }
-  });
+  }
+
+  /**
+   * Attempts to load stats for crop prices. If loading is unsuccesful, 
+   * an error is thrown. Should crop data ever need to be dynamic, 
+   * replace this with an AJAX call.
+   */
+  async function loadCropPrices() {
+    const priceStatsJSON =  '{{ crop.prices|escapejs }}'
+
+    if ( priceStatsJSON != '' ) {
+      return {
+        'values': JSON.parse( priceStatsJSON )
+      }
+    } else {
+      throw "Error in loadCropPrices()!"
+    }
+  }
+
+  /**
+   * Attempts to stats for crop yields. If loading is successful, the array
+   * is converted to an array of arrays (formatting for Google Charts') and returned.
+   * If loading is unsuccesful, an error is thrown.
+   *
+   * If crop data ever needs to be dynamic, replace this with an AJAX call.
+   */
+  async function loadCropYields() {
+    const yieldStatsJSON = '{{ crop.yields|escapejs }}'
+
+    if ( yieldStatsJSON != '') {
+      return {
+        'values': JSON.parse( yieldStatsJSON )
+      }
+    } else {
+      throw "Error in loadCropYields()!"
+    }
+  }
+
+  /**
+   * Loads data needed for charts into ChartWrappers, 
+   * configures the charts, then plots the data. 
+   */
+  async function chartSetup() {
+    var priceChart = new google.visualization.ChartWrapper({
+      containerId: 'priceChart'
+    });
+
+    var yieldChart = new google.visualization.ChartWrapper({
+      containerId: 'yieldChart'
+    });
+
+    // Attempts to load yield and price data.
+    try {
+      [ prices, yields ] = await Promise.all( [ loadCropPrices(), loadCropYields() ] );
+    } catch ( error ) {
+      console.log( error )
+    }
+
+    var priceFormatter = new Intl.NumberFormat( 'en-US', {
+      style: 'currency',
+      currency: 'USD',
+    })
+
+    var yieldFormatter = new Intl.NumberFormat( 'en-US', {
+      style: 'decimal',
+    })
+
+
+    // Configures and draws triangle distributions.
+    setupTriangle( prices, options[ 'price_triangle' ], priceFormatter ).
+      then( priceTable => drawChart( priceChart, 'AreaChart', priceTable, options[ 'price_triangle' ]))
+
+    setupTriangle( yields, options[ 'yield_triangle' ], yieldFormatter ).
+      then( yieldTable => drawChart( yieldChart, 'AreaChart', yieldTable, options[ 'yield_triangle' ]))
+  }
+
 </script>
 
 {% endblock %}
