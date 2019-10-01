@@ -62,8 +62,8 @@ def analyzeScenario(crops):
         overs = []
         over_acres = 0
         for over in crop.price_overrides.all():
-            median_yield = json.loads(cropdata.yield_stats)['median']
-            acres = over.units*over.factor/median_yield
+            mean_yield = sum(json.loads(cropdata.yields))/3.
+            acres = over.units*over.factor/mean_yield
             over_acres += acres
             overs.append(dict(
                 units=over.units,

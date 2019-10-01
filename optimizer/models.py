@@ -59,7 +59,7 @@ class Scenario(models.Model):
             self.min_expense = json.dumps(res[0][2])
             self.mean_triangle = json.dumps(res[1][0])
             self.mean_partition = json.dumps(res[1][1])
-            self.mean_expense = json.dumps(res[1][2])
+            self.mean_expense = json.dumps(res[0][2])
             self.max_triangle = json.dumps(res[2][0])
             self.max_partition = json.dumps(res[2][1])
             self.max_expense = json.dumps(res[2][2])
@@ -84,7 +84,7 @@ class AbstractCrop(models.Model):
     hi_acres = models.PositiveSmallIntegerField(default=0)
 
     price_override = models.CharField(max_length=128, default='')
-    yield_override = models.CharField(max_length=128, default='')
+    yield_override = models.FloatField(default=1.0)
     cost_override = models.FloatField(default=0.0)
 
     def gross(self):
@@ -100,7 +100,10 @@ class AbstractCrop(models.Model):
 
     def yields(self):
         if self.isYieldOverride():
-            return self.yield_override
+            print('YYY', self.yield_override, type(self.yield_override))
+            j = json.loads(self.data.yields)
+            print('jjjYYY', j, type(j))
+            return json.dumps([x * self.yield_override for x in json.loads(self.data.yields)])
         else:
             return self.data.yields
 
@@ -108,7 +111,7 @@ class AbstractCrop(models.Model):
         return self.price_override != ''
 
     def isYieldOverride(self):
-        return self.yield_override != ''
+        return self.yield_override != 1.0
 
     def isCostOverride(self):
         return self.cost_override != 0.0
@@ -194,7 +197,7 @@ class PriceOrder(models.Model):
     units = models.PositiveSmallIntegerField(default=0)
     price = models.FloatField(default=0.0)
 
-    safety = models.CharField(max_length=6, default='median')
+    safety = models.PositiveSmallIntegerField(default=50)
     factor = models.FloatField(default=1.0)
 
     def __str__(self):

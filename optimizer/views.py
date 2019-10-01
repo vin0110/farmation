@@ -1,3 +1,4 @@
+from math import sqrt
 import json
 
 from django.shortcuts import render
@@ -297,9 +298,21 @@ def editPrice(request, pk):
     if request.method == "POST":
         theform = form(request.POST, instance=price)
         if theform.is_valid():
-            safety = theform.cleaned_data['safety']
-            stats = json.loads(price.crop.data.yield_stats)
-            price.factor = stats['median']/stats[safety]
+            safety = int(theform.cleaned_data['safety'])
+            print('s', safety)
+            lo, peak, hi = json.loads(price.crop.data.yields)
+            # determine the percentile
+            hgt = 100. / (hi - lo)
+            a1 = (peak - lo) * hgt  # area of left tri (lo to peak)
+            if safety <= a1:
+                # a1 is percent of area in the left triangle
+                # if safety is less than this area, price factor is
+                # less than peak
+                f = lo + sqrt((safety/a1) * (peak - lo)**2)
+            else:
+                # safety > a1, calculate factor subtracting from hi
+                f = hi - sqrt((100. - safety)/(100. - a1) * (hi - peak)**2)
+            price.factor = f
             theform.save()
             return HttpResponseRedirect(
                 reverse('optimizer:scenario_details',

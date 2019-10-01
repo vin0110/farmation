@@ -46,11 +46,11 @@ class CropForm(forms.ModelForm):
 
 class PriceOrderForm(forms.ModelForm):
     safety = forms.ChoiceField(choices=[
-        ('90', 'Very high'),
-        ('q3', 'High'),
-        ('median', 'Medium'),
-        ('q1', 'Low'),
-        ('10', 'Very low'), ])
+        (90, 'Very high'),
+        (75, 'High'),
+        (50, 'Medium'),
+        (25, 'Low'),
+        (10, 'Very low'), ])
 
     class Meta:
         model = PriceOrder
