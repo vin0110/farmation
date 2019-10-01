@@ -104,7 +104,6 @@
       Best worst case
     </div>
     <div class="col-md-6">
-      <div id="minScenarioChart" class="chart_div"></div>
       {{ scenario.min }}
     </div>
     <div class="col-sm">
@@ -116,7 +115,6 @@
       Best expected
     </div>
     <div class="col-md-6">
-      <div id="peakScenarioChart" class="chart_div"></div>
       {{ scenario.peak }}
     </div>
     <div class="col-sm">
@@ -128,7 +126,6 @@
       Best best case
     </div>
     <div class="col-md-6">
-      <div id="maxScenarioChart" class="chart_div"></div>
       {{ scenario.max }}
     </div>
     <div class="col-sm">
@@ -189,7 +186,6 @@
       {{ crop.prices }}
     </div>
     <div class="col-md-2" align="right">
-      <div id="yieldChart_{{ crop.data.name }}" class="col-md-2" align="right"></div>
       {% if crop.isYieldOverride %}
       *
       {% endif %}
@@ -298,30 +294,31 @@
 </div>
 <script>
 
-  // Loads Google Charts. When finished loading, drawCharts() is called.
-  google.charts.load('current', {'packages': ['corechart', 'bar']});
-  google.charts.setOnLoadCallback( chartSetup )
+// Loads Google Charts. When finished loading, drawCharts() is called.
+google.charts.load('current', {'packages': ['corechart', 'bar']});
+google.charts.setOnLoadCallback( chartSetup )
 
-  // Globals for storing stuff.
-  var scenarios = [], crops = [], charts = [], tables = [], options = []
-  options[ 'scnrio_tris' ] = {
-    hAxis: {
-      format: 'currency',
-    },
-    vAxis: {
-      textPosition: 'none'
-    },
-    interpolateNulls: true,
-    legend: {
-      position: 'top'
-    },
-    height: 450,
-    width: 1000,
-    areaOpacity: 0.15,
-    explorer: {
-      zoomDelta: 1.05
-    }
+// Globals for storing stuff.
+var scenarios = [], crops = [], charts = [], tables = [], options = []
+
+options[ 'scnrio_tris' ] = {
+  hAxis: {
+    format: 'currency',
+  },
+  vAxis: {
+    textPosition: 'none'
+  },
+  interpolateNulls: true,
+  legend: {
+    position: 'top'
+  },
+  height: 450,
+  width: 1000,
+  areaOpacity: 0.15,
+  explorer: {
+    zoomDelta: 1.05
   }
+}
 
 async function setupMultiTriangle( triples, options ) {
 
@@ -345,12 +342,13 @@ async function setupMultiTriangle( triples, options ) {
     return dtable
 }
 
-// Builds a rows.length x 4 array and sorts it by its first column. 
-// This is needed for building a datable 
+// Builds a datatable for plotting the three-scenarios triangle chart. 
 async function buildDataTable( triples, rows ) {
 
     var dtable = new google.visualization.DataTable();
 
+    // Configures a 7-column table. The first column is the x-coordinate and
+    // the each other 'number' column is the y-coordinate for that point.
     dtable.addColumn( 'number', 'value' )
     dtable.addColumn( 'number', 'Best worse case' )
     dtable.addColumn( {type:'string', role:'tooltip'} )
@@ -364,11 +362,16 @@ async function buildDataTable( triples, rows ) {
       currency: 'USD',
     })
 
+    // Initializes a 9x7 array with all cells nulled.
     var rows = Array.from( Array( 9 ), _ => Array( 7 ).fill( null ) );
+
+    // For each triangle to be plotted, three points are added along with
+    // annotations (Min, Peak, or Max) for the point.
     for ( var i in triples ) {
         var triple = triples[ i ][ 'points' ]
         var row = i * 3
         var col = i * 2
+
         rows[ row     ][ 0 ]       = triple[ 0 ][ 0 ]
         rows[ row     ][ col + 1 ] = triple[ 0 ][ 1 ]
         rows[ row     ][ col + 2 ] = 'Min: '  + formatter.format( triple[ 0 ][ 0 ] )
@@ -382,6 +385,7 @@ async function buildDataTable( triples, rows ) {
         rows[ row + 2 ][ col + 2 ] = 'Max: '  + formatter.format( triple[ 2 ][ 0 ] )
     }
 
+    // Sorts by first column (the x-coordinates of all triangle points).
     rows.sort( (a, b) => {
         if ( a[ 0 ] === b[ 0 ] ) {
             return 0
@@ -405,10 +409,9 @@ async function buildDataTable( triples, rows ) {
 
     charts[ 'scenarios' ] = new ChartWrapper( { containerId: 'scenarioChart'  } )
 
-
     // Attempting to retrieve data from backend.
     regex = '[0-9]+(?=\/$)'
-    var scenario_pk = location.pathname.match( regex )[0]
+    var scenario_pk = location.pathname.match( regex )[ 0 ]
     try {
       [ scenarios, crops ] = await Promise.all( [ loadScenarioData( scenario_pk ), 
                                                   loadCropData( scenario_pk ) ]);
@@ -427,21 +430,6 @@ async function buildDataTable( triples, rows ) {
     drawChart( charts[ 'scenarios' ], 'AreaChart', 
       tables[ 'scenarios' ], options[ 'scnrio_tris' ]);
 
-    // Generating ChartWrappers for divs.
-    cropnames = crops.map( crop => crop.name)
-    cropnames.forEach( name => {
-      chartWrappers[ name ] = {
-        yield: new google.visualization.ChartWrapper({
-          containerId: 'yieldChart_' + name 
-        }),
-        gross: new google.visualization.ChartWrapper({
-          containerId: 'grossChart_' + name 
-        }),
-        price: new google.visualization.ChartWrapper({
-          containerId: 'priceChart_' + name 
-        })
-      }
-    })
   }
 </script>
 
