@@ -98,16 +98,22 @@
     <div class="col-sm">
       <b>Partition</b>
     </div>
+    <div class="col-sm">
+      <b>Expense</b>
+    </div>
   </div>
   <div class="row">
     <div class="col-sm">
       Best worst case
     </div>
     <div class="col-md-6">
-      {{ scenario.min }}
+      {{ scenario.min_triangle }}
     </div>
     <div class="col-sm">
       {{ scenario.min_partition }}
+    </div>
+    <div class="col-sm">
+      {{ scenario.min_expense }}
     </div>
   </div>
   <div class="row">
@@ -115,10 +121,13 @@
       Best expected
     </div>
     <div class="col-md-6">
-      {{ scenario.peak }}
+      {{ scenario.mean_triangle }}
     </div>
     <div class="col-sm">
-      {{ scenario.peak_partition }}
+      {{ scenario.mean_partition }}
+    </div>
+    <div class="col-sm">
+      {{ scenario.mean_expense }}
     </div>
   </div>
   <div class="row">
@@ -126,10 +135,13 @@
       Best best case
     </div>
     <div class="col-md-6">
-      {{ scenario.max }}
+      {{ scenario.max_triangle }}
     </div>
     <div class="col-sm">
       {{ scenario.max_partition }}
+    </div>
+    <div class="col-sm">
+      {{ scenario.max_expense }}
     </div>
   </div>
   <div class="row">

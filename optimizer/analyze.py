@@ -1,5 +1,4 @@
 import json
-import numpy as np
 
 
 def mkPartitions(size, width):
@@ -29,9 +28,10 @@ def analyzeScenario(crops):
     fields = [f.acreage for f in farm.fields.all()]
 
     partitions = mkPartitions(len(fields), crops.count())
-    max_min = ((-1e10, 0.0, 0.0), None, )
-    max_peak = ((0.0, -1e10, 0.0), None, )
-    max_max = ((0.0, 0.0, -1e10), None, )
+    best_mean = -1e10
+    max_min = ((-1e10, 0.0, 0.0), None, 0.0)
+    max_mean = ((0.0, -1e10, 0.0), None, 0.0)
+    max_max = ((0.0, 0.0, -1e10), None, 0.0)
 
     # build price, yields, and cost arrays
     cropDict = {}
@@ -77,6 +77,7 @@ def analyzeScenario(crops):
         totals = [0.0, 0.0, 0.0, ]
 
         valid = True
+        expense = 0.0
         for i in range(len(partition)):
             dcrop = cropDict[crop_names[i]]
             pacres = partition[i] * fields[i]
@@ -90,6 +91,7 @@ def analyzeScenario(crops):
                 # fulfill the price overrides
                 valid = False
                 break
+            expense += pacres * dcrop['cost']
 
             per_acre = dcrop['gross'][0] - dcrop['cost']
             totals[0] += pacres * per_acre
@@ -98,14 +100,20 @@ def analyzeScenario(crops):
             per_acre = dcrop['gross'][2] - dcrop['cost']
             totals[2] += pacres * per_acre
 
-        if not valid:
+        if not valid or expense > farm.max_expense:
             continue
 
         if totals[0] > max_min[0][0]:
-            max_min = (totals, partition)
-        if totals[1] > max_peak[0][1]:
-            max_peak = (totals, partition)
+            max_min = (totals, partition, expense)
+        this_mean = sum(totals)/3.0
+        if this_mean > best_mean:
+            best_mean = this_mean
+            max_mean = (totals, partition, expense)
         if totals[2] > max_max[0][2]:
-            max_max = (totals, partition)
+            max_max = (totals, partition, expense)
 
-    return (max_min, max_peak, max_max)
+    if max_min[1] is None:
+        # then we didn't find any solutions
+        return None
+    else:
+        return (max_min, max_mean, max_max)

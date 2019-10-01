@@ -9,6 +9,7 @@ from django.contrib.auth.decorators import login_required
 from .models import (Farm, Field, )
 from optimizer.models import CropData, FarmCrop
 from optimizer.forms import AddMultipleCropForm, FarmCropForm
+from .forms import FarmMaxEditForm
 
 
 @login_required
@@ -48,11 +49,18 @@ def home(request):
 @login_required
 def farm(request, pk):
     '''display the specifics of the farm'''
-
     template_name = 'farm/farm.html'
+    form = FarmMaxEditForm
 
     farm = get_object_or_404(Farm, pk=pk, user=request.user)
-    context = dict(farm=farm, )
+    if request.method == "POST":
+        the_form = form(request.POST, instance=farm)
+        if the_form.is_valid():
+            the_form.save()
+    else:
+        the_form = form(instance=farm)
+
+    context = dict(farm=farm, form=the_form)
     return HttpResponse(render(request, template_name, context))
 
 

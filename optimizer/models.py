@@ -30,26 +30,39 @@ class Scenario(models.Model):
     farm = models.ForeignKey('farm.Farm', on_delete=models.CASCADE,
                              related_name='scenarios')
 
-    lo = models.FloatField(default=0.0)
-    peak = models.FloatField(default=0.0)
-    hi = models.FloatField(default=0.0)
-
     # analyzed
-    min = models.CharField(max_length=512, default='')
+    min_triangle = models.CharField(max_length=512, default='')
     min_partition = models.CharField(max_length=512, default='')
-    peak = models.CharField(max_length=512, default='')
-    peak_partition = models.CharField(max_length=512, default='')
-    max = models.CharField(max_length=512, default='')
+    min_expense = models.FloatField(default=0.0)
+    mean_triangle = models.CharField(max_length=512, default='')
+    mean_partition = models.CharField(max_length=512, default='')
+    mean_expense = models.FloatField(default=0.0)
+    max_triangle = models.CharField(max_length=512, default='')
     max_partition = models.CharField(max_length=512, default='')
+    max_expense = models.FloatField(default=0.0)
 
     def analyzeScenario(self):
         res = analyzeScenario(self.crops.all())
-        self.min = json.dumps(res[0][0])
-        self.min_partition = json.dumps(res[0][1])
-        self.peak = json.dumps(res[1][0])
-        self.peak_partition = json.dumps(res[1][1])
-        self.max = json.dumps(res[2][0])
-        self.max_partition = json.dumps(res[2][1])
+        if res is None:
+            self.min_triangle = ''
+            self.min_partition = ''
+            self.min_expense = 0.0
+            self.mean_triangle = ''
+            self.mean_partition = ''
+            self.mean_expense = 0.0
+            self.max_triangle = ''
+            self.max_partition = ''
+            self.max_expense = 0.0
+        else:
+            self.min_triangle = json.dumps(res[0][0])
+            self.min_partition = json.dumps(res[0][1])
+            self.min_expense = json.dumps(res[0][2])
+            self.mean_triangle = json.dumps(res[1][0])
+            self.mean_partition = json.dumps(res[1][1])
+            self.mean_expense = json.dumps(res[1][2])
+            self.max_triangle = json.dumps(res[2][0])
+            self.max_partition = json.dumps(res[2][1])
+            self.max_expense = json.dumps(res[2][2])
         self.save()
 
     def __str__(self):
@@ -102,47 +115,6 @@ class AbstractCrop(models.Model):
 
     def isLimitOverride(self):
         return self.lo_acres != 0 or self.hi_acres != 0
-
-    def triangle(self, which, area=10, x0=0, y0=0):
-        lo, peak, hi = json.loads(which)
-        assert lo < peak < hi, 'invalid triangle'
-        hgt = (area * 2) / (hi - lo)
-        return (lo + x0, y0), (peak + x0, hgt + y0), (hi + x0, y0)
-
-    def price_triangle(self):
-        return self.triangle(self.prices())
-
-    def yield_triangle(self):
-        return self.triangle(self.yields())
-
-    '''
-    Given "data", a JSON array of [lo, peak, hi], this returns coordinates 
-    for a corresponding triangle distribution. The area parameter passed to 
-    triangle() is chosen so that the resultant height of the triangle is 
-    "desired_height".
-    '''
-    def scaled_triangle(self, data, desired_height):
-        lo, peak, hi = json.loads( data )
-        scaled_area = desired_height * (hi - lo) / 2.0
-        return self.triangle(data, scaled_area)
-
-    def price_triangle_json(self):
-        lo, peak, hi = self.scaled_triangle(self.prices(), desired_height=10)
-        points = {
-            'lo': lo,
-            'peak': peak,
-            'hi': hi
-        }
-        return json.dumps( points )
-
-    def yield_triangle_json(self):
-        lo, peak, hi = self.scaled_triangle(self.yields(), desired_height=10)
-        points = {
-            'lo': lo,
-            'peak': peak,
-            'hi': hi
-        }
-        return json.dumps( points )
 
     def limits(self):
         return (self.lo_acres, self.hi_acres)
