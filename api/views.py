@@ -65,4 +65,3 @@ class CropList(generics.ListAPIView):
 
     def get_queryset(self):
         return Crop.objects.filter(scenario_id=self.kwargs['pk'])
-

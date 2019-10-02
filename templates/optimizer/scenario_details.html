@@ -113,7 +113,7 @@
       {{ scenario.min_partition }}
     </div>
     <div class="col-sm">
-      {{ scenario.min_expense }}
+      ${{ scenario.min_expense|floatformat:0|intcomma }}
     </div>
   </div>
   <div class="row">
@@ -127,7 +127,7 @@
       {{ scenario.mean_partition }}
     </div>
     <div class="col-sm">
-      {{ scenario.mean_expense }}
+      ${{ scenario.mean_expense|floatformat:0|intcomma }}
     </div>
   </div>
   <div class="row">
@@ -141,7 +141,7 @@
       {{ scenario.max_partition }}
     </div>
     <div class="col-sm">
-      {{ scenario.max_expense }}
+      ${{ scenario.max_expense|floatformat:0|intcomma }}
     </div>
   </div>
   <div class="row">
@@ -159,18 +159,23 @@
         <h3>Crops</h3>
     </div>
   </div>
+</div>
+
+<div class="container">
+    <div class="row">
+      <div class="col">
+        <p>crop triangles</p>
+    </div>
+  </div>
+</div>
+
   <div class="row">
-    <div class="col-sm">
+    <hr/>
+    <div class="col-md-2">
       <b>Crop</b>
     </div>
-    <div class="col-md-2" align="right">
-      <b>Gross</b> (per acre)
-    </div>
-    <div class="col-md-2" align="right">
-      <b>Price</b> (per acre)
-    </div>
-    <div class="col-md-2" align="right">
-      <b>Yield</b> (per acre)
+    <div class="col-md-3" align="right">
+      <b>Yield override</b> (per acre)
     </div>
     <div class="col-md-2" align="right">
       <b>Cost</b> (per acre)
@@ -186,22 +191,20 @@
 <div class="container">
   {% for crop in scenario.crops.all %}
   <div class="row {% cycle '' 'bg-light ' %}">
-    <div class="col-sm">
+    <div class="col-md-2">
       <a href="{% url "optimizer:crop_details" crop.id %}">
         {{ crop.data.name }}
       </a>
     </div>
-    <div class="col-md-2" align="right">
-      {{ crop.gross }}
-    </div>
-    <div class="col-md-2" align="right">
-      {{ crop.prices }}
-    </div>
-    <div class="col-md-2" align="right">
+    <div class="col-md-3" align="right">
       {% if crop.isYieldOverride %}
-      *
-      {% endif %}
       {{ crop.yields }}
+      {% else %}
+      ---
+      {% endif %}
+      <a href="{% url "optimizer:edit_crop_yield" crop.id %}">
+        <i class="fas fa-edit"></i>
+      </a>
     </div>
     <div class="col-md-2" align="right">
       {% if crop.isCostOverride %}
@@ -250,12 +253,15 @@
     </div>
   </div>
   <div class="row">
-    <div class="col-sm-3">
+    <div class="col-sm-1">
     </div>
     <div class="col">
       {% for price in crop.price_overrides.all %}
       <div class="row">
-        <div class="col-6">
+        <div class="col-2">
+          Future:
+        </div>
+        <div class="col-3">
           {{ price.units }}
           {{ price.crop.data.unit }}{{ price.units|pluralize }} at
           ${{ price.price }} per {{ price.crop.data.unit }}

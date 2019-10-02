@@ -62,8 +62,8 @@ def analyzeScenario(crops):
         overs = []
         over_acres = 0
         for over in crop.price_overrides.all():
-            median_yield = json.loads(cropdata.yield_stats)['median']
-            acres = over.units*over.factor/median_yield
+            mean_yield = sum(json.loads(cropdata.yields))/3.
+            acres = over.units*over.factor/mean_yield
             over_acres += acres
             overs.append(dict(
                 units=over.units,
@@ -73,10 +73,11 @@ def analyzeScenario(crops):
         thisDict['over_acres'] = over_acres
         cropDict[crop_name] = thisDict
 
+    max_expense = farm.max_expense if farm.max_expense > 0 else None
     for partition in partitions:
         totals = [0.0, 0.0, 0.0, ]
 
-        valid = True
+        valid = False
         expense = 0.0
         for i in range(len(partition)):
             dcrop = cropDict[crop_names[i]]
@@ -84,12 +85,10 @@ def analyzeScenario(crops):
             lo, hi = crops[i].limits()
             if pacres < lo or (hi > 0 and pacres > hi):
                 # not a valid partition
-                valid = False
                 break
             if pacres < dcrop['over_acres']:
                 # there are not enough acres in this partition to
                 # fulfill the price overrides
-                valid = False
                 break
             expense += pacres * dcrop['cost']
 
@@ -100,7 +99,13 @@ def analyzeScenario(crops):
             per_acre = dcrop['gross'][2] - dcrop['cost']
             totals[2] += pacres * per_acre
 
-        if not valid or expense > farm.max_expense:
+        else:
+            # ran through all crops, so all is well
+            valid = True
+
+        if not valid:
+            continue
+        if max_expense and expense > max_expense:
             continue
 
         if totals[0] > max_min[0][0]:

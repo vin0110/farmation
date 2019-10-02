@@ -1,3 +1,4 @@
+from math import sqrt
 import json
 
 from django.shortcuts import render
@@ -19,6 +20,7 @@ from .forms import (ScenarioEditForm,
                     CropAcresSetForm,
                     AddMultipleCropForm,
                     CropForm,
+                    EditYieldForm,
                     PriceOrderForm,
                     )
 
@@ -274,6 +276,47 @@ def editCrop(request, pk):
 
 
 @login_required
+def editYieldOverride(request, pk, clear=False):
+    '''edit a yield override'''
+    template_name = 'optimizer/yield_override.html'
+    theform = EditYieldForm
+
+    crop = get_object_or_404(Crop, pk=pk)
+
+    if crop.scenario.farm.user != request.user:
+        raise Http404
+
+    if clear:
+        crop.yield_override = ''
+        crop.save()
+        return HttpResponseRedirect(
+            reverse('optimizer:scenario_details',
+                    args=(crop.scenario.id, )))
+
+    if request.method == "POST":
+        form = theform(request.POST)
+        if form.is_valid():
+            low = form.cleaned_data['low']
+            peak = form.cleaned_data['peak']
+            high = form.cleaned_data['high']
+            crop.yield_override = json.dumps([low, peak, high])
+            crop.save()
+            return HttpResponseRedirect(
+                reverse('optimizer:scenario_details',
+                        args=(crop.scenario.id, )))
+    else:
+        # method === GET
+        if crop.isYieldOverride():
+            low, peak, high = json.loads(crop.yield_override)
+        else:
+            low, peak, high = json.loads(crop.data.yields)
+        form = theform(initial=dict(low=low, peak=peak, high=high))
+
+    context = dict(crop=crop, form=form)
+    return render(request, template_name, context)
+
+
+@login_required
 def addPrice(request, pk):
     '''add price override for a crop; then call edit'''
     crop = get_object_or_404(Crop, pk=pk)
@@ -297,9 +340,20 @@ def editPrice(request, pk):
     if request.method == "POST":
         theform = form(request.POST, instance=price)
         if theform.is_valid():
-            safety = theform.cleaned_data['safety']
-            stats = json.loads(price.crop.data.yield_stats)
-            price.factor = stats['median']/stats[safety]
+            safety = int(theform.cleaned_data['safety'])
+            lo, peak, hi = json.loads(price.crop.data.yields)
+            # determine the percentile
+            hgt = 100. / (hi - lo)
+            a1 = (peak - lo) * hgt  # area of left tri (lo to peak)
+            if safety <= a1:
+                # a1 is percent of area in the left triangle
+                # if safety is less than this area, price factor is
+                # less than peak
+                f = lo + sqrt((safety/a1) * (peak - lo)**2)
+            else:
+                # safety > a1, calculate factor subtracting from hi
+                f = hi - sqrt((100. - safety)/(100. - a1) * (hi - peak)**2)
+            price.factor = f
             theform.save()
             return HttpResponseRedirect(
                 reverse('optimizer:scenario_details',

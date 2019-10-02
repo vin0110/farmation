@@ -23,34 +23,48 @@ class AddMultipleCropForm(forms.Form):
 HELP_TEXTS = {
     'lo_acres': 'zero (0) means no limit set',
     'hi_acres': 'zero (0) means no limit set',
-    'yield_override':
-    'multiplitive:; 1.0 is no change ; 1.1 increases yield by 10%',
     'cost_override':
-    'additive: 0.0 is no change; 1.50 increases cost by $1.50',
+    'additive: 0.0 is no change; 150.0 increases cost by $150.00',
 }
 
 
 class FarmCropForm(forms.ModelForm):
     class Meta:
         model = FarmCrop
-        fields = ['lo_acres', 'hi_acres', 'yield_override', 'cost_override', ]
+        fields = ['lo_acres', 'hi_acres', 'cost_override', ]
         help_texts = HELP_TEXTS
 
 
 class CropForm(forms.ModelForm):
     class Meta:
         model = Crop
-        fields = ['lo_acres', 'hi_acres', 'yield_override', 'cost_override', ]
+        fields = ['lo_acres', 'hi_acres', 'cost_override', ]
         help_texts = HELP_TEXTS
+
+
+class EditYieldForm(forms.Form):
+    '''edit the crop yield triangle'''
+    low = forms.FloatField(min_value=0.0)
+    peak = forms.FloatField(min_value=0.0)
+    high = forms.FloatField(min_value=0.0)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        low = cleaned_data.get('low')
+        peak = cleaned_data.get('peak')
+        high = cleaned_data.get('high')
+        if not low < peak < high:
+            raise forms.ValidationError(
+                'failed assertation: low < peak < high')
 
 
 class PriceOrderForm(forms.ModelForm):
     safety = forms.ChoiceField(choices=[
-        ('90', 'Very high'),
-        ('q3', 'High'),
-        ('median', 'Medium'),
-        ('q1', 'Low'),
-        ('10', 'Very low'), ])
+        (90, 'Very high'),
+        (75, 'High'),
+        (50, 'Medium'),
+        (25, 'Low'),
+        (10, 'Very low'), ])
 
     class Meta:
         model = PriceOrder

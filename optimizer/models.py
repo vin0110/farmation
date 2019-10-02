@@ -59,7 +59,7 @@ class Scenario(models.Model):
             self.min_expense = json.dumps(res[0][2])
             self.mean_triangle = json.dumps(res[1][0])
             self.mean_partition = json.dumps(res[1][1])
-            self.mean_expense = json.dumps(res[1][2])
+            self.mean_expense = json.dumps(res[0][2])
             self.max_triangle = json.dumps(res[2][0])
             self.max_partition = json.dumps(res[2][1])
             self.max_expense = json.dumps(res[2][2])
@@ -194,7 +194,7 @@ class PriceOrder(models.Model):
     units = models.PositiveSmallIntegerField(default=0)
     price = models.FloatField(default=0.0)
 
-    safety = models.CharField(max_length=6, default='median')
+    safety = models.PositiveSmallIntegerField(default=50)
     factor = models.FloatField(default=1.0)
 
     def __str__(self):
