@@ -5,6 +5,7 @@ from .views import (scenarioList,
                     scenarioAdd,
                     cropDetails,
                     editCrop,
+                    editYieldOverride,
                     addPrice,
                     editPrice,
                     removePrice,
@@ -29,6 +30,10 @@ urlpatterns = [
 
     path('crop/details/<int:pk>/', cropDetails, name='crop_details'),
     path('crop/edit/<int:pk>/', editCrop, name='edit_crop'),
+    path('crop/yield/<int:pk>/', editYieldOverride, name='edit_crop_yield'),
+    path('crop/yield/clear/<int:pk>/', editYieldOverride,
+         dict(clear=True),
+         name='edit_crop_yield_clear'),
 
     path('crop/price/add/<int:pk>/', addPrice, name='add_price'),
     path('crop/price/edit/<int:pk>/', editPrice, name='edit_price'),

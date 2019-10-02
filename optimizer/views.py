@@ -20,6 +20,7 @@ from .forms import (ScenarioEditForm,
                     CropAcresSetForm,
                     AddMultipleCropForm,
                     CropForm,
+                    EditYieldForm,
                     PriceOrderForm,
                     )
 
@@ -271,6 +272,47 @@ def editCrop(request, pk):
         theform = form(instance=crop)
 
     context = dict(crop=crop, form=theform)
+    return render(request, template_name, context)
+
+
+@login_required
+def editYieldOverride(request, pk, clear=False):
+    '''edit a yield override'''
+    template_name = 'optimizer/yield_override.html'
+    theform = EditYieldForm
+
+    crop = get_object_or_404(Crop, pk=pk)
+
+    if crop.scenario.farm.user != request.user:
+        raise Http404
+
+    if clear:
+        crop.yield_override = ''
+        crop.save()
+        return HttpResponseRedirect(
+            reverse('optimizer:scenario_details',
+                    args=(crop.scenario.id, )))
+
+    if request.method == "POST":
+        form = theform(request.POST)
+        if form.is_valid():
+            low = form.cleaned_data['low']
+            peak = form.cleaned_data['peak']
+            high = form.cleaned_data['high']
+            crop.yield_override = json.dumps([low, peak, high])
+            crop.save()
+            return HttpResponseRedirect(
+                reverse('optimizer:scenario_details',
+                        args=(crop.scenario.id, )))
+    else:
+        # method === GET
+        if crop.isYieldOverride():
+            low, peak, high = json.loads(crop.yield_override)
+        else:
+            low, peak, high = json.loads(crop.data.yields)
+        form = theform(initial=dict(low=low, peak=peak, high=high))
+
+    context = dict(crop=crop, form=form)
     return render(request, template_name, context)
 
 

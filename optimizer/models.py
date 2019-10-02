@@ -84,12 +84,13 @@ class AbstractCrop(models.Model):
     hi_acres = models.PositiveSmallIntegerField(default=0)
 
     price_override = models.CharField(max_length=128, default='')
-    yield_override = models.FloatField(default=1.0)
+    yield_override = models.CharField(max_length=128, default='')
     cost_override = models.FloatField(default=0.0)
 
     def gross(self):
         p = json.loads(self.prices())
         y = json.loads(self.yields())
+        print('g', p, y)
         return [p[i] * y[i] for i in range(3)]
 
     def prices(self):
@@ -100,10 +101,7 @@ class AbstractCrop(models.Model):
 
     def yields(self):
         if self.isYieldOverride():
-            print('YYY', self.yield_override, type(self.yield_override))
-            j = json.loads(self.data.yields)
-            print('jjjYYY', j, type(j))
-            return json.dumps([x * self.yield_override for x in json.loads(self.data.yields)])
+            return self.yield_override
         else:
             return self.data.yields
 
@@ -111,7 +109,7 @@ class AbstractCrop(models.Model):
         return self.price_override != ''
 
     def isYieldOverride(self):
-        return self.yield_override != 1.0
+        return self.yield_override != ''
 
     def isCostOverride(self):
         return self.cost_override != 0.0
