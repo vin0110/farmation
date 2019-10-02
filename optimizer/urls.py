@@ -3,7 +3,7 @@ from django.urls import path
 from .views import (scenarioList,
                     scenarioDetails,
                     scenarioAdd,
-                    cropDetails,
+                    cropData,
                     editCrop,
                     editYieldOverride,
                     addPrice,
@@ -28,7 +28,7 @@ urlpatterns = [
 
     path('scenario/update/<int:pk>/', updateScenario, name='updateScenario'),
 
-    path('crop/details/<int:pk>/', cropDetails, name='crop_details'),
+    path('crop/data/<int:pk>/', cropData, name='crop_data'),
     path('crop/edit/<int:pk>/', editCrop, name='edit_crop'),
     path('crop/yield/<int:pk>/', editYieldOverride, name='edit_crop_yield'),
     path('crop/yield/clear/<int:pk>/', editYieldOverride,

@@ -94,9 +94,9 @@ def scenarioDetails(request, pk):
 
 
 @login_required
-def cropDetails(request, pk):
+def cropData(request, pk):
     '''display a crop'''
-    template_name = 'optimizer/crop_details.html'
+    template_name = 'optimizer/crop_data.html'
 
     cropdata = get_object_or_404(CropData, pk=pk)
     context = dict(cropdata=cropdata, )
