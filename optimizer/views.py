@@ -307,15 +307,15 @@ def addPrice(request, pk):
 def editPrice(request, pk):
     '''edit the price override'''
     template_name = 'optimizer/edit_price.html'
-    form = PriceOrderForm
+    theform = PriceOrderForm
 
     price = get_object_or_404(PriceOrder, pk=pk)
     scenario = price.crop.scenario
 
     if request.method == "POST":
-        theform = form(request.POST, instance=price)
-        if theform.is_valid():
-            safety = int(theform.cleaned_data['safety'])
+        form = theform(request.POST, instance=price)
+        if form.is_valid():
+            safety = int(form.cleaned_data['safety'])
             lo, peak, hi = json.loads(price.crop.data.yields)
             # determine the percentile
             hgt = 100. / (hi - lo)
@@ -329,15 +329,15 @@ def editPrice(request, pk):
                 # safety > a1, calculate factor subtracting from hi
                 f = hi - sqrt((100. - safety)/(100. - a1) * (hi - peak)**2)
             price.factor = f
-            theform.save()
+            form.save()
             return HttpResponseRedirect(
                 reverse('optimizer:scenario_details',
                         args=(scenario.id, )))
     else:
         # GET
-        theform = form(instance=price)
+        form = theform(instance=price)
 
-    context = dict(price=price, form=theform)
+    context = dict(price=price, form=form)
     return render(request, template_name, context)
 
 
