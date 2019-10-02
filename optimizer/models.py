@@ -90,7 +90,6 @@ class AbstractCrop(models.Model):
     def gross(self):
         p = json.loads(self.prices())
         y = json.loads(self.yields())
-        print('g', p, y)
         return [p[i] * y[i] for i in range(3)]
 
     def prices(self):

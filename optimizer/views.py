@@ -341,7 +341,6 @@ def editPrice(request, pk):
         theform = form(request.POST, instance=price)
         if theform.is_valid():
             safety = int(theform.cleaned_data['safety'])
-            print('s', safety)
             lo, peak, hi = json.loads(price.crop.data.yields)
             # determine the percentile
             hgt = 100. / (hi - lo)
