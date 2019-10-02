@@ -423,18 +423,24 @@ async function buildDataTable( triples, rows ) {
     // Attempting to retrieve data from backend.
     regex = '[0-9]+(?=\/$)'
     var scenario_pk = location.pathname.match( regex )[ 0 ]
+
+    // Which fields of a Scenario object should be loaded?
+    var dataKeys = [ 
+        'min_triangle', 'max_triangle', 'mean_triangle', 
+    ]
+
     try {
-      [ scenarios, crops ] = await Promise.all( [ loadScenarioData( scenario_pk ), 
-                                                  loadCropData( scenario_pk ) ]);
+      [ scenario, crops ] = await Promise.all( [ loadScenarioData( scenario_pk, dataKeys ), 
+                                                 loadCropData( scenario_pk ) ]);
     } catch ( error ) {
       console.log( error )
     }
 
     // Configures the charts and builds its datatable.
     tables[ 'scenarios' ] = await setupMultiTriangle( [
-      { values: scenarios[ 'min' ],  desc: 'Pessimistic' },
-      { values: scenarios[ 'peak' ], desc: 'Expected' },
-      { values: scenarios[ 'max' ],  desc: 'Optimistic' }
+      { values: scenario[ 'min_triangle' ],  desc: 'Pessimistic' },
+      { values: scenario[ 'mean_triangle' ], desc: 'Expected' },
+      { values: scenario[ 'max_triangle' ],  desc: 'Optimistic' }
     ], options[ 'scnrio_tris' ]);
 
     // Renders the chart.

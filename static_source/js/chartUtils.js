@@ -1,24 +1,22 @@
 
 // Loads a serialized Scenario object, formats it and returns it.
-async function loadScenarioData( scenario_pk ) {
+async function loadScenarioData( scenario_pk, dataKeys ) {
     var scenarioData = await $.ajax({
         url: 'http://localhost:8000/api/v1/scenario/' + scenario_pk,
         type: 'GET',
         dataType: 'json'
     })
-
-    var floatKeys = [ 
-        'min', 'max', 'peak', 'max_partition', 'min_partition', 'peak_partition' 
-    ]
-
-    // Converting JSON to arrays and floats to ints, but only for
-    // the values mapped to by 'floatKeys'.
-    for (var key of floatKeys) {
-        scenarioData[ key ] = JSON.parse( scenarioData[ key ])
-        scenarioData[ key ] = scenarioData[ key ].map( val => Math.round( val ) ) 
+    
+    // Converting JSON to arrays and floats to ints.
+    // Also, populating data with only the fields specified in "dataKeys".
+    var data = []
+    for (var key of dataKeys) {
+        data[ key ] = JSON.parse( scenarioData[ key ])
+        data[ key ] = data[ key ].map( val => Math.round( val ) ) 
     }
 
-    return scenarioData
+    console.log( data )
+    return data
 }
 
 // Loads data for crops in a specific scenario and returns it.
