@@ -3,7 +3,7 @@
 {% load static %}
 
 
-{% block head_title %}Crop Details{% endblock %}
+{% block head_title %}Crop Data{% endblock %}
 {% block extra_head %} 
 
   <!--  Downloads loader script for Google Charts. -->
@@ -23,28 +23,14 @@
   <div class="row">
     <div class="col">
       <h3 style="text-align: center">
-      Crop Details : <b style="text-transform: uppercase"><font color="blue">{{ crop.data.name }}</font></b>
+      Crop Data : <b style="text-transform: uppercase"><font color="blue">{{ cropdata.name }}</font></b>
       </h3>
-
-      <p>
-        <a href="{% url "farm:farm" crop.scenario.farm.id %}">
-          Farm:
-        </a>
-        {{ crop.scenario.farm.name }}
-      </p>
-
-      <p>
-        <a href="{% url "optimizer:scenario_details" crop.scenario.id %}">
-          Scenario:
-        </a>
-        {{ crop.scenario }}
-      </p>
     </div>
   </div>
 
   <div class="row">
     <div class="col"> 
-      <b>Cost</b>: ${{ crop.data.cost|floatformat:2}} / {{ crop.data.unit }} 
+      <b>Cost per acre</b>: ${{ cropdata.cost|floatformat:2|intcomma }}
     </div>
   </div>
 
@@ -87,7 +73,7 @@
   options[ 'price_triangle' ] = {
     hAxis: {
       format: 'currency',
-      title: 'Price (dollar / {{crop.data.unit}})'
+      title: 'Price (dollar / {{cropdata.unit}})'
     },
     vAxis: {
       textPosition: 'none',
@@ -103,7 +89,7 @@
   // Global settings for triangle plots for yields.
   options[ 'yield_triangle' ] =  {
     hAxis: {
-      title: 'Yield ({{crop.data.unit}} / acre)'
+      title: 'Yield ({{cropdata.unit}} / acre)'
     },
     vAxis: {
       textPosition: 'none',
@@ -122,7 +108,7 @@
    * replace this with an AJAX call.
    */
   async function loadCropPrices() {
-    const priceStatsJSON =  '{{ crop.prices|escapejs }}'
+    const priceStatsJSON =  '{{ cropdata.prices|escapejs }}'
 
     if ( priceStatsJSON != '' ) {
       return {
@@ -141,7 +127,7 @@
    * If crop data ever needs to be dynamic, replace this with an AJAX call.
    */
   async function loadCropYields() {
-    const yieldStatsJSON = '{{ crop.yields|escapejs }}'
+    const yieldStatsJSON = '{{ cropdata.yields|escapejs }}'
 
     if ( yieldStatsJSON != '') {
       return {

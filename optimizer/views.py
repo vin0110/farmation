@@ -95,36 +95,11 @@ def scenarioDetails(request, pk):
 
 @login_required
 def cropDetails(request, pk):
-    '''edit a crop'''
+    '''display a crop'''
     template_name = 'optimizer/crop_details.html'
-    theform = CropAcresSetForm
 
-    crop = get_object_or_404(Crop, pk=pk)
-
-    if crop.scenario.farm.user != request.user:
-        raise Http404
-
-    if request.method == "POST":
-        form = theform(request.POST)
-        if form.is_valid():
-            low = form.cleaned_data['low']
-            high = form.cleaned_data['high']
-            acreage = crop.scenario.farm.acreage()
-            if low > acreage or high > acreage:
-                # @@@ need to actually check if acres > farm - sum(other crops)
-                messages.error(request, 'Limit is greater than farm')
-            else:
-                crop.lo_acres = low
-                crop.hi_acres = high
-                crop.save()
-                return HttpResponseRedirect(
-                    reverse('optimizer:crop_details', args=(crop.id, )))
-    else:
-        # method === GET
-        form = theform(initial={'low': crop.lo_acres,
-                                'high': crop.hi_acres, })
-
-    context = dict(crop=crop, form=form)
+    cropdata = get_object_or_404(CropData, pk=pk)
+    context = dict(cropdata=cropdata, )
     return render(request, template_name, context)
 
 
