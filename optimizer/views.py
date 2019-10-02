@@ -192,18 +192,18 @@ def analyze(request, pk):
 def editCrop(request, pk):
     '''edit the overrides in crop'''
     template_name = 'optimizer/edit_crop.html'
-    form = CropForm
+    theform = CropForm
 
     crop = get_object_or_404(Crop, pk=pk)
     scenario = crop.scenario
 
     if request.method == "POST":
-        theform = form(request.POST, instance=crop)
-        if theform.is_valid():
+        form = theform(request.POST, instance=crop)
+        if form.is_valid():
             valid = True
             farmcrop = scenario.farm.crops.get(data=crop.data)
-            lo = theform.cleaned_data['lo_acres']
-            hi = theform.cleaned_data['hi_acres']
+            lo = form.cleaned_data['lo_acres']
+            hi = form.cleaned_data['hi_acres']
             flo = farmcrop.lo_acres
             fhi = farmcrop.hi_acres
             if lo > 0:
@@ -238,15 +238,15 @@ def editCrop(request, pk):
                     'low limit ({}) is greater than high ({})'.format(lo, hi))
                 valid = False
             if valid:
-                theform.save()
+                form.save()
                 return HttpResponseRedirect(
                     reverse('optimizer:scenario_details',
                             args=(scenario.id, )))
     else:
         # GET
-        theform = form(instance=crop)
+        form = theform(instance=crop)
 
-    context = dict(crop=crop, form=theform)
+    context = dict(crop=crop, form=form)
     return render(request, template_name, context)
 
 
