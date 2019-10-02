@@ -1,33 +1,43 @@
 
 // Loads a serialized Scenario object, formats it and returns it.
-async function loadScenarioData( scenario_pk, dataKeys ) {
-    var scenarioData = await $.ajax({
+async function loadScenarioData( scenario_pk ) {
+    var scenData = await $.ajax({
         url: 'http://localhost:8000/api/v1/scenario/' + scenario_pk,
         type: 'GET',
         dataType: 'json'
     })
-    
-    // Converting JSON to arrays and floats to ints.
-    // Also, populating data with only the fields specified in "dataKeys".
-    var data = []
-    for (var key of dataKeys) {
-        data[ key ] = JSON.parse( scenarioData[ key ])
-        data[ key ] = data[ key ].map( val => Math.round( val ) ) 
+
+    // Pattern that matches only the iterable fields.
+    var iterable = RegExp( '.*_(partition|triangle)' )
+    for ( var key in scenData ) {
+        if ( iterable.test( key ) ) {
+            scenData[ key ] = JSON.parse( scenData[ key ])
+            scenData[ key ] = scenData[ key ].map( val => Math.round( val ) ) 
+        } 
     }
 
-    console.log( data )
-    return data
+    return scenData
 }
 
 // Loads data for crops in a specific scenario and returns it.
-async function loadCropData( scenario_pk ) {
+async function loadCropData( crop_pk ) {
     const cropData = await $.ajax({
-        url: 'http://localhost:8000/api/v1/scenario/crops/' + scenario_pk,
+        url: 'http://localhost:8000/api/v1/crop/' + crop_pk,
         type: 'GET',
         dataType: 'json'
-    })
+    });
 
     return cropData
+}
+
+async function loadScenarioCrops( scenario_pk ) {
+    const cropList = await $.ajax({
+        url: 'http://localhost:8000/api/v1/scenario/listcrops/' + scenario_pk,
+        type: 'GET',
+        dataType: 'json'
+    });
+
+    return cropList
 }
 
 // Returns coordinates for a triangle distribution from a 

@@ -64,32 +64,24 @@
   </div>
 </div>
 
-{% comment %}<div class="container">
+<div class="container">
+
   <div class="row">
-    <div id="cropPartitionsChart" class="col">
+    <div class="col">
+      <div id="partitionsChart"></div>
     </div>
   </div>
-</div>
-
-<div class="container">
-    <div class="row">
-      <div class="col">
-        <button class="btn btn-primary" onclick="drawCharts()">
-          Update 
-        </button>
-    </div>
-  </div>
-</div>
-{% endcomment %}
-
-<div class="container">
-
   <div class="row">
     <div class="col" >
       <div id="scenarioChart"></div>
     </div>
   </div>
-  <div class="row">
+
+</div>
+
+<div class="container">
+
+ <div class="row">
     <div class="col-sm">
     </div>
     <div class="col-md-6">
@@ -317,9 +309,12 @@ google.charts.load('current', {'packages': ['corechart', 'bar']});
 google.charts.setOnLoadCallback( chartSetup )
 
 // Globals for storing stuff.
-var scenarios = [], crops = [], charts = [], tables = [], options = []
+// Loads data, then populates and configures datables.
+var charts = [], options = []
+const CHART_HEIGHT = 450
+const CHART_WIDTH  = 1000
 
-options[ 'scnrio_tris' ] = {
+options[ 'scenarios' ] = {
   hAxis: {
     format: 'currency',
   },
@@ -330,13 +325,33 @@ options[ 'scnrio_tris' ] = {
   legend: {
     position: 'top'
   },
-  height: 450,
-  width: 1000,
+  height: CHART_HEIGHT,
+  width: CHART_WIDTH,
   areaOpacity: 0.15,
   explorer: {
     zoomDelta: 1.05
   }
 }
+options[ 'partitions' ]= {
+  isStacked: 'percent',
+  height: CHART_HEIGHT,
+  width: CHART_WIDTH,
+  chartArea: { width: "70%", height: "60%" },
+  legend: { position: 'bottom', maxLines: 4 },
+  haxis: {
+    minValue: 0,
+    ticks: [0, .2, .4, .6, .8, 1 ]
+  },
+  annotations: {
+    textStyle: {
+      color: 'black',
+      fontName: 'Cousine'
+    },
+    alwaysOutside: true,
+  }
+};
+
+
 
 async function setupMultiTriangle( triples, options ) {
 
@@ -412,42 +427,96 @@ async function buildDataTable( triples, rows ) {
     return dtable
 }
 
-  // Loads data, then populates and configures datables.
-  async function chartSetup() {
+async function chartSetup() {
 
-    // Aliasing this to a shorter function.
-    var ChartWrapper = google.visualization.ChartWrapper
+  // Aliasing this to a shorter function.
+  var ChartWrapper = google.visualization.ChartWrapper
 
-    charts[ 'scenarios' ] = new ChartWrapper( { containerId: 'scenarioChart'  } )
+  // Wrapper that associates a chart with its div.
+  var scenarioChart   = new ChartWrapper( { containerId: 'scenarioChart' } )
+  var partitionsChart = new ChartWrapper( { containerId: 'partitionsChart' } )
 
-    // Attempting to retrieve data from backend.
-    regex = '[0-9]+(?=\/$)'
-    var scenario_pk = location.pathname.match( regex )[ 0 ]
+  // Attempting to retrieve data from backend.
+  regex = '[0-9]+(?=\/$)'
+  var scenario_pk = location.pathname.match( regex )[ 0 ]
 
-    // Which fields of a Scenario object should be loaded?
-    var dataKeys = [ 
-        'min_triangle', 'max_triangle', 'mean_triangle', 
-    ]
+  // Loading the current Scenario via the API. 
+  try {
+    scenario = await loadScenarioData( scenario_pk )
+  } catch ( error ) {
+    console.log( error )
+  }
 
-    try {
-      [ scenario, crops ] = await Promise.all( [ loadScenarioData( scenario_pk, dataKeys ), 
-                                                 loadCropData( scenario_pk ) ]);
-    } catch ( error ) {
-      console.log( error )
-    }
-
-    // Configures the charts and builds its datatable.
-    tables[ 'scenarios' ] = await setupMultiTriangle( [
+  var triangles = await (async function() {
+    return [
       { values: scenario[ 'min_triangle' ],  desc: 'Pessimistic' },
       { values: scenario[ 'mean_triangle' ], desc: 'Expected' },
       { values: scenario[ 'max_triangle' ],  desc: 'Optimistic' }
-    ], options[ 'scnrio_tris' ]);
+    ]
+  })();
 
-    // Renders the chart.
-    drawChart( charts[ 'scenarios' ], 'AreaChart', 
-      tables[ 'scenarios' ], options[ 'scnrio_tris' ]);
+  // Configures, then renders the charts.
+  setupMultiTriangle( triangles, options[ 'scenarios' ] ).then( dtable =>
+    drawChart( scenarioChart, 'AreaChart', dtable, options[ 'scenarios' ]))
 
-  }
+  setupPartitions( scenario, scenario_pk ).then( dtable =>
+    drawChart( partitionsChart, 'BarChart', dtable, options[ 'partitions' ]))
+}
+
+// Takes data loaded from the loadScenario...() functions and plots it.
+async function setupPartitions( scenario, scenario_pk ) {
+  var cropnames = ( await loadScenarioCrops( scenario_pk ) )[ 'cropnames' ]
+  scenario = formatPartitions( scenario )
+
+  cropnames.unshift( 'Crops' )
+  cropnames.push( {role: 'annotation'} )
+
+  dtable = google.visualization.arrayToDataTable([
+    cropnames,
+    scenario[ 'min_partition' ],
+    scenario[ 'mean_partition' ],
+    scenario[ 'max_partition' ]
+  ]);
+
+  return dtable 
+
+  //var chart = new google.visualization.BarChart( document.getElementById( "partitionsChart" ))
+  //chart.draw( data, options[ 'crop_partitions'])
+}
+
+// Formats the partitions so they can be used to draw a chart.
+function formatPartitions( scnrio ) { 
+
+  // Determining "maxLength", the largest length integer digits among the "stats".
+  var keys = [ 'min_expense', 'mean_expense', 'max_expense' ]
+  lengths = keys.map( key => scnrio[ key ].toString().length )
+  maxLength = Math.max.apply(Math, lengths ) - 1 
+
+  // This represents the total number of characters a currency string should occupy.
+  // It allows right-justification (hackily) by padding with spaces to this value.
+  goalStringLength = maxLength + 7 
+
+  // and appends an annotation (right y-axis) to match Google Charts format for data.
+  function format( row, label, expense ) { 
+    row.unshift( label )
+    // "\xA0 is a 'non-breaking space'. This enables padding with spaces since 
+    // Google Charts strips away whitespace for annotation strings.
+    row.push( expense.padStart( goalStringLength, '\xA0'))
+    return row
+  }   
+
+  var formatter = new Intl.NumberFormat( 'en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }); 
+
+  scnrio[ 'min_partition'  ] = format( scnrio[ 'min_partition'  ], 'Pessimistic', formatter.format( scnrio[ 'min_expense' ])) 
+  scnrio[ 'mean_partition' ] = format( scnrio[ 'mean_partition' ], 'Expected',    formatter.format( scnrio[ 'mean_expense' ])) 
+  scnrio[ 'max_partition'  ] = format( scnrio[ 'max_partition'  ], 'Optimistic',  formatter.format( scnrio[ 'max_expense' ])) 
+
+  return scnrio 
+}
+
 
 </script>
 
