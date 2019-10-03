@@ -301,7 +301,7 @@ async function setupMultiTriangle( triples, options ) {
     }
 
     // Sets options for the bounds of the chart, which are dependent
-    // on the values stores in 'stats'.
+    // on the triangles in "triples".
     setTriChartOptions( triples, options )
 
     var dtable = await buildDataTable( triples )
