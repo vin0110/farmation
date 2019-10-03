@@ -64,18 +64,18 @@
   </div>
 </div>
 
-<div class="container">
-
+<div class="container" >
   <div class="row">
-    <div class="col">
+
+    <div class="col-sm" >
+      <div id="scenarioChart"></div>
+    </div>
+    <div class="col-sm">
       <div id="partitionsChart"></div>
     </div>
+
   </div>
-  <div class="row">
-    <div class="col" align="center">
-      <a href="{% url "optimizer:updateScenario" scenario.id %}" class="btn btn-primary btn-lg active" role="button" aria-pressed="true">Update</a>
-    </div>
-  </div>
+
 
 </div>
 
@@ -220,13 +220,8 @@
   </div>
 </div>
 
-<div class="container" >
-  <div class="row">
-    <div class="col" >
-      <div id="scenarioChart"></div>
-    </div>
-  </div>
-</div>
+
+
 
 <div class="container">
   <div class="row">
@@ -234,14 +229,16 @@
       <p>&nbsp;</p>
     </div>
   </div>
-    <div class="row">
-      <div class="col">
-        <a href="{% url "optimizer:addCropScenario" scenario.id %}">
-          <i class="fas fa-plus-circle"></i>
+
+  <div class="row">
+    <div class="col">
+      <a href="{% url "optimizer:addCropScenario" scenario.id %}">
+        <i class="fas fa-plus-circle"></i>
           Add crops
-        </a>
+      </a>
     </div>
   </div>
+
 </div>
 <script>
 
@@ -252,8 +249,8 @@ google.charts.setOnLoadCallback( chartSetup )
 // Globals for storing stuff.
 // Loads data, then populates and configures datables.
 var charts = [], options = []
-const CHART_HEIGHT = 450
-const CHART_WIDTH  = 1000
+const CHART_HEIGHT = 300
+const CHART_WIDTH  = 800
 
 options[ 'scenarios' ] = {
   hAxis: {
@@ -291,8 +288,6 @@ options[ 'partitions' ]= {
     alwaysOutside: true,
   }
 };
-
-
 
 async function setupMultiTriangle( triples, options ) {
 
