@@ -192,7 +192,7 @@
   {% for crop in scenario.crops.all %}
   <div class="row {% cycle '' 'bg-light ' %}">
     <div class="col-md-2">
-      <a href="{% url "optimizer:crop_details" crop.id %}">
+      <a href="{% url "optimizer:crop_data" crop.data.id %}">
         {{ crop.data.name }}
       </a>
     </div>

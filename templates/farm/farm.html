@@ -99,7 +99,9 @@
   {% for crop in farm.crops.all %}
   <div class="row">
     <div class="col-sm">
-      {{ crop.data.name }}
+      <a href="{% url "optimizer:crop_data" crop.data.id %}">
+        {{ crop.data.name }}
+      </a>
     </div>
     <div class="col-sm" align="right">
       {% if crop.isPriceOverride %}

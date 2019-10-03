@@ -94,37 +94,12 @@ def scenarioDetails(request, pk):
 
 
 @login_required
-def cropDetails(request, pk):
-    '''edit a crop'''
-    template_name = 'optimizer/crop_details.html'
-    theform = CropAcresSetForm
+def cropData(request, pk):
+    '''display a crop'''
+    template_name = 'optimizer/crop_data.html'
 
-    crop = get_object_or_404(Crop, pk=pk)
-
-    if crop.scenario.farm.user != request.user:
-        raise Http404
-
-    if request.method == "POST":
-        form = theform(request.POST)
-        if form.is_valid():
-            low = form.cleaned_data['low']
-            high = form.cleaned_data['high']
-            acreage = crop.scenario.farm.acreage()
-            if low > acreage or high > acreage:
-                # @@@ need to actually check if acres > farm - sum(other crops)
-                messages.error(request, 'Limit is greater than farm')
-            else:
-                crop.lo_acres = low
-                crop.hi_acres = high
-                crop.save()
-                return HttpResponseRedirect(
-                    reverse('optimizer:crop_details', args=(crop.id, )))
-    else:
-        # method === GET
-        form = theform(initial={'low': crop.lo_acres,
-                                'high': crop.hi_acres, })
-
-    context = dict(crop=crop, form=form)
+    cropdata = get_object_or_404(CropData, pk=pk)
+    context = dict(cropdata=cropdata, )
     return render(request, template_name, context)
 
 
@@ -146,7 +121,7 @@ def addCropToScenario(request, pk):
     '''select crop from form and add to scenario
     determine possible crops'''
     template_name = 'optimizer/add_crop_to_scenario.html'
-    form = AddMultipleCropForm
+    theform = AddMultipleCropForm
 
     scenario = get_object_or_404(Scenario, pk=pk)
     if scenario.farm.user != request.user:
@@ -162,10 +137,10 @@ def addCropToScenario(request, pk):
             possible_crops.append((crop.data.name, crop.data.name))
 
     if request.method == "POST":
-        theform = form(request.POST)
-        theform.fields['crops'].choices = possible_crops
-        if theform.is_valid():
-            selected_crops = theform.cleaned_data['crops']
+        form = theform(request.POST)
+        form.fields['crops'].choices = possible_crops
+        if form.is_valid():
+            selected_crops = form.cleaned_data['crops']
             for new_crop in selected_crops:
                 data = CropData.objects.get(name=new_crop)
                 crop = Crop.objects.create(
@@ -177,7 +152,7 @@ def addCropToScenario(request, pk):
                 reverse('optimizer:scenario_details', args=(scenario.id, )))
     else:
         # GET or invalid form
-        theform = form()
+        form = theform()
 
     if len(possible_crops) == 0:
         if scenario.farm.crops.count() < CropData.objects.count():
@@ -189,9 +164,9 @@ def addCropToScenario(request, pk):
         return HttpResponseRedirect(
             reverse('optimizer:scenario_details', args=(scenario.id, )))
 
-    theform.fields['crops'].choices = possible_crops
+    form.fields['crops'].choices = possible_crops
 
-    context = dict(scenario=scenario, form=theform)
+    context = dict(scenario=scenario, form=form)
     return render(request, template_name, context)
 
 
@@ -217,18 +192,18 @@ def analyze(request, pk):
 def editCrop(request, pk):
     '''edit the overrides in crop'''
     template_name = 'optimizer/edit_crop.html'
-    form = CropForm
+    theform = CropForm
 
     crop = get_object_or_404(Crop, pk=pk)
     scenario = crop.scenario
 
     if request.method == "POST":
-        theform = form(request.POST, instance=crop)
-        if theform.is_valid():
+        form = theform(request.POST, instance=crop)
+        if form.is_valid():
             valid = True
             farmcrop = scenario.farm.crops.get(data=crop.data)
-            lo = theform.cleaned_data['lo_acres']
-            hi = theform.cleaned_data['hi_acres']
+            lo = form.cleaned_data['lo_acres']
+            hi = form.cleaned_data['hi_acres']
             flo = farmcrop.lo_acres
             fhi = farmcrop.hi_acres
             if lo > 0:
@@ -263,15 +238,15 @@ def editCrop(request, pk):
                     'low limit ({}) is greater than high ({})'.format(lo, hi))
                 valid = False
             if valid:
-                theform.save()
+                form.save()
                 return HttpResponseRedirect(
                     reverse('optimizer:scenario_details',
                             args=(scenario.id, )))
     else:
         # GET
-        theform = form(instance=crop)
+        form = theform(instance=crop)
 
-    context = dict(crop=crop, form=theform)
+    context = dict(crop=crop, form=form)
     return render(request, template_name, context)
 
 
@@ -332,15 +307,15 @@ def addPrice(request, pk):
 def editPrice(request, pk):
     '''edit the price override'''
     template_name = 'optimizer/edit_price.html'
-    form = PriceOrderForm
+    theform = PriceOrderForm
 
     price = get_object_or_404(PriceOrder, pk=pk)
     scenario = price.crop.scenario
 
     if request.method == "POST":
-        theform = form(request.POST, instance=price)
-        if theform.is_valid():
-            safety = int(theform.cleaned_data['safety'])
+        form = theform(request.POST, instance=price)
+        if form.is_valid():
+            safety = int(form.cleaned_data['safety'])
             lo, peak, hi = json.loads(price.crop.data.yields)
             # determine the percentile
             hgt = 100. / (hi - lo)
@@ -354,15 +329,15 @@ def editPrice(request, pk):
                 # safety > a1, calculate factor subtracting from hi
                 f = hi - sqrt((100. - safety)/(100. - a1) * (hi - peak)**2)
             price.factor = f
-            theform.save()
+            form.save()
             return HttpResponseRedirect(
                 reverse('optimizer:scenario_details',
                         args=(scenario.id, )))
     else:
         # GET
-        theform = form(instance=price)
+        form = theform(instance=price)
 
-    context = dict(price=price, form=theform)
+    context = dict(price=price, form=form)
     return render(request, template_name, context)
 
 
