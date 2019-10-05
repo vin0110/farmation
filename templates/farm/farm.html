@@ -9,7 +9,7 @@
     <h1 class="display-6">{{ farm.name }}</h1>
     <p class="lead">
       {{ farm.note }}
-      &nbsp;
+      <br/>
       <a data-toggle="modal" href="#editNote">
         <i class="fas fa-edit"></i>
       </a>
@@ -21,7 +21,7 @@
                   action="{% url "farm:edit_note" farm.id %}">
               <div class="modal-header">
                 <h5 class="modal-title" id="editNote">
-                  Edit Farm Note
+                  Edit Farm
                 </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                   <span aria-hidden="true">&times;</span>
@@ -51,8 +51,7 @@
         {% else %}
         ${{ farm.max_expense|floatformat:"0"|intcomma }}
         {% endif %}
-      </div>
-      <div class="col-md-2">
+        &nbsp;&nbsp;
         <a data-toggle="modal" href="#editMax">
           <i class="fas fa-edit"></i>
         </a>
@@ -89,85 +88,89 @@
     <div class="row">
       <div class="col-md-6 offset-md-1">
         Set the upper limit for the <b>farm</b> expenses.
+      </div>
     </div>
+    <div class="row">
+      <div class="col">
+        <br/>
+        <a class="btn btn-primary btn-lg" href="{% url "optimizer:list" farm.id %}" role="button">Analyze</a>
+      </div>
+    </div>
+
   </div>
+  {# end jumbotron #}
 </div>
 
-<div class="container">
-</div>
-
-<div class="container">
+<div class="container-fluid">
   <div class="row">
     <div class="col">
-      <h5>Crops</h5>
+      <h2>Crops</h2>
     </div>
   </div>
 </div>
 
-<div class="container">
+<div class="container-fluid">
   <div class="row">
-    <div class="col-sm">
-      <b>Crop</b>
-    </div>
-    <div class="col-sm" align="right">
-      <b>Price</b> (per acre)
-    </div>
-    <div class="col-sm" align="right">
-      <b>Yield</b> (per acre)
-    </div>
-    <div class="col-sm" align="right">
-      <b>Gross</b> (per acre)
-    </div>
-    <div class="col-sm" align="right">
-      <b>Cost</b> (per acre)
-    </div>
-    <div class="col-sm" align="right">
-      <b>Limit</b> (acres)
-    </div>
-    <div class="col-sm">
-    </div>
-  </div>
-</div>
-
-<div class="container">
   {% for crop in farm.crops.all %}
-  <div class="row">
-    <div class="col-sm">
-      <a href="{% url "optimizer:crop_data" crop.data.id %}">
-        {{ crop.data.name }}
-      </a>
-    </div>
-    <div class="col-sm" align="right">
-      {% if crop.isPriceOverride %}
-      *
-      {% endif %}
-       {{ crop.prices }}
-    </div>
-    <div class="col-sm" align="right">
-      {% if crop.isYieldOverride %}
-      *
-      {% endif %}
-       {{ crop.yields }}
-    </div>
-    <div class="col-sm" align="right">
-       {{ crop.gross }}
-    </div>
-    <div class="col-sm" align="right">
-      {% if crop.isCostOverride %}
-      *
-      {% endif %}
-      ${{ crop.net_cost|floatformat:"2"|intcomma }}
-    </div>
-    <div class="col-sm" align="right">
-      {{ crop.show_limits }}
-    </div>
-    <div class="col-sm">
-      <a href="{% url "farm:edit_crop" crop.id %}">
-        <i class="fas fa-edit"></i>
-      </a>
-      <a href="{% url "farm:remove_crop" crop.id %}">
-        <i class="fas fa-minus-circle"></i>
-      </a>
+  <div class="{% cycle "card" "card bg-light" %}" style="width: 16rem;">
+    <!img class="card-img-top" src="" alt="Card image cap"/>
+    <div class="card-body">
+      <h4 class="card-title" >
+        <a href="{% url "optimizer:crop_data" crop.data.id %}">
+          <i class="fas fa-info-circle fa-sm"></i>
+        </a>
+        &nbsp;
+        {{ crop.data.name|capfirst }}
+      </h4>
+      <hr/>
+      <p>
+        <b>Price:</b>
+        <a href="{% url "tbd" %}">
+          <i class="fas fa-edit"></i>
+        </a>
+        <br/>
+        {{ crop.prices }}
+        {% if crop.isPriceOverride %}
+        *
+        {% endif %}
+      </p>
+      <p>
+        <b>Yield:</b>
+        <a href="{% url "tbd" %}">
+          <i class="fas fa-edit"></i>
+        </a>
+        <br/>
+        {{ crop.yields }}
+        {% if crop.isYieldOverride %}
+        *
+        {% endif %}
+      </p>
+      <p>
+        <b>Cost:</b>
+        ${{ crop.net_cost|floatformat:"2"|intcomma }}
+        {% if crop.isCostOverride %}
+        *
+        {% endif %}
+        &nbsp;
+        <a href="{% url "farm:edit_cost" crop.id %}">
+          <i class="fas fa-edit"></i>
+        </a>
+      </p>
+      <hr/>
+      <p>
+        <b>Acreage limits:</b>
+        <a href="{% url "farm:edit_acres" crop.id %}">
+          <i class="fas fa-edit"></i>
+        </a>
+        <br/>
+        {{ crop.show_limits }}
+      </p>
+      <hr/>
+      <p>
+        <a class="btn btn-danger btn-sm" href="{% url "farm:remove_crop" crop.id %}">
+          Remove
+        </a>
+      </p>
     </div>
   </div>
   {% empty %}
@@ -177,18 +180,14 @@
     </div>
   </div>
   {% endfor %}
+  </div>
+
   <div class="row">
-    <div class="col-sm">
-    </div>
-    <div class="col">
-      (* indicates farm override)
-    </div>
+    <br/>
   </div>
   <div class="row">
-    <div class="col-sm-1"></div>
     <div class="col">
-      <a href="{% url "farm:add_crop" farm.id %}">
-        <i class="fas fa-plus-circle"></i>
+      <a class="btn btn-success" href="{% url "farm:add_crop" farm.id %}">
         Add crops
       </a>
     </div>
@@ -197,46 +196,10 @@
 
 <div class="container">
   <div class="row">
-    <hr/>
-  </div>
-</div>
-
-<div class="container">
-  <div class="row">
     <div class="col">
-      <h5>Scenarios</h5>
+      <hr/>
+      <h2>Fields</h2>
     </div>
-  </div>
-  {% for scenario in farm.scenarios.all|slice:":5" %}
-  <div class="row">
-    <div class="col">
-      {{ scenario.name }}&nbsp;
-      <a href="{% url "optimizer:scenario_details" scenario.id %}">
-        <i class="fa fa-arrow-circle-right"></i>
-      </a>
-    </div>
-  </div>
-  {% empty %}
-  <p>
-    None<br/>
-    <a href="{% url "optimizer:scenario_add" farm.id %}">
-      Add a scenario
-    </a>
-  </p>
-  {% endfor %}
-  <p>
-    {% if farm.scenarios.count > 5 %}
-    ...<br/>
-    <a href="{% url "optimizer:list" farm.id %}">
-      See all
-    </a>
-    {% endif %}
-  </p>
-</div>
-
-<div class="container">
-  <div class="row">
-    <hr/>
   </div>
 </div>
 
@@ -252,7 +215,7 @@
   </div>
 </div>
 
-<div class="container-fluid">
+<div class="container">
 {% for field in farm.fields.all %}
 <div class="row {% cycle 'bg-light' '' %}">
   <div class="col-sm-1">

@@ -9,7 +9,11 @@ from django.contrib.auth.decorators import login_required
 from .models import (Farm, Field, )
 from optimizer.models import CropData, FarmCrop
 from optimizer.forms import AddMultipleCropForm, FarmCropForm
-from .forms import FarmExpenseForm, FarmNoteForm
+from .forms import (FarmExpenseForm,
+                    FarmNoteForm,
+                    FarmAcreageForm,
+                    FarmCostForm,
+                    )
 
 
 @login_required
@@ -115,9 +119,8 @@ def addCropToFarm(request, pk):
         theform = form()
 
     if len(possible_crops) == 0:
-        if farm.crops.count() < CropData.objects.count():
-            messages.info(request,
-                          "All known crops have been added to this farm.")
+        messages.info(request,
+                      "All crops have been added to this farm.")
         return HttpResponseRedirect(
             reverse('farm:farm', args=(farm.id, )))
 
@@ -128,10 +131,32 @@ def addCropToFarm(request, pk):
 
 
 @login_required
-def editFarmCrop(request, pk):
+def editAcres(request, pk):
     '''edit the overrides in farmcrop'''
-    template_name = 'farm/edit_farmcrop.html'
-    theform = FarmCropForm
+    template_name = 'farm/edit_acres.html'
+    theform = FarmAcreageForm
+
+    crop = get_object_or_404(FarmCrop, pk=pk)
+
+    if request.method == "POST":
+        form = theform(request.POST, instance=crop)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(
+                reverse('farm:farm', args=(crop.farm.id, )))
+    else:
+        # GET
+        form = theform(instance=crop)
+
+    context = dict(crop=crop, form=form)
+    return render(request, template_name, context)
+
+
+@login_required
+def editCost(request, pk):
+    '''edit the overrides in farmcrop'''
+    template_name = 'farm/edit_cost.html'
+    theform = FarmCostForm
 
     crop = get_object_or_404(FarmCrop, pk=pk)
 

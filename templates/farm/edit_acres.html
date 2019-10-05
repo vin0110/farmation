@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block head_title %}Farm|EditCrop{% endblock %}
+
+{% block body %}
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <h3>
+        Set Farm acres limits for <em>{{ crop.data.name }}</em>
+      </h3>
+      <p>
+        These limits apply to all scenarios.
+      </p>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <form method="post">{% csrf_token %}
+      {{ form.as_p }}
+      <input type="submit" value="Update" />
+      <input type="button" value="Cancel" onclick="location.href='{{ request.META.HTTP_REFERER }}'"/>
+      </form>
+      <br/>
+      <p>
+        A limit of 0 (zero) means &ldquo;no limit.&rdquo;
+      </p>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
