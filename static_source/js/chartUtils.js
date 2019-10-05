@@ -2,7 +2,7 @@
 // Loads a serialized Scenario object, formats it and returns it.
 async function loadScenarioData( scenario_pk ) {
     var scenData = await $.ajax({
-        url: 'http://localhost:8000/api/v1/scenario/' + scenario_pk + '/',
+        url: '/api/v1/scenario/' + scenario_pk +'/',
         type: 'GET',
         dataType: 'json'
     })
@@ -22,7 +22,7 @@ async function loadScenarioData( scenario_pk ) {
 // Loads data for crops in a specific scenario and returns it.
 async function loadCropData( crop_pk ) {
     const cropData = await $.ajax({
-        url: 'http://localhost:8000/api/v1/crop/' + crop_pk + '/',
+        url: '/api/v1/crop/' + crop_pk +'/',
         type: 'GET',
         dataType: 'json'
     });
@@ -32,7 +32,7 @@ async function loadCropData( crop_pk ) {
 
 async function loadScenarioCrops( scenario_pk ) {
     const cropList = await $.ajax({
-        url: 'http://localhost:8000/api/v1/scenario/listcrops/' + scenario_pk + '/',
+        url: '/api/v1/scenario/listcrops/' + scenario_pk +'/',
         type: 'GET',
         dataType: 'json'
     });
