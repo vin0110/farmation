@@ -28,6 +28,7 @@ urlpatterns = [
     path('accounts/', include('django.contrib.auth.urls')),
     path('tbd/', TemplateView.as_view(template_name="tbd.html"), name='tbd'),
     path('', home, name='home'),
+    path('help/', TemplateView.as_view(template_name="help.html"), name='help'),
     path('farm/', include((farm_urls, 'farm'), namespace='farm')),
     path('optimizer/',
          include((optimizer_urls, 'optimizer'), namespace='optimizer')),
