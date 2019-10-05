@@ -5,75 +5,23 @@
 
 {% block body %}
 <div class="container">
-  <div class="row">
-    <div class="col">
-      <h3>
-        {{ farm.name }}
-      </h3>
-      <p>
-        {{ farm.note }}
-        &nbsp;
-        <a data-toggle="modal" href="#editNote">
-          <i class="fas fa-edit"></i>
-        </a>
-        <!-- Modal -->
-        <div class="modal fade" id="editNote" tabindex="-1" role="dialog" aria-labelledby="videoTitleLabel" aria-hidden="true">
-          <div class="modal-dialog" role="document">
-            <div class="modal-content">
-              <form class="well" method="post"
-                  action="{% url "farm:edit_note" farm.id %}">
-                <div class="modal-header">
-                  <h5 class="modal-title" id="editNote">
-                    Edit Farm Note
-                  </h5>
-                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                  </button>
-                </div>
-                <div class="modal-body">
-                  {% csrf_token %}
-                  {{ note_form.as_p }}
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                  <button type="submit" class="btn btn-primary">Save changes</button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>   {# end modal #}
-      </p>          
-    </div>
-  </div>
-</div>
-
-<div class="container">
-  <div class="row">
-    <div class="col">
-      <h5>Expense limit</h5>
-      Limit capital outlay.
-    </div>
-  </div>
-  <div class="row">
-    <div class="col">
-      {% if farm.max_expense == 0.0 %}
-      No limit
-      {% else %}
-      ${{ farm.max_expense|floatformat:"0"|intcomma }}
-      {% endif %}
+  <div class="jumbotron">
+    <h1 class="display-6">{{ farm.name }}</h1>
+    <p class="lead">
+      {{ farm.note }}
       &nbsp;
-      <a data-toggle="modal" href="#editMax">
+      <a data-toggle="modal" href="#editNote">
         <i class="fas fa-edit"></i>
       </a>
-      <!-- Modal -->
-      <div class="modal fade" id="editMax" tabindex="-1" role="dialog" aria-labelledby="videoTitleLabel" aria-hidden="true">
+      {# begin modal #}
+      <div class="modal fade" id="editNote" tabindex="-1" role="dialog" aria-labelledby="videoTitleLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
           <div class="modal-content">
             <form class="well" method="post"
-                  action="{% url "farm:edit_expense" farm.id %}">
+                  action="{% url "farm:edit_note" farm.id %}">
               <div class="modal-header">
-                <h5 class="modal-title" id="editMax">
-                  Edit Farm Expense Limit
+                <h5 class="modal-title" id="editNote">
+                  Edit Farm Note
                 </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                   <span aria-hidden="true">&times;</span>
@@ -81,8 +29,7 @@
               </div>
               <div class="modal-body">
                 {% csrf_token %}
-                {{ expense_form.as_p }}
-                <p>Set limit to 0 (zero) for no limit to expenses.</p>
+                {{ note_form.as_p }}
               </div>
               <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
@@ -91,10 +38,62 @@
             </form>
           </div>
         </div>
-      </div>   {# end modal #}
+      </div>
+      {# end modal #}
+    </p>
+    <div class="row">
+      <div class="col-md-3">
+        <b>Total farm expenses:</b>
+      </div>
+      <div class="col-md-2">
+        {% if farm.max_expense == 0.0 %}
+        No limit
+        {% else %}
+        ${{ farm.max_expense|floatformat:"0"|intcomma }}
+        {% endif %}
+      </div>
+      <div class="col-md-2">
+        <a data-toggle="modal" href="#editMax">
+          <i class="fas fa-edit"></i>
+        </a>
+        {# begin modal #}
+        <div class="modal fade" id="editMax" tabindex="-1" role="dialog" aria-labelledby="videoTitleLabel" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <form class="well" method="post"
+                    action="{% url "farm:edit_expense" farm.id %}">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="editMax">
+                    Edit Farm Expense Limit
+                  </h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  {% csrf_token %}
+                  {{ expense_form.as_p }}
+                  <p>Set limit to 0 (zero) for no limit to expenses.</p>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                  <button type="submit" class="btn btn-primary">Save changes</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        {# end modal #}
+      </div>
     </div>
-    <hr/>
+    <div class="row">
+      <div class="col-md-6 offset-md-1">
+        Set the upper limit for the <b>farm</b> expenses.
+    </div>
   </div>
+</div>
+
+<div class="container">
 </div>
 
 <div class="container">
