@@ -1,9 +1,12 @@
 {% extends "base.html" %}
 {% load humanize %}
+{% load static %}
 
 {% block head_title %}Farm{% endblock %}
 
 {% block body %}
+
+{# TITLE #}
 <div class="container">
   <div class="jumbotron">
     <h1 class="display-6">{{ farm.name }}</h1>
@@ -101,10 +104,20 @@
   {# end jumbotron #}
 </div>
 
+{# CROPS LIST #}
 <div class="container-fluid">
   <div class="row">
-    <div class="col">
+    <div class="col-md-2">
       <h2>Crops</h2>
+    </div>
+    <div class="col-md-8">
+      <p>
+        Select the crops that can be planted in this farm.
+        The defaults for price, yield, and cost come from data
+        collected by the government and other sources.
+        <b>If your experience is different, you should override
+        the default values.</b>
+      </p>
     </div>
   </div>
 </div>
@@ -113,7 +126,6 @@
   <div class="row">
   {% for crop in farm.crops.all %}
   <div class="{% cycle "card" "card bg-light" %}" style="width: 16rem;">
-    <!img class="card-img-top" src="" alt="Card image cap"/>
     <div class="card-body">
       <h4 class="card-title" >
         <a href="{% url "optimizer:crop_data" crop.data.id %}">
@@ -123,39 +135,44 @@
         {{ crop.data.name|capfirst }}
       </h4>
       <hr/>
-      <p>
-        <b>Price:</b>
-        <a href="{% url "tbd" %}">
-          <i class="fas fa-edit"></i>
-        </a>
-        <br/>
-        {{ crop.prices }}
-        {% if crop.isPriceOverride %}
-        *
-        {% endif %}
-      </p>
-      <p>
-        <b>Yield:</b>
-        <a href="{% url "tbd" %}">
-          <i class="fas fa-edit"></i>
-        </a>
-        <br/>
-        {{ crop.yields }}
-        {% if crop.isYieldOverride %}
-        *
-        {% endif %}
-      </p>
-      <p>
-        <b>Cost:</b>
-        ${{ crop.net_cost|floatformat:"2"|intcomma }}
-        {% if crop.isCostOverride %}
-        *
-        {% endif %}
-        &nbsp;
-        <a href="{% url "farm:edit_cost" crop.id %}">
-          <i class="fas fa-edit"></i>
-        </a>
-      </p>
+      <b>Predicted profit</b>
+      <img class="card-img-top" src="{% static "img/fake-gross.png" %}" width="10rem" alt="Card image cap"/>
+      <a class="btn btn-secondary btn-sm" data-toggle="modal"
+         href="#cropOver{{ forloop.counter }}">
+        Modify
+      </a>
+      {# begin modal #}
+      <div class="modal fade" id="cropOver{{ forloop.counter }}"
+           tabindex="-1" role="dialog" aria-labelledby="videoTitleLabel"
+           aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="editNote">
+                Set farm overrides for {{ crop.data.name }}
+              </h5>
+            </div>
+            <div class="modal-body">
+              <a class="btn btn-primary btn-sm" href="{% url "tbd" %}">
+                Price
+              </a>
+              &nbsp;&nbsp;
+              <a class="btn btn-primary btn-sm" href="{% url "tbd" %}">
+                Yield
+              </a>
+              &nbsp;&nbsp;
+              <a class="btn btn-primary btn-sm" href="{% url "farm:edit_cost" crop.id %}">
+                Cost
+              </a>
+              
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      {# end modal #}
       <hr/>
       <p>
         <b>Acreage limits:</b>
@@ -164,12 +181,13 @@
         </a>
         <br/>
         {{ crop.show_limits }}
-      </p>
-      <hr/>
+       </p>
       <p>
         <a class="btn btn-danger btn-sm" href="{% url "farm:remove_crop" crop.id %}">
           Remove
         </a>
+        <br/>
+        <font size="-2">This can be undone.</font>
       </p>
     </div>
   </div>

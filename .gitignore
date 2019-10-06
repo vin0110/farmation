@@ -1,4 +1,5 @@
-static*
+static/
+static/*
 *~
 *.sqlite3
 env
