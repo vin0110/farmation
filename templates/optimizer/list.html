@@ -1,35 +1,19 @@
 {% extends "base.html" %}
+
 {% load humanize %}
 
-{% block head_title %}Farm{% endblock %}
+{% block head_title %}Scenario List{% endblock %}
 
 {% block body %}
 <div class="container">
   <div class="row">
     <div class="col">
-      <h3>Scenarios</h3>
-      For farm:
-      <a href="{% url "farm:farm" farm.id %}">{{ farm.name }}</a>
-    </div>
-  </div>
-</div>
-
-<div class="container">
-  <div class="row">
-    <div class="col-sm">
-      <strong>
-        Scenario
-      </strong>
-    </div>
-    <div class="col-sm">
-      <strong>
-        State
-      </strong>
-    </div>
-    <div class="col">
-      <strong>
-        ROI
-      </strong>
+      <h1>
+        Scenarios for <b>{{ farm.name }}</b>
+        <a href="{% url "farm:farm" farm.id %}">
+          <font size="+1">go to farm</font>
+        </a>
+       </h1>
     </div>
   </div>
 </div>
@@ -42,18 +26,9 @@
       {{ scenario }}
     </a>
   </div>
-  <div class="col-sm">
-    {{ scenario.getState }}
-  </div>
   <div class="col">
-    ${{ scenario.q1|floatformat:"0"|intcomma }}
-    /
-    ${{ scenario.mean|floatformat:"0"|intcomma }}
-    /
-    ${{ scenario.q3|floatformat:"0"|intcomma }}
   </div>
 </div>
-
 {% empty %}
 <div class="row">
   <div class="col">
