@@ -95,7 +95,7 @@
 <div class="container-fluid">
   <div class="row">
   {% for crop in scenario.crops.all %}
-  <div class="{% cycle "card" "card bg-light" %}" style="width: 16rem;">
+  <div class="{% cycle "card" "card bg-light" %}" style="width: 20rem;">
     <div class="card-body">
       <h4 class="card-title" >
         <a href="{% url "optimizer:crop_data" crop.data.id %}">
@@ -153,10 +153,36 @@
         <br/>
         {{ crop.show_limits|safe }}
       </p>
+      <hr/>
+      <h5>
+        Forward orders
+        &nbsp;&nbsp;
+        <a href="{% url "optimizer:add_price" crop.id %}">
+          <i class="fas fa-plus-circle"></i>
+        </a>
+      </h5>
+      {% for price in crop.price_overrides.all %}
+      <div class="row">
+        <div class="col">
+          {{ price.units }}
+          {{ price.crop.data.unit }}{{ price.units|pluralize }} at
+          ${{ price.price }} per {{ price.crop.data.unit }}
+        </div>
+        <div class="col-md-3">
+          <a href="{% url "optimizer:edit_price" price.id %}">
+            <i class="fas fa-edit fa-sm"></i>
+          </a>
+          <a href="{% url "optimizer:remove_price" price.id %}">
+            <i class="fas fa-minus-circle fa-sm"></i>
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+      <hr/>
       <p>
         <a class="btn btn-danger btn-sm" data-toggle="modal"
            href="#removeCrop{{ forloop.counter }}">
-          Remove
+          Remove crop from scenario
         </a>
         <br/>
         <font size="-2">This can be undone.</font>
@@ -182,46 +208,6 @@
       </p>
     </div>
   </div>
-  {% comment %}
-    <div class="col-sm">
-      <a href="{% url "optimizer:edit_crop" crop.id %}">
-        <i class="fas fa-edit"></i>
-      </a>
-      <a data-toggle="modal" href="#removeCrop{{ forloop.counter }}">
-        <i class="fas fa-minus-circle"></i>
-      </a>
-      <a href="{% url "optimizer:add_price" crop.id %}">
-        <i class="fas fa-file-invoice-dollar"></i>
-      </a>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-sm-1">
-    </div>
-    <div class="col">
-      {% for price in crop.price_overrides.all %}
-      <div class="row">
-        <div class="col-2">
-          Future:
-        </div>
-        <div class="col-3">
-          {{ price.units }}
-          {{ price.crop.data.unit }}{{ price.units|pluralize }} at
-          ${{ price.price }} per {{ price.crop.data.unit }}
-        </div>
-        <div class="col">
-        <a href="{% url "optimizer:edit_price" price.id %}">
-          <i class="fas fa-edit"></i>
-         </a>
-        <a href="{% url "optimizer:remove_price" price.id %}">
-          <i class="fas fa-minus-circle"></i>
-         </a>
-        </div>
-      </div>
-      {% endfor %}
-    </div>
-  </div>
-{% endcomment %}
   {% empty %}
   <div class="row">
     <div class="col">
@@ -229,13 +215,6 @@
     </div>
   </div>
   {% endfor %}
-  <div class="row">
-    <div class="col-sm">
-    </div>
-    <div class="col">
-      (* indicates scenario override)
-    </div>
-  </div>
 </div>
 
 

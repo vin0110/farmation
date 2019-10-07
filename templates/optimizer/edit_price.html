@@ -1,32 +1,33 @@
 {% extends "base.html" %}
 
-{% block head_title %}Scenario|EditPrice{% endblock %}
+{% block head_title %}Scenario|Edit Forward Order{% endblock %}
 
 {% block body %}
 <div class="container">
   <div class="row">
     <div class="col">
       <h3>
-        Edit price override for <em>{{ price.crop.data.name }}</em>
+        Edit forward order for <em>{{ price.crop.data.name }}</em>
       </h3>
-      <p>Set number {{ price.crop.data.unit }}
-      and the price (dollars per {{ price.crop.data.unit }})
-      for this order.
-      Also, select at risk factor.
-      A low risk factor will reserve <em>more</em> acres for this
-      order, which lowers the risk of failing to meet this order.
+      <p>
+        Set amount of crop in {{ price.crop.data.unit }}{{"2"|pluralize }}
+        and the price (dollars per {{ price.crop.data.unit }})
+        for this order.
+        Also, select at risk factor.
+        A low risk factor will reserve <em>more</em> acres for this
+        order, which lowers the risk of failing to meet this order.
       </p>
     </div>
   </div>
-</div>
 
-<div class="row">
-  <div class="col">
-    <form method="post">{% csrf_token %}
-    {{ form.as_p }}
-    <input type="submit" value="Update" />
-    <input type="button" value="Cancel" onclick="location.href='{{ request.META.HTTP_REFERER }}'"/>
-    </form>
+  <div class="row">
+    <div class="col">
+      <form method="post">{% csrf_token %}
+      {{ form.as_p }}
+      <input type="submit" value="Update" />
+      <input type="button" value="Cancel" onclick="location.href='{{ request.META.HTTP_REFERER }}'"/>
+      </form>
+    </div>
   </div>
 </div>
 
