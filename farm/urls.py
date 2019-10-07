@@ -20,5 +20,6 @@ urlpatterns = [
     path('edit/expense/<int:pk>/', editExpense, name='edit_expense',),
     path('edit/note/<int:pk>/', editNote, name='edit_note',),
     path('edit/acres/<int:pk>/', editAcres, name='edit_acres',),
+
     path('edit/cost/<int:pk>/', editCost, name='edit_cost',),
 ]

@@ -4,8 +4,10 @@ from .views import (scenarioList,
                     scenarioDetails,
                     scenarioAdd,
                     cropData,
+                    editCost,
                     editCrop,
-                    editYieldOverride,
+                    editAcres,
+                    editTriangle,
                     addPrice,
                     editPrice,
                     removePrice,
@@ -30,14 +32,22 @@ urlpatterns = [
 
     path('crop/data/<int:pk>/', cropData, name='crop_data'),
     path('crop/edit/<int:pk>/', editCrop, name='edit_crop'),
-    path('crop/yield/<int:pk>/', editYieldOverride, name='edit_crop_yield'),
-    path('crop/yield/clear/<int:pk>/', editYieldOverride,
-         dict(clear=True),
-         name='edit_crop_yield_clear'),
+
+    path('crop/yield/<int:pk>/', editTriangle,
+         dict(which='yield', ), name='edit_crop_yield'),
+    path('crop/yield/reset/<int:pk>/', editTriangle,
+         dict(which='yield', reset=True, ), name='reset_crop_yield'),
+    path('crop/price/<int:pk>/', editTriangle,
+         dict(which='price', ), name='edit_crop_price'),
+    path('crop/price/reset/<int:pk>/', editTriangle,
+         dict(which='price', reset=True, ), name='reset_crop_price'),
 
     path('crop/price/add/<int:pk>/', addPrice, name='add_price'),
     path('crop/price/edit/<int:pk>/', editPrice, name='edit_price'),
     path('crop/price/rm/<int:pk>/', removePrice, name='remove_price'),
+
+    path('crop/edit/cost/<int:pk>/', editCost, name='edit_cost'),
+    path('crop/edit/acres/<int:pk>/', editAcres, name='edit_acres'),
 
     path('analyze/<int:pk>/', analyze, name='analyze'),
 

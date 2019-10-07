@@ -121,7 +121,7 @@ class AbstractCrop(models.Model):
 
     def show_limits(self):
         lo, hi = self.limits()
-        return '{} - {}'.format(lo, hi if hi else "")
+        return '{} - {}'.format(lo, hi if hi else "&infin;")
 
     class Meta:
         abstract = True

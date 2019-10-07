@@ -1,17 +1,19 @@
 {% extends "base.html" %}
 
-{% block head_title %}Farm|EditCrop{% endblock %}
+{% load humanize %}
+
+{% block head_title %}Optimizer|Edit Crop Acreage Limits{% endblock %}
 
 {% block body %}
 <div class="container">
   <div class="row">
     <div class="col">
       <h3>
-        Set <b>farm</b> acres limits for <em>{{ crop.data.name }}</em>
+        Set <b>scenario</b> acreage limits for <em>{{ crop.data.name }}</em>
       </h3>
       <p>
-        These limits apply to all scenarios
-        without a scenario-specific cost.
+        These limits apply to all scenarios.
+        They replace the farm-wide limits.
       </p>
     </div>
   </div>

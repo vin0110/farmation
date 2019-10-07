@@ -17,10 +17,11 @@ from .models import (Scenario,
 from farm.models import Farm
 
 from .forms import (ScenarioEditForm,
-                    CropAcresSetForm,
+                    CostForm,
+                    AcreageForm,
                     AddMultipleCropForm,
                     CropForm,
-                    EditYieldForm,
+                    EditTriangleForm,
                     PriceOrderForm,
                     )
 
@@ -251,18 +252,25 @@ def editCrop(request, pk):
 
 
 @login_required
-def editYieldOverride(request, pk, clear=False):
+def editTriangle(request, pk, which, reset=False):
     '''edit a yield override'''
-    template_name = 'optimizer/yield_override.html'
-    theform = EditYieldForm
+    template_name = 'optimizer/edit_triangle.html'
+    theform = EditTriangleForm
+
+    print('edittri', which)
+    if which not in ['yield', 'price', ]:
+        raise Http404
 
     crop = get_object_or_404(Crop, pk=pk)
 
     if crop.scenario.farm.user != request.user:
         raise Http404
 
-    if clear:
-        crop.yield_override = ''
+    if reset:
+        if which == 'yield':
+            crop.yield_override = ''
+        else:
+            crop.price_override = ''
         crop.save()
         return HttpResponseRedirect(
             reverse('optimizer:scenario_details',
@@ -274,20 +282,30 @@ def editYieldOverride(request, pk, clear=False):
             low = form.cleaned_data['low']
             peak = form.cleaned_data['peak']
             high = form.cleaned_data['high']
-            crop.yield_override = json.dumps([low, peak, high])
+            if which == 'yield':
+                crop.yield_override = json.dumps([low, peak, high])
+            elif which == 'price':
+                crop.price_override = json.dumps([low, peak, high])
+            else:
+                # very anal; should never get here because of test above
+                raise Http404
             crop.save()
             return HttpResponseRedirect(
                 reverse('optimizer:scenario_details',
                         args=(crop.scenario.id, )))
     else:
         # method === GET
-        if crop.isYieldOverride():
-            low, peak, high = json.loads(crop.yield_override)
+        isOverride = eval('crop.is{}Override'.format(which.capitalize()))
+        if isOverride():
+            low, peak, high = json.loads(
+                eval('crop.{}_override'.format(which)))
         else:
-            low, peak, high = json.loads(crop.data.yields)
+            low, peak, high = json.loads(eval('crop.data.{}s'.format(which)))
         form = theform(initial=dict(low=low, peak=peak, high=high))
 
-    context = dict(crop=crop, form=form)
+    reset_url = reverse('optimizer:reset_crop_{}'.format(which),
+                        args=(crop.id, ))
+    context = dict(crop=crop, form=form, reset_url=reset_url, which=which,)
     return render(request, template_name, context)
 
 
@@ -363,3 +381,49 @@ def updateScenario(request, pk):
     scenario.analyzeScenario()
     return HttpResponseRedirect(
         reverse('optimizer:scenario_details', args=(pk, )))
+
+
+@login_required
+def editAcres(request, pk):
+    '''edit the overrides in farmcrop'''
+    template_name = 'optimizer/edit_acres.html'
+    theform = AcreageForm
+
+    crop = get_object_or_404(Crop, pk=pk)
+
+    if request.method == "POST":
+        form = theform(request.POST, instance=crop)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(
+                reverse('optimizer:scenario_details',
+                        args=(crop.scenario.id, )))
+    else:
+        # GET
+        form = theform(instance=crop)
+
+    context = dict(crop=crop, form=form)
+    return render(request, template_name, context)
+
+
+@login_required
+def editCost(request, pk):
+    '''edit the overrides in farmcrop'''
+    template_name = 'optimizer/edit_cost.html'
+    theform = CostForm
+
+    crop = get_object_or_404(Crop, pk=pk)
+
+    if request.method == "POST":
+        form = theform(request.POST, instance=crop)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(
+                reverse('optimizer:scenario_details',
+                        args=(crop.scenario.id, )))
+    else:
+        # GET
+        form = theform(instance=crop)
+
+    context = dict(crop=crop, form=form)
+    return render(request, template_name, context)
