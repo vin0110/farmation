@@ -27,6 +27,7 @@ class FarmTests(TestCase):
     def tearDown(self):
         pass
 
+    # HOME page
     def test_anonymous(self):
         url = reverse('home')
 
@@ -54,6 +55,15 @@ class FarmTests(TestCase):
 
         self.assertNotEqual(fooFarm.id, barFarm.id)
 
+    def test_farm(self):
+        farm = Farm.objects.get(user=self.uFoo)
+        url = reverse('farm', args=(farm.id, ))
+
+        res = self.foo.get(url)
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(farm, res.context['farm'}
+
+    # ADD CROP TO FARM
     def test_addCrop_addone(self):
         farm = Farm.objects.get(user=self.uFoo)
         url = reverse('farm:add_crop', args=(farm.id, ))
