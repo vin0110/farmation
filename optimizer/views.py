@@ -71,6 +71,16 @@ def scenarioAdd(request, pk):
 
 
 @login_required
+def scenarioDelete(request, pk):
+    '''delete scenario. called from a modal; do not need a form'''
+    scenario = get_object_or_404(Scenario, pk=pk, farm__user=request.user)
+    farm = scenario.farm
+
+    scenario.delete()
+    return HttpResponseRedirect(reverse('optimizer:list', args=(farm.id, )))
+
+
+@login_required
 def scenarioDetails(request, pk):
     '''edit a scenario'''
     template_name = 'optimizer/scenario_details.html'
