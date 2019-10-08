@@ -14,196 +14,226 @@
 <div class="container">
   <div class="row">
     <div class="col">
-      <h3>
-        Scenario details
+      <h1>
+        Scenario details: <b>{{ scenario.name }}</b>
+        <font size="+1">
+          <a data-toggle="modal" href="#editName">
+            <i class="fas fa-edit"></i>
+          </a>
+        </font>
       </h3>
-      <p>
-        Farm:
-        <a href="{% url "farm:farm" scenario.farm.id %}">
-          {{ scenario.farm.name }}
-        </a>
-        &nbsp;&nbsp;&nbsp;&nbsp;
-        <a href="{% url "optimizer:list" scenario.farm.id %}">
-          all scenarios
-        </a>
-      </p>
-      <p>
-        Scenario: {{ scenario }}
-        &nbsp;
-        <a data-toggle="modal" href="#editName">
-          <i class="fas fa-edit"></i>
-        </a>
-        <!-- Modal -->
-        <div class="modal fade" id="editName" tabindex="-1" role="dialog" aria-labelledby="videoTitleLabel" aria-hidden="true">
-          <div class="modal-dialog" role="document">
-            <div class="modal-content">
-              <form class="well" method="post">
-                <div class="modal-header">
-                  <h5 class="modal-title" id="editName">
-                    Edit Scenario Name
-                  </h5>
-                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                  </button>
-                </div>
-                <div class="modal-body">
-                  {% csrf_token %}
-                  {{ form.as_p }}
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                  <button type="submit" class="btn btn-primary">Save changes</button>
-                </div>
-              </form>
-            </div>
+      <!-- Modal -->
+      <div class="modal fade" id="editName" tabindex="-1" role="dialog" aria-labelledby="videoTitleLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <form class="well" method="post">
+              <div class="modal-header">
+                <h5 class="modal-title" id="editName">
+                  Edit Scenario Name
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                {% csrf_token %}
+                {{ form.as_p }}
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save changes</button>
+              </div>
+            </form>
           </div>
-        </div>   {# end modal #}
+        </div>
+        {# end modal #}
+      </div>
+      <p class="lead">
+      Farm:
+      <a href="{% url "farm:farm" scenario.farm.id %}">
+        {{ scenario.farm.name }}
+      </a>
       </p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
+      <a class="btn btn-primary"
+         href="{% url "optimizer:list" scenario.farm.id %}">
+        List all scenarios
+      </a>
       <hr/>
     </div>
   </div>
 </div>
 
-<div class="container" >
+<div class="container-fluid" >
   <div class="row">
-
-    <div class="col-sm" >
+    <div class="col" >
+      <h2>Net profit distributions</h2>
       <div id="scenarioChart"></div>
     </div>
     <div class="col-sm">
+      <h2>Crop partitions</h2>
       <div id="partitionsChart"></div>
     </div>
-
   </div>
-
-
+  <div class="row">
+    <div class="col">
+      <hr/>
+    </div>
+  </div>
 </div>
 
+{# CROPS LIST #}
 <div class="container">
   <div class="row">
     <div class="col">
-      <h3>Crops</h3>
+      <h2>Crops</h2>
+      <br/>
+      <a class="btn btn-success"
+         href="{% url "optimizer:addCropScenario" scenario.id %}">
+        Add crops
+      </a>
+    </div>
+    <div class="col-md-8">
+      <p>
+        Select the crops that can be planted in this scenario.
+        The defaults for price, yield, and cost come from data
+        collected by the government and other sources or from the
+        <b>farm</b> overrides.
+      </p>
+      <p>
+        Set different overrides here to evaluate different scenarios.
+      </p>
+      <p size="-1">
+        An orange exclaimation point
+        (<i class="fas fa-exclamation fa-sm" style="color:orange"></i>)
+        indicates that defaults have been overridden.
     </div>
   </div>
 </div>
 
-<div class="container">
-    <div class="row">
-      <div class="col-lg">
-        <p>crop triangles</p>
-    </div>
-  </div>
-</div>
-
-<div class="row">
-  <hr/>
-  <div class="col-md-2">
-    <b>Crop</b>
-  </div>
-  <div class="col-md-3" align="right">
-    <b>Yield override</b> (per acre)
-  </div>
-  <div class="col-md-2" align="right">
-    <b>Cost</b> (per acre)
-  </div>
-  <div class="col-sm" align="right">
-    <b>Limit</b> (acres)
-  </div>
-  <div class="col-sm">
-  </div>
-</div>
-
-<div class="container">
+<div class="container-fluid">
+  <div class="row">
   {% for crop in scenario.crops.all %}
-  <div class="row {% cycle '' 'bg-light ' %}">
-    <div class="col-md-2">
-      <a href="{% url "optimizer:crop_data" crop.data.id %}">
-        {{ crop.data.name }}
-      </a>
-    </div>
-    <div class="col-md-3" align="right">
-      {% if crop.isYieldOverride %}
-      {{ crop.yields }}
-      {% else %}
-      ---
+  <div class="{% cycle "card" "card bg-light" %}" style="width: 20rem;">
+    <div class="card-body">
+      <h4 class="card-title" >
+        <a href="{% url "optimizer:crop_data" crop.data.id %}">
+          <i class="fas fa-info-circle fa-sm"></i>
+        </a>
+        &nbsp;
+        {{ crop.data.name|capfirst }}
+      </h4>
+      <hr/>
+      <b>Predicted profit</b>
+      {% if crop.isOverride %}
+      &nbsp;
+      <i class="fas fa-exclamation fa-sm" style="color:orange"></i>
       {% endif %}
-      <a href="{% url "optimizer:edit_crop_yield" crop.id %}">
-        <i class="fas fa-edit"></i>
+      <img class="card-img-top" src="{% static "img/fake-gross.png" %}" width="10rem" alt="Card image cap"/>
+      <a class="btn btn-secondary btn-sm" data-toggle="modal"
+         href="#cropOver{{ forloop.counter }}">
+        Modify
       </a>
-    </div>
-    <div class="col-md-2" align="right">
-      {% if crop.isCostOverride %}
-      *
-      {% endif %}
-
-      ${{ crop.net_cost|floatformat:"2"|intcomma }}
-    </div>
-    <div class="col-sm" align="right">
-      {% if crop.isLimitOverride %}
-      *
-      {% endif %}
-      {{ crop.show_limits }}
-    </div>
-    <div class="col-sm">
-      <a href="{% url "optimizer:edit_crop" crop.id %}">
-        <i class="fas fa-edit"></i>
-      </a>
-      <a data-toggle="modal" href="#removeCrop{{ forloop.counter }}">
-        <i class="fas fa-minus-circle"></i>
-      </a>
-      <!-- Modal -->
-      <div class="modal fade" id="removeCrop{{ forloop.counter }}" tabindex="-1" role="dialog" aria-labelledby="videoTitleLabel" aria-hidden="true">
+      {# begin modal #}
+      <div class="modal fade" id="cropOver{{ forloop.counter }}"
+           tabindex="-1" role="dialog" aria-labelledby="videoTitleLabel"
+           aria-hidden="true">
         <div class="modal-dialog" role="document">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title" id="cropRemove">
-                Remove Crop: {{ crop.data.name }}
+              <h5 class="modal-title" id="editNote">
+                Set scenario overrides for {{ crop.data.name }}
               </h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
+            </div>
+            <div class="modal-body">
+              <a class="btn btn-primary btn-sm"
+                 href="{% url "optimizer:edit_crop_price" crop.id %}">
+                Price
+              </a>
+              &nbsp;&nbsp;
+              <a class="btn btn-primary btn-sm"
+                 href="{% url "optimizer:edit_crop_yield" crop.id %}">
+                Yield
+              </a>
+              &nbsp;&nbsp;
+              <a class="btn btn-primary btn-sm" href="{% url "optimizer:edit_cost" crop.id %}">
+                Cost
+              </a>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-              <input type="button" value="Remove" class="btn btn-primary"
-                     onclick="location.href='{% url 'optimizer:rmCropScenario' crop.id %}'">
-              </input>
             </div>
           </div>
         </div>
       </div>
-      <a href="{% url "optimizer:add_price" crop.id %}">
-        <i class="fas fa-file-invoice-dollar"></i>
-      </a>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-sm-1">
-    </div>
-    <div class="col">
+      {# end modal #}
+      <hr/>
+      <p>
+        <b>Acreage limits:</b>
+        <a href="{% url "optimizer:edit_acres" crop.id %}">
+          <i class="fas fa-edit"></i>
+        </a>
+        <br/>
+        {{ crop.show_limits|safe }}
+      </p>
+      <hr/>
+      <h5>
+        Forward orders
+        &nbsp;&nbsp;
+        <a href="{% url "optimizer:add_price" crop.id %}">
+          <i class="fas fa-plus-circle"></i>
+        </a>
+      </h5>
       {% for price in crop.price_overrides.all %}
       <div class="row">
-        <div class="col-2">
-          Future:
-        </div>
-        <div class="col-3">
+        <div class="col">
           {{ price.units }}
           {{ price.crop.data.unit }}{{ price.units|pluralize }} at
           ${{ price.price }} per {{ price.crop.data.unit }}
         </div>
-        <div class="col">
-        <a href="{% url "optimizer:edit_price" price.id %}">
-          <i class="fas fa-edit"></i>
-         </a>
-        <a href="{% url "optimizer:remove_price" price.id %}">
-          <i class="fas fa-minus-circle"></i>
-         </a>
+        <div class="col-md-3">
+          <a href="{% url "optimizer:edit_price" price.id %}">
+            <i class="fas fa-edit fa-sm"></i>
+          </a>
+          <a href="{% url "optimizer:remove_price" price.id %}">
+            <i class="fas fa-minus-circle fa-sm"></i>
+          </a>
         </div>
       </div>
       {% endfor %}
+      <hr/>
+      <p>
+        <a class="btn btn-danger btn-sm" data-toggle="modal"
+           href="#removeCrop{{ forloop.counter }}">
+          Remove crop from scenario
+        </a>
+        <br/>
+        <font size="-2">This can be undone.</font>
+        {# begin modal #}
+        <div class="modal fade" id="removeCrop{{ forloop.counter }}" tabindex="-1" role="dialog" aria-labelledby="videoTitleLabel" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="cropRemove">
+                  Remove Crop: {{ crop.data.name }}
+                </h5>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <input type="button" value="Remove" class="btn btn-primary"
+                       onclick="location.href='{% url 'optimizer:rmCropScenario' crop.id %}'">
+                </input>
+              </div>
+            </div>
+          </div>
+        </div>
+        {# end modal #}
+      </p>
     </div>
   </div>
-
   {% empty %}
   <div class="row">
     <div class="col">
@@ -211,35 +241,8 @@
     </div>
   </div>
   {% endfor %}
-  <div class="row">
-    <div class="col-sm">
-    </div>
-    <div class="col">
-      (* indicates scenario override)
-    </div>
-  </div>
 </div>
 
-
-
-
-<div class="container">
-  <div class="row">
-    <div class="col">
-      <p>&nbsp;</p>
-    </div>
-  </div>
-
-  <div class="row">
-    <div class="col">
-      <a href="{% url "optimizer:addCropScenario" scenario.id %}">
-        <i class="fas fa-plus-circle"></i>
-          Add crops
-      </a>
-    </div>
-  </div>
-
-</div>
 <script>
 
 // Loads Google Charts. When finished loading, drawCharts() is called.
@@ -249,8 +252,8 @@ google.charts.setOnLoadCallback( chartSetup )
 // Globals for storing stuff.
 // Loads data, then populates and configures datables.
 var charts = [], options = []
-const CHART_HEIGHT = 300
-const CHART_WIDTH  = 800
+const CHART_HEIGHT = 200
+const CHART_WIDTH  = 500
 
 options[ 'scenarios' ] = {
   hAxis: {

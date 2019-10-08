@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% load humanize %}
+
+{% block head_title %}Optimizer|Edit Crop Cost{% endblock %}
+
+{% block body %}
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <h3>
+        Set <b>scenario</b> cost for <em>{{ crop.data.name }}</em>
+      </h3>
+      <p>
+        This cost only applies to all scenarios.
+        It replaces the farm-wide cost.
+      </p>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <form method="post">{% csrf_token %}
+      {{ form.as_p }}
+      <input type="submit" value="Update" />
+      <input type="button" value="Cancel" onclick="location.href='{{ request.META.HTTP_REFERER }}'"/>
+      </form>
+      <br/>
+      <p>
+        {% if crop.farmcrop.cost_override > 0.0 %}
+        Farm-level cost override is:
+        ${{ crop.farmcrop.cost_override|floatformat:2|intcomma }}.
+        <br/>
+        {% endif %}
+        Default operating costs: ${{ crop.data.cost|floatformat:2|intcomma }}.
+      </p>
+      <p>
+        Set to 0 (zero) to remove cost override.
+      </p>
+    </div>
+  </div>
+</div>
+  
+{% endblock %}

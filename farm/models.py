@@ -7,6 +7,8 @@ class Farm(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=64)
 
+    note = models.TextField(blank=True)
+
     max_expense = models.FloatField(default=0.0)
 
     def fields(self):

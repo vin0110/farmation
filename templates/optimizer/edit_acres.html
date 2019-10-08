@@ -1,25 +1,25 @@
 {% extends "base.html" %}
 
-{% block head_title %}Scenario|Edit Forward Order{% endblock %}
+{% load humanize %}
+
+{% block head_title %}Optimizer|Edit Crop Acreage Limits{% endblock %}
 
 {% block body %}
 <div class="container">
   <div class="row">
     <div class="col">
       <h3>
-        Edit forward order for <em>{{ price.crop.data.name }}</em>
+        Set <b>scenario</b> acreage limits for <em>{{ crop.data.name }}</em>
       </h3>
       <p>
-        Set amount of crop in {{ price.crop.data.unit }}{{"2"|pluralize }}
-        and the price (dollars per {{ price.crop.data.unit }})
-        for this order.
-        Also, select at risk factor.
-        A low risk factor will reserve <em>more</em> acres for this
-        order, which lowers the risk of failing to meet this order.
+        These limits apply to all scenarios.
+        They replace the farm-wide limits.
       </p>
     </div>
   </div>
+</div>
 
+<div class="container">
   <div class="row">
     <div class="col">
       <form method="post">{% csrf_token %}
@@ -27,6 +27,10 @@
       <input type="submit" value="Update" />
       <input type="button" value="Cancel" onclick="location.href='{{ request.META.HTTP_REFERER }}'"/>
       </form>
+      <br/>
+      <p>
+        A limit of 0 (zero) means &ldquo;no limit.&rdquo;
+      </p>
     </div>
   </div>
 </div>

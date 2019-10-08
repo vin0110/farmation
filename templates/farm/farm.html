@@ -1,45 +1,30 @@
 {% extends "base.html" %}
 {% load humanize %}
+{% load static %}
 
 {% block head_title %}Farm{% endblock %}
 
 {% block body %}
-<div class="container">
-  <div class="row">
-    <div class="col">
-      <h3>
-        Farm: {{ farm.name }}
-      </h3>
-    </div>
-  </div>
-</div>
 
+{# TITLE #}
 <div class="container">
-  <div class="row">
-    <div class="col">
-      <h5>Expense limit</h5>
-      Limit capital outlay.
-    </div>
-  </div>
-  <div class="row">
-    <div class="col">
-      {% if farm.max_expense == 0.0 %}
-      No limit
-      {% else %}
-      ${{ farm.max_expense|floatformat:"0"|intcomma }}
-      {% endif %}
-      &nbsp;
-      <a data-toggle="modal" href="#editMax">
+  <div class="jumbotron">
+    <h1 class="display-6">{{ farm.name }}</h1>
+    <p class="lead">
+      {{ farm.note }}
+      <br/>
+      <a data-toggle="modal" href="#editNote">
         <i class="fas fa-edit"></i>
       </a>
-      <!-- Modal -->
-      <div class="modal fade" id="editMax" tabindex="-1" role="dialog" aria-labelledby="videoTitleLabel" aria-hidden="true">
+      {# begin modal #}
+      <div class="modal fade" id="editNote" tabindex="-1" role="dialog" aria-labelledby="videoTitleLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
           <div class="modal-content">
-            <form class="well" method="post">
+            <form class="well" method="post"
+                  action="{% url "farm:edit_note" farm.id %}">
               <div class="modal-header">
-                <h5 class="modal-title" id="editMax">
-                  Edit Scenario Name
+                <h5 class="modal-title" id="editNote">
+                  Edit Farm
                 </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                   <span aria-hidden="true">&times;</span>
@@ -47,7 +32,7 @@
               </div>
               <div class="modal-body">
                 {% csrf_token %}
-                {{ form.as_p }}
+                {{ note_form.as_p }}
               </div>
               <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
@@ -56,84 +41,171 @@
             </form>
           </div>
         </div>
-      </div>   {# end modal #}
+      </div>
+      {# end modal #}
+    </p>
+    <div class="row">
+      <div class="col-md-3">
+        <b>Total farm expenses:</b>
+      </div>
+      <div class="col-md-2">
+        {% if farm.max_expense == 0.0 %}
+        No limit
+        {% else %}
+        ${{ farm.max_expense|floatformat:"0"|intcomma }}
+        {% endif %}
+        &nbsp;&nbsp;
+        <a data-toggle="modal" href="#editMax">
+          <i class="fas fa-edit"></i>
+        </a>
+        {# begin modal #}
+        <div class="modal fade" id="editMax" tabindex="-1" role="dialog" aria-labelledby="videoTitleLabel" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <form class="well" method="post"
+                    action="{% url "farm:edit_expense" farm.id %}">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="editMax">
+                    Edit Farm Expense Limit
+                  </h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  {% csrf_token %}
+                  {{ expense_form.as_p }}
+                  <p>Set limit to 0 (zero) for no limit to expenses.</p>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                  <button type="submit" class="btn btn-primary">Save changes</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        {# end modal #}
+      </div>
     </div>
-    <hr/>
+    <div class="row">
+      <div class="col-md-6 offset-md-1">
+        Set the upper limit for the <b>farm</b> expenses.
+      </div>
+    </div>
+    <div class="row">
+      <div class="col">
+        <br/>
+        <a class="btn btn-primary btn-lg" href="{% url "optimizer:list" farm.id %}" role="button">Analyze</a>
+      </div>
+    </div>
+
   </div>
+  {# end jumbotron #}
 </div>
 
-<div class="container">
+{# CROPS LIST #}
+<div class="container-fluid">
   <div class="row">
-    <div class="col">
-      <h5>Crops</h5>
+    <div class="col-md-2">
+      <h2>Crops</h2>
+      <br/>
+      <a class="btn btn-success" href="{% url "farm:add_crop" farm.id %}">
+        Add crops
+      </a>
+    </div>
+    <div class="col-md-8">
+      <p>
+        Select the crops that can be planted in this farm.
+        The defaults for price, yield, and cost come from data
+        collected by the government and other sources.
+        <b>If your experience is different, you should override
+        the default values.</b>
+      </p>
+      <p size="-1">
+        An orange exclaimation point
+        (<i class="fas fa-exclamation fa-sm" style="color:orange"></i>)
+        indicates that defaults have been overridden.
     </div>
   </div>
 </div>
 
-<div class="container">
+<div class="container-fluid">
   <div class="row">
-    <div class="col-sm">
-      <b>Crop</b>
-    </div>
-    <div class="col-sm" align="right">
-      <b>Price</b> (per acre)
-    </div>
-    <div class="col-sm" align="right">
-      <b>Yield</b> (per acre)
-    </div>
-    <div class="col-sm" align="right">
-      <b>Gross</b> (per acre)
-    </div>
-    <div class="col-sm" align="right">
-      <b>Cost</b> (per acre)
-    </div>
-    <div class="col-sm" align="right">
-      <b>Limit</b> (acres)
-    </div>
-    <div class="col-sm">
-    </div>
-  </div>
-</div>
-
-<div class="container">
   {% for crop in farm.crops.all %}
-  <div class="row">
-    <div class="col-sm">
-      <a href="{% url "optimizer:crop_data" crop.data.id %}">
-        {{ crop.data.name }}
-      </a>
-    </div>
-    <div class="col-sm" align="right">
-      {% if crop.isPriceOverride %}
-      *
+  <div class="{% cycle "card" "card bg-light" %}" style="width: 16rem;">
+    <div class="card-body">
+      <h4 class="card-title" >
+        <a href="{% url "optimizer:crop_data" crop.data.id %}">
+          <i class="fas fa-info-circle fa-sm"></i>
+        </a>
+        &nbsp;
+        {{ crop.data.name|capfirst }}
+      </h4>
+      <hr/>
+      <b>Predicted profit</b>
+      {% if crop.isOverride %}
+      &nbsp;
+      <i class="fas fa-exclamation fa-sm" style="color:orange"></i>
       {% endif %}
-       {{ crop.prices }}
-    </div>
-    <div class="col-sm" align="right">
-      {% if crop.isYieldOverride %}
-      *
-      {% endif %}
-       {{ crop.yields }}
-    </div>
-    <div class="col-sm" align="right">
-       {{ crop.gross }}
-    </div>
-    <div class="col-sm" align="right">
-      {% if crop.isCostOverride %}
-      *
-      {% endif %}
-      ${{ crop.net_cost|floatformat:"2"|intcomma }}
-    </div>
-    <div class="col-sm" align="right">
-      {{ crop.show_limits }}
-    </div>
-    <div class="col-sm">
-      <a href="{% url "farm:edit_crop" crop.id %}">
-        <i class="fas fa-edit"></i>
+      <img class="card-img-top" src="{% static "img/fake-gross.png" %}" width="10rem" alt="Card image cap"/>
+      <a class="btn btn-secondary btn-sm" data-toggle="modal"
+         href="#cropOver{{ forloop.counter }}">
+        Modify
       </a>
-      <a href="{% url "farm:remove_crop" crop.id %}">
-        <i class="fas fa-minus-circle"></i>
-      </a>
+      {# begin modal #}
+      <div class="modal fade" id="cropOver{{ forloop.counter }}"
+           tabindex="-1" role="dialog" aria-labelledby="videoTitleLabel"
+           aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="editNote">
+                Set farm overrides for {{ crop.data.name }}
+              </h5>
+            </div>
+            <div class="modal-body">
+              <a class="btn btn-primary btn-sm"
+                 href="{% url "tbd" %}">
+                Price
+              </a>
+              &nbsp;&nbsp;
+              <a class="btn btn-primary btn-sm" href="{% url "tbd" %}">
+                Yield
+              </a>
+              &nbsp;&nbsp;
+              <a class="btn {% if crop.isCostOverride %}btn-warning{% else %}btn-primary{% endif %} btn-sm"
+                 href="{% url "farm:edit_cost" crop.id %}">
+                Cost
+              </a>
+              <p>
+                <br/>
+                A yellow button indicates there is an existing override
+              </p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      {# end modal #}
+      <hr/>
+      <p>
+        <b>Acreage limits:</b>
+        <a href="{% url "farm:edit_acres" crop.id %}">
+          <i class="fas fa-edit"></i>
+        </a>
+        <br/>
+        {{ crop.show_limits|safe }}
+       </p>
+      <p>
+        <a class="btn btn-danger btn-sm" href="{% url "farm:remove_crop" crop.id %}">
+          Remove
+        </a>
+        <br/>
+        <font size="-2">This can be undone.</font>
+      </p>
     </div>
   </div>
   {% empty %}
@@ -143,114 +215,56 @@
     </div>
   </div>
   {% endfor %}
-  <div class="row">
-    <div class="col-sm">
-    </div>
-    <div class="col">
-      (* indicates farm override)
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-sm-1"></div>
-    <div class="col">
-      <a href="{% url "farm:add_crop" farm.id %}">
-        <i class="fas fa-plus-circle"></i>
-        Add crops
-      </a>
-    </div>
-  </div>
-</div>
-
-<div class="container">
-  <div class="row">
-    <hr/>
   </div>
 </div>
 
 <div class="container">
   <div class="row">
     <div class="col">
-      <h5>Scenarios</h5>
+      <hr/>
+      <h2>Fields</h2>
     </div>
   </div>
-  {% for scenario in farm.scenarios.all|slice:":5" %}
   <div class="row">
+    <div class="col-sm-1">
+    </div>
     <div class="col">
-      {{ scenario.name }}&nbsp;
-      <a href="{% url "optimizer:scenario_details" scenario.id %}">
-        <i class="fa fa-arrow-circle-right"></i>
+      <strong>Field</strong>
+    </div>
+    <div class="col">
+      <strong>Acres</strong>
+    </div>
+  </div>
+
+  {% for field in farm.fields.all %}
+  <div class="row {% cycle 'bg-light' '' %}">
+    <div class="col-sm-1">
+      {{ forloop.counter }}
+    </div>
+    <div class="col">
+      {{ field }}
+    </div>
+    <div class="col">
+      {{ field.acreage }}
+    </div>
+    <div class="col-sm-1">
+      <!a href="{% url "tbd" %}">
+        <i class="fas fa-edit"></i>
+      </a>
+      &nbsp;
+      <!a href="{% url "tbd" %}">
+        <i class="fas fa-minus-circle"></i>
       </a>
     </div>
   </div>
+
   {% empty %}
-  <p>
-    None<br/>
-    <a href="{% url "optimizer:scenario_add" farm.id %}">
-      Add a scenario
-    </a>
-  </p>
-  {% endfor %}
-  <p>
-    {% if farm.scenarios.count > 5 %}
-    ...<br/>
-    <a href="{% url "optimizer:list" farm.id %}">
-      See all
-    </a>
-    {% endif %}
-  </p>
-</div>
-
-<div class="container">
   <div class="row">
-    <hr/>
+    <div class="col">
+      No fields.
+    </div>
   </div>
-</div>
-
-<div class="container-fluid">
-<div class="row">
-  <div class="col-sm-1">
-  </div>
-  <div class="col">
-    <strong>Field</strong>
-  </div>
-  <div class="col">
-    <strong>Acres</strong>
-  </div>
-</div>
-
-<div class="container-fluid">
-{% for field in farm.fields.all %}
-<div class="row {% cycle 'bg-light' '' %}">
-  <div class="col-sm-1">
-    {{ forloop.counter }}
-  </div>
-  <div class="col">
-    {{ field }}
-  </div>
-  <div class="col">
-    {{ field.acreage }}
-  </div>
-  <div class="col-sm-1">
-    <!a href="{% url "tbd" %}">
-      <i class="fas fa-edit"></i>
-    </a>
-    &nbsp;
-    <!a href="{% url "tbd" %}">
-      <i class="fas fa-minus-circle"></i>
-    </a>
-  </div>
-</div>
-
-{% empty %}
-<div class="row">
-  <div class="col">
-    No fields.
-  </div>
-</div>
-{% endfor %}
-</div>
-
-<div class="container">
+  {% endfor %}
   <div class="row">
     <div class="col-sm-1"></div>
     <div class="col">

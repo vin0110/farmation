@@ -9,7 +9,11 @@ from django.contrib.auth.decorators import login_required
 from .models import (Farm, Field, )
 from optimizer.models import CropData, FarmCrop
 from optimizer.forms import AddMultipleCropForm, FarmCropForm
-from .forms import FarmMaxEditForm
+from .forms import (FarmExpenseForm,
+                    FarmNoteForm,
+                    FarmAcreageForm,
+                    FarmCostForm,
+                    )
 
 
 @login_required
@@ -50,17 +54,12 @@ def home(request):
 def farm(request, pk):
     '''display the specifics of the farm'''
     template_name = 'farm/farm.html'
-    form = FarmMaxEditForm
 
     farm = get_object_or_404(Farm, pk=pk, user=request.user)
-    if request.method == "POST":
-        the_form = form(request.POST, instance=farm)
-        if the_form.is_valid():
-            the_form.save()
-    else:
-        the_form = form(instance=farm)
+    expense_form = FarmExpenseForm(instance=farm)
+    note_form = FarmNoteForm(instance=farm)
 
-    context = dict(farm=farm, form=the_form)
+    context = dict(farm=farm, expense_form=expense_form, note_form=note_form)
     return HttpResponse(render(request, template_name, context))
 
 
@@ -120,9 +119,8 @@ def addCropToFarm(request, pk):
         theform = form()
 
     if len(possible_crops) == 0:
-        if farm.crops.count() < CropData.objects.count():
-            messages.info(request,
-                          "All known crops have been added to this farm.")
+        messages.info(request,
+                      "All crops have been added to this farm.")
         return HttpResponseRedirect(
             reverse('farm:farm', args=(farm.id, )))
 
@@ -133,22 +131,78 @@ def addCropToFarm(request, pk):
 
 
 @login_required
-def editFarmCrop(request, pk):
+def editAcres(request, pk):
     '''edit the overrides in farmcrop'''
-    template_name = 'farm/edit_farmcrop.html'
-    form = FarmCropForm
+    template_name = 'farm/edit_acres.html'
+    theform = FarmAcreageForm
 
     crop = get_object_or_404(FarmCrop, pk=pk)
 
     if request.method == "POST":
-        theform = form(request.POST, instance=crop)
-        if theform.is_valid():
-            theform.save()
+        form = theform(request.POST, instance=crop)
+        if form.is_valid():
+            form.save()
             return HttpResponseRedirect(
                 reverse('farm:farm', args=(crop.farm.id, )))
     else:
         # GET
-        theform = form(instance=crop)
+        form = theform(instance=crop)
 
-    context = dict(crop=crop, form=theform)
+    context = dict(crop=crop, form=form)
     return render(request, template_name, context)
+
+
+@login_required
+def editCost(request, pk):
+    '''edit the overrides in farmcrop'''
+    template_name = 'farm/edit_cost.html'
+    theform = FarmCostForm
+
+    crop = get_object_or_404(FarmCrop, pk=pk)
+
+    if request.method == "POST":
+        form = theform(request.POST, instance=crop)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(
+                reverse('farm:farm', args=(crop.farm.id, )))
+    else:
+        # GET
+        form = theform(instance=crop)
+
+    context = dict(crop=crop, form=form)
+    return render(request, template_name, context)
+
+
+@login_required
+def editExpense(request, pk):
+    '''edit the overrides in farmcrop'''
+    theform = FarmExpenseForm
+
+    farm = get_object_or_404(Farm, pk=pk)
+
+    if request.method == "POST":
+        form = theform(request.POST, instance=farm)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(
+                reverse('farm:farm', args=(farm.id, )))
+    else:
+        raise Http404
+
+
+@login_required
+def editNote(request, pk):
+    '''edit the overrides in farmcrop'''
+    theform = FarmNoteForm
+
+    farm = get_object_or_404(Farm, pk=pk)
+
+    if request.method == "POST":
+        form = theform(request.POST, instance=farm)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(
+                reverse('farm:farm', args=(farm.id, )))
+    else:
+        raise Http404

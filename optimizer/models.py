@@ -104,6 +104,13 @@ class AbstractCrop(models.Model):
         else:
             return self.data.yields
 
+    def isOverride(self):
+        if self.price_override != '' or self.yield_override != '' or\
+           self.cost_override != 0.0:
+            return True
+        else:
+            return False
+
     def isPriceOverride(self):
         return self.price_override != ''
 
@@ -121,7 +128,7 @@ class AbstractCrop(models.Model):
 
     def show_limits(self):
         lo, hi = self.limits()
-        return '{} - {}'.format(lo, hi if hi else "")
+        return '{} - {}'.format(lo, hi if hi else "&infin;")
 
     class Meta:
         abstract = True
@@ -134,7 +141,10 @@ class FarmCrop(AbstractCrop):
                              related_name='crops')
 
     def net_cost(self):
-        return self.data.cost + self.cost_override
+        if self.cost_override != 0.0:
+            return self.cost_override
+        else:
+            return self.data.cost
 
     def __str__(self):
         return "{}:{}".format(self.data.name, self.farm.name)
@@ -159,9 +169,10 @@ class Crop(AbstractCrop):
             return super().yields()
 
     def net_cost(self):
-        return self.data.cost +\
-            self.cost_override +\
-            self.farmcrop.cost_override
+        if self.cost_override != 0.0:
+            return self.cost_override
+        else:
+            return self.farmcrop.netcost()
 
     def limits(self):
         self.farmcrop

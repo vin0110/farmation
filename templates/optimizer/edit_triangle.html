@@ -1,21 +1,18 @@
 {% extends "base.html" %}
 
-{% block head_title %}Scenario|Edit Forward Order{% endblock %}
+{% block head_title %}Scenario|EditCrop{% endblock %}
 
 {% block body %}
 <div class="container">
   <div class="row">
     <div class="col">
       <h3>
-        Edit forward order for <em>{{ price.crop.data.name }}</em>
+        Set scenario <b>{{ which }}</b>
+        override for <em>{{ crop.data.name }}</em>
       </h3>
       <p>
-        Set amount of crop in {{ price.crop.data.unit }}{{"2"|pluralize }}
-        and the price (dollars per {{ price.crop.data.unit }})
-        for this order.
-        Also, select at risk factor.
-        A low risk factor will reserve <em>more</em> acres for this
-        order, which lowers the risk of failing to meet this order.
+        These overrides only apply to this scenario,
+        replacing any farm-wide override.
       </p>
     </div>
   </div>
@@ -25,6 +22,7 @@
       <form method="post">{% csrf_token %}
       {{ form.as_p }}
       <input type="submit" value="Update" />
+      <input type="button" value="Reset" onclick="location.href='{{ reset_url }}'"/>
       <input type="button" value="Cancel" onclick="location.href='{{ request.META.HTTP_REFERER }}'"/>
       </form>
     </div>

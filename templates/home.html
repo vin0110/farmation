@@ -3,25 +3,46 @@
 {% block head_title %}Home{% endblock %}
 
 {% block body %}
-<div class="row">
-  <div class="col">
-    <h1>Home page</h1>
-  </div>
-</div>
 
 {% for farm in farms %}
-<div class="row">
-  <div class="col">
-    Farm: <em>{{ farm.name }}</em>
-  </div>
-  <div class="col">
-    <a href="{% url "farm:farm" farm.id %}">details</a>
-  </div>
-  <div class="col">
-    <a href="{% url "optimizer:list" farm.id %}">analyze</a>
+<div class="container">
+  <div class="jumbotron">
+    <h1 class="display-6">{{ farm.name }}</h1>
+    <p class="lead">
+     {{ farm.note }}
+    </p>
+    <hr class="my-4"/>
+    <div class="row">
+      <div class="col-md-4">
+        <a class="btn btn-primary btn-lg" href="{% url "farm:farm" farm.id %}" role="button">Configuration</a>
+        <p>View or edit farm settings</p>
+      </div>
+      <div class="col-md-4">
+        <a class="btn btn-primary btn-lg" href="{% url "optimizer:list" farm.id %}" role="button">Analyze</a>
+        <p>Analyze the farm</p>
+      </div>
+      <div class="col-md-2">
+        <a class="btn btn-danger btn-lg" href="{% url "tbd" %}" role="button">Delete</a>
+        <p>Cannot be undone</p>
+      </div>
+    </div>
   </div>
 </div>
 {% empty %}
+<div class="container">
+  <div class="jumbotron">
+    <h1 class="display-4">No farms</h1>
+  </div>
+</div>
 {% endfor %}
-
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <!a href="{% url "tbd" %}">
+        <i class="fas fa-plus-circle"></i>
+        Add farm
+      </a>
+    </div>
+  </div>
+</div>
 {% endblock %}

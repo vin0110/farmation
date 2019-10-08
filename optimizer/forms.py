@@ -42,8 +42,8 @@ class CropForm(forms.ModelForm):
         help_texts = HELP_TEXTS
 
 
-class EditYieldForm(forms.Form):
-    '''edit the crop yield triangle'''
+class EditTriangleForm(forms.Form):
+    '''edit triangle distro'''
     low = forms.FloatField(min_value=0.0)
     peak = forms.FloatField(min_value=0.0)
     high = forms.FloatField(min_value=0.0)
@@ -74,3 +74,15 @@ class PriceOrderForm(forms.ModelForm):
             'price': 'price per unit',
             'safety': 'extra acreage planted to ensure sufficient crop',
         }
+
+
+class AcreageForm(forms.ModelForm):
+    class Meta:
+        model = Crop
+        fields = ['lo_acres', 'hi_acres', ]
+
+
+class CostForm(forms.ModelForm):
+    class Meta:
+        model = Crop
+        fields = ['cost_override', ]
