@@ -5,16 +5,20 @@ from django.urls import reverse
 from django.contrib.auth.models import User
 
 from farm.models import Farm
+from optimizer.models import CropData
 
 
 class FarmTests(TestCase):
     fixtures = ['crop-data', ]
 
     def setUp(self):
-        User.objects.create_user(username="foo", password="bar")
-        User.objects.create_user(username="bar", password="foo")
+        self.uFoo = User.objects.create_user(username="foo", password="bar")
+        self.uBar = User.objects.create_user(username="bar", password="foo")
         self.foo = Client()
-        rc = self.foo.login(username="foo", password="bar")
+        self.foo.login(username="foo", password="bar")
+        # this will create a farm for foo
+        self.foo.get(reverse('home'), follow=True)
+
         self.bar = Client()
         self.bar.login(username="bar", password="foo")
 
@@ -49,3 +53,73 @@ class FarmTests(TestCase):
         barFarm = res.context['farms'][0]
 
         self.assertNotEqual(fooFarm.id, barFarm.id)
+
+    def test_addCrop_addone(self):
+        farm = Farm.objects.get(user=self.uFoo)
+        url = reverse('farm:add_crop', args=(farm.id, ))
+
+        incrops = [c.data.id for c in farm.crops.all()]
+        outcrops = CropData.objects.exclude(id__in=incrops)
+        outcrop = outcrops.first()
+        crops = [outcrop.name, ]
+
+        cnt = farm.crops.count()
+        res = self.foo.post(url, dict(crops=crops))
+        self.assertEqual(res.status_code, 302)
+        self.assertEqual(cnt + len(crops), farm.crops.count())
+
+    def test_addCrop_addall(self):
+        farm = Farm.objects.get(user=self.uFoo)
+        url = reverse('farm:add_crop', args=(farm.id, ))
+
+        incrops = [c.data.id for c in farm.crops.all()]
+        outcrops = CropData.objects.exclude(id__in=incrops)
+        crops = [c.name for c in outcrops]
+
+        cnt = farm.crops.count()
+        res = self.foo.post(url, dict(crops=crops))
+        self.assertEqual(res.status_code, 302)
+        self.assertEqual(cnt + len(crops), farm.crops.count())
+
+    def test_addCrop_bad(self):
+        farm = Farm.objects.get(user=self.uFoo)
+        url = reverse('farm:add_crop', args=(farm.id, ))
+
+        crops = [farm.crops.first().data.name]
+
+        cnt = farm.crops.count()
+        res = self.foo.post(url, dict(crops=crops))
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(cnt, farm.crops.count())
+
+    def test_addCrop_bad2(self):
+        farm = Farm.objects.get(user=self.uFoo)
+        url = reverse('farm:add_crop', args=(farm.id, ))
+
+        crops = ['jellybeans', ]
+
+        cnt = farm.crops.count()
+        res = self.foo.post(url, dict(crops=crops))
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(cnt, farm.crops.count())
+
+    def test_addCrop_notloggedin(self):
+        '''redirect to login page'''
+        farm = Farm.objects.get(user=self.uFoo)
+        url = reverse('farm:add_crop', args=(farm.id, ))
+
+        cnt = farm.crops.count()
+        res = self.notloggedin.post(url, dict(crops=['tobacco']), follow=True)
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual('registration/login.html', res.template_name[0])
+        self.assertEqual(cnt, farm.crops.count())
+
+    def test_addCrop_wronguser(self):
+        '''redirect to login page'''
+        farm = Farm.objects.get(user=self.uFoo)
+        url = reverse('farm:add_crop', args=(farm.id, ))
+
+        cnt = farm.crops.count()
+        res = self.bar.post(url, dict(crops=['tobacco']))
+        self.assertEqual(404, res.status_code)
+        self.assertEqual(cnt, farm.crops.count())

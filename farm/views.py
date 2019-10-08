@@ -86,7 +86,7 @@ def addCropToFarm(request, pk):
     '''select crop from form and add to farm
     determine possible crops'''
     template_name = 'farm/add_crop_to_farm.html'
-    form = AddMultipleCropForm
+    theform = AddMultipleCropForm
 
     farm = get_object_or_404(Farm, pk=pk)
     if farm.user != request.user:
@@ -100,11 +100,11 @@ def addCropToFarm(request, pk):
             possible_crops.append((data.name, data.name))
 
     if request.method == "POST":
-        theform = form(request.POST)
-        theform.fields['crops'].choices = possible_crops
+        form = theform(request.POST)
+        form.fields['crops'].choices = possible_crops
 
-        if theform.is_valid():
-            selected_crops = theform.cleaned_data['crops']
+        if form.is_valid():
+            selected_crops = form.cleaned_data['crops']
             for new_crop in selected_crops:
                 data = CropData.objects.get(name=new_crop)
                 obj, created = FarmCrop.objects.get_or_create(
@@ -116,7 +116,8 @@ def addCropToFarm(request, pk):
             return HttpResponseRedirect(reverse('farm:farm', args=(farm.id, )))
     else:
         # GET or invalid form
-        theform = form()
+        form = form()
+        form.fields['crops'].choices = possible_crops
 
     if len(possible_crops) == 0:
         messages.info(request,
@@ -124,9 +125,7 @@ def addCropToFarm(request, pk):
         return HttpResponseRedirect(
             reverse('farm:farm', args=(farm.id, )))
 
-    theform.fields['crops'].choices = possible_crops
-
-    context = dict(farm=farm, form=theform)
+    context = dict(farm=farm, form=form)
     return render(request, template_name, context)
 
 
