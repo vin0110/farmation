@@ -211,7 +211,6 @@
           Remove crop from scenario
         </a>
         <br/>
-        <font size="-2">This can be undone.</font>
         {# begin modal #}
         <div class="modal fade" id="removeCrop{{ forloop.counter }}" tabindex="-1" role="dialog" aria-labelledby="videoTitleLabel" aria-hidden="true">
           <div class="modal-dialog" role="document">
@@ -221,9 +220,16 @@
                   Remove Crop: {{ crop.data.name }}
                 </h5>
               </div>
+              <div class="modal-body">
+                <p>
+                  This <b>cannot</b> be undone.
+                  Crop can be can be re-added but override information
+                  will be lost.
+                </p>
+              </div>
               <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                <input type="button" value="Remove" class="btn btn-primary"
+                <input type="button" value="Remove" class="btn btn-danger"
                        onclick="location.href='{% url 'optimizer:rmCropScenario' crop.id %}'">
                 </input>
               </div>
