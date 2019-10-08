@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import CropData, Scenario, Crop, FarmCrop
+from .models import CropData, Scenario, Crop, FarmCrop, PriceOrder
 
 
 @admin.register(Scenario)
@@ -29,3 +29,8 @@ class FarmCropAdmin(admin.ModelAdmin):
 @admin.register(CropData)
 class CropDataAdmin(admin.ModelAdmin):
     list_display = ('name', 'unit', )
+
+
+@admin.register(PriceOrder)
+class PriceOrderAdmin(admin.ModelAdmin):
+    list_display = ('crop', 'units', 'price', 'safety', 'factor', )
