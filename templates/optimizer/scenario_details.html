@@ -84,10 +84,26 @@
   </div>
 </div>
 
+{# CROPS LIST #}
 <div class="container">
   <div class="row">
     <div class="col">
       <h2>Crop List</h2>
+    </div>
+    <div class="col-md-8">
+      <p>
+        Select the crops that can be planted in this scenario.
+        The defaults for price, yield, and cost come from data
+        collected by the government and other sources or from the
+        <b>farm</b> overrides.
+      </p>
+      <p>
+        Set different overrides here to evaluate different scenarios.
+      </p>
+      <p size="-1">
+        An orange exclaimation point
+        (<i class="fas fa-exclamation fa-sm" style="color:orange"></i>)
+        indicates that defaults have been overridden.
     </div>
   </div>
 </div>
@@ -106,6 +122,10 @@
       </h4>
       <hr/>
       <b>Predicted profit</b>
+      {% if crop.isOverride %}
+      &nbsp;
+      <i class="fas fa-exclamation fa-sm" style="color:orange"></i>
+      {% endif %}
       <img class="card-img-top" src="{% static "img/fake-gross.png" %}" width="10rem" alt="Card image cap"/>
       <a class="btn btn-secondary btn-sm" data-toggle="modal"
          href="#cropOver{{ forloop.counter }}">

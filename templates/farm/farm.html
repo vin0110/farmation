@@ -118,6 +118,10 @@
         <b>If your experience is different, you should override
         the default values.</b>
       </p>
+      <p size="-1">
+        An orange exclaimation point
+        (<i class="fas fa-exclamation fa-sm" style="color:orange"></i>)
+        indicates that defaults have been overridden.
     </div>
   </div>
 </div>
@@ -136,6 +140,10 @@
       </h4>
       <hr/>
       <b>Predicted profit</b>
+      {% if crop.isOverride %}
+      &nbsp;
+      <i class="fas fa-exclamation fa-sm" style="color:orange"></i>
+      {% endif %}
       <img class="card-img-top" src="{% static "img/fake-gross.png" %}" width="10rem" alt="Card image cap"/>
       <a class="btn btn-secondary btn-sm" data-toggle="modal"
          href="#cropOver{{ forloop.counter }}">
@@ -153,7 +161,8 @@
               </h5>
             </div>
             <div class="modal-body">
-              <a class="btn btn-primary btn-sm" href="{% url "tbd" %}">
+              <a class="btn btn-primary btn-sm"
+                 href="{% url "tbd" %}">
                 Price
               </a>
               &nbsp;&nbsp;
@@ -161,9 +170,14 @@
                 Yield
               </a>
               &nbsp;&nbsp;
-              <a class="btn btn-primary btn-sm" href="{% url "farm:edit_cost" crop.id %}">
+              <a class="btn {% if crop.isCostOverride %}btn-warning{% else %}btn-primary{% endif %} btn-sm"
+                 href="{% url "farm:edit_cost" crop.id %}">
                 Cost
               </a>
+              <p>
+                <br/>
+                A yellow button indicates there is an existing override
+              </p>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
@@ -218,53 +232,46 @@
       <h2>Fields</h2>
     </div>
   </div>
-</div>
+  <div class="row">
+    <div class="col-sm-1">
+    </div>
+    <div class="col">
+      <strong>Field</strong>
+    </div>
+    <div class="col">
+      <strong>Acres</strong>
+    </div>
+  </div>
 
-<div class="container-fluid">
-<div class="row">
-  <div class="col-sm-1">
+  {% for field in farm.fields.all %}
+  <div class="row {% cycle 'bg-light' '' %}">
+    <div class="col-sm-1">
+      {{ forloop.counter }}
+    </div>
+    <div class="col">
+      {{ field }}
+    </div>
+    <div class="col">
+      {{ field.acreage }}
+    </div>
+    <div class="col-sm-1">
+      <!a href="{% url "tbd" %}">
+        <i class="fas fa-edit"></i>
+      </a>
+      &nbsp;
+      <!a href="{% url "tbd" %}">
+        <i class="fas fa-minus-circle"></i>
+      </a>
+    </div>
   </div>
-  <div class="col">
-    <strong>Field</strong>
-  </div>
-  <div class="col">
-    <strong>Acres</strong>
-  </div>
-</div>
 
-<div class="container">
-{% for field in farm.fields.all %}
-<div class="row {% cycle 'bg-light' '' %}">
-  <div class="col-sm-1">
-    {{ forloop.counter }}
+  {% empty %}
+  <div class="row">
+    <div class="col">
+      No fields.
+    </div>
   </div>
-  <div class="col">
-    {{ field }}
-  </div>
-  <div class="col">
-    {{ field.acreage }}
-  </div>
-  <div class="col-sm-1">
-    <!a href="{% url "tbd" %}">
-      <i class="fas fa-edit"></i>
-    </a>
-    &nbsp;
-    <!a href="{% url "tbd" %}">
-      <i class="fas fa-minus-circle"></i>
-    </a>
-  </div>
-</div>
-
-{% empty %}
-<div class="row">
-  <div class="col">
-    No fields.
-  </div>
-</div>
-{% endfor %}
-</div>
-
-<div class="container">
+  {% endfor %}
   <div class="row">
     <div class="col-sm-1"></div>
     <div class="col">
