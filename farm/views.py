@@ -8,7 +8,7 @@ from django.contrib.auth.decorators import login_required
 
 from .models import (Farm, Field, )
 from optimizer.models import CropData, FarmCrop
-from optimizer.forms import AddMultipleCropForm, FarmCropForm
+from optimizer.forms import AddMultipleCropForm
 from .forms import (FarmExpenseForm,
                     FarmNoteForm,
                     FarmAcreageForm,
@@ -88,9 +88,7 @@ def addCropToFarm(request, pk):
     template_name = 'farm/add_crop_to_farm.html'
     theform = AddMultipleCropForm
 
-    farm = get_object_or_404(Farm, pk=pk)
-    if farm.user != request.user:
-        raise Http404
+    farm = get_object_or_404(Farm, pk=pk, user=request.user)
 
     possible_crops = []
     for data in CropData.objects.all():
@@ -178,7 +176,7 @@ def editExpense(request, pk):
     '''edit the overrides in farmcrop'''
     theform = FarmExpenseForm
 
-    farm = get_object_or_404(Farm, pk=pk, farm__user=request.user)
+    farm = get_object_or_404(Farm, pk=pk, user=request.user)
 
     if request.method == "POST":
         form = theform(request.POST, instance=farm)
@@ -195,7 +193,7 @@ def editNote(request, pk):
     '''edit the overrides in farmcrop'''
     theform = FarmNoteForm
 
-    farm = get_object_or_404(Farm, pk=pk)
+    farm = get_object_or_404(Farm, pk=pk, user=request.user)
 
     if request.method == "POST":
         form = theform(request.POST, instance=farm)

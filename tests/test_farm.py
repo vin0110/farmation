@@ -112,6 +112,8 @@ class AddRmCropTests(TestCase):
 
         self.bar = Client()
         self.bar.login(username="bar", password="foo")
+        # this will create a farm for bar
+        self.bar.get(reverse('home'), follow=True)
 
         self.notloggedin = Client()
 
@@ -131,14 +133,13 @@ class AddRmCropTests(TestCase):
 
     def test_removeCrop_wrong_crop(self):
         farm = Farm.objects.get(user=self.uFoo)
+        barfarm = Farm.objects.get(user=self.uBar)
 
-        incrops = [c.data.id for c in farm.crops.all()]
-        outcrops = CropData.objects.exclude(id__in=incrops)
-        url = reverse('farm:remove_crop', args=(outcrops[0].id, ))
+        url = reverse('farm:remove_crop', args=(barfarm.crops.first().id, ))
 
         cnt = farm.crops.count()
         res = self.foo.get(url)
-        self.assertEqual(res.status_code, 302)
+        self.assertEqual(res.status_code, 404)
         self.assertEqual(cnt, farm.crops.count())
 
     def test_removeCrop_wrong_user(self):
@@ -415,3 +416,58 @@ class CostTest(TestCase):
         self.assertEqual('registration/login.html', res.template_name[0])
         crop.refresh_from_db()
         self.assertEqual(cost, crop.cost_override)
+
+
+class ExpenseTest(TestCase):
+    fixtures = ['crop-data', ]
+
+    def setUp(self):
+        self.uFoo = User.objects.create_user(username="foo", password="bar")
+        self.uBar = User.objects.create_user(username="bar", password="foo")
+        self.foo = Client()
+        self.foo.login(username="foo", password="bar")
+        # this will create a farm for foo
+        self.foo.get(reverse('home'), follow=True)
+
+        self.bar = Client()
+        self.bar.login(username="bar", password="foo")
+
+        self.notloggedin = Client()
+
+    def tearDown(self):
+        pass
+
+    # EDIT ACRES
+    def test_editExpense(self):
+        farm = Farm.objects.get(user=self.uFoo)
+        url = reverse('farm:edit_expense', args=(farm.id, ))
+
+        for expense in [100000.0, 100.0, 9876543.21]:
+            res = self.foo.post(url, dict(max_expense=expense))
+            self.assertEqual(res.status_code, 302)
+            farm.refresh_from_db()
+            self.assertEqual(expense, farm.max_expense)
+
+    def test_editExpense_wrong_user(self):
+        farm = Farm.objects.get(user=self.uFoo)
+        url = reverse('farm:edit_expense', args=(farm.id, ))
+
+        expense = farm.max_expense
+        res = self.bar.post(url, dict(max_expense=expense))
+        self.assertEqual(404, res.status_code)
+
+        farm.refresh_from_db()
+        self.assertEqual(expense, farm.max_expense)
+
+    def test_editExpense_notloggedin(self):
+        '''redirect to login page'''
+        farm = Farm.objects.get(user=self.uFoo)
+        url = reverse('farm:edit_expense', args=(farm.id, ))
+
+        expense = farm.max_expense
+        res = self.notloggedin.post(url, dict(max_expense=expense),
+                                    follow=True)
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual('registration/login.html', res.template_name[0])
+        farm.refresh_from_db()
+        self.assertEqual(expense, farm.max_expense)
