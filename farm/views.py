@@ -157,7 +157,7 @@ def editCost(request, pk):
     template_name = 'farm/edit_cost.html'
     theform = FarmCostForm
 
-    crop = get_object_or_404(FarmCrop, pk=pk)
+    crop = get_object_or_404(FarmCrop, pk=pk, farm__user=request.user)
 
     if request.method == "POST":
         form = theform(request.POST, instance=crop)
@@ -178,7 +178,7 @@ def editExpense(request, pk):
     '''edit the overrides in farmcrop'''
     theform = FarmExpenseForm
 
-    farm = get_object_or_404(Farm, pk=pk)
+    farm = get_object_or_404(Farm, pk=pk, farm__user=request.user)
 
     if request.method == "POST":
         form = theform(request.POST, instance=farm)

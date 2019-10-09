@@ -357,3 +357,61 @@ class AcresTest(TestCase):
         self.assertEqual('registration/login.html', res.template_name[0])
         crop.refresh_from_db()
         self.assertEqual(limits, crop.limits())
+
+
+class CostTest(TestCase):
+    fixtures = ['crop-data', ]
+
+    def setUp(self):
+        self.uFoo = User.objects.create_user(username="foo", password="bar")
+        self.uBar = User.objects.create_user(username="bar", password="foo")
+        self.foo = Client()
+        self.foo.login(username="foo", password="bar")
+        # this will create a farm for foo
+        self.foo.get(reverse('home'), follow=True)
+
+        self.bar = Client()
+        self.bar.login(username="bar", password="foo")
+
+        self.notloggedin = Client()
+
+    def tearDown(self):
+        pass
+
+    # EDIT ACRES
+    def test_editCost(self):
+        farm = Farm.objects.get(user=self.uFoo)
+        crop = farm.crops.first()
+        url = reverse('farm:edit_cost', args=(crop.id, ))
+
+        for cost in [100.0, 100, -100.0, 1000000.888]:
+            res = self.foo.post(url, dict(cost_override=cost))
+            self.assertEqual(res.status_code, 302)
+            crop.refresh_from_db()
+            self.assertEqual(cost, crop.cost_override)
+
+    def test_editCost_wrong_user(self):
+        farm = Farm.objects.get(user=self.uFoo)
+        crop = farm.crops.first()
+        url = reverse('farm:edit_cost', args=(crop.id, ))
+
+        cost = crop.cost_override
+        res = self.bar.post(url, dict(lo_acres=100, hi_acres=400))
+        self.assertEqual(404, res.status_code)
+
+        crop.refresh_from_db()
+        self.assertEqual(cost, crop.cost_override)
+
+    def test_editCost_notloggedin(self):
+        '''redirect to login page'''
+        farm = Farm.objects.get(user=self.uFoo)
+        crop = farm.crops.first()
+        url = reverse('farm:edit_cost', args=(crop.id, ))
+
+        cost = crop.cost_override
+        res = self.notloggedin.post(url, dict(lo_acres=100, hi_acres=400),
+                                    follow=True)
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual('registration/login.html', res.template_name[0])
+        crop.refresh_from_db()
+        self.assertEqual(cost, crop.cost_override)
