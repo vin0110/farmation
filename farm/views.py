@@ -135,7 +135,7 @@ def editAcres(request, pk):
     template_name = 'farm/edit_acres.html'
     theform = FarmAcreageForm
 
-    crop = get_object_or_404(FarmCrop, pk=pk)
+    crop = get_object_or_404(FarmCrop, pk=pk, farm__user=request.user)
 
     if request.method == "POST":
         form = theform(request.POST, instance=crop)

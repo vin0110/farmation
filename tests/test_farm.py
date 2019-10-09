@@ -331,3 +331,29 @@ class AcresTest(TestCase):
         self.assertEqual(H, hi)
         # this string is in the field error
         self.assertContains(res, "greater")
+
+    def test_editacres_wrong_user(self):
+        farm = Farm.objects.get(user=self.uFoo)
+        crop = farm.crops.first()
+        url = reverse('farm:edit_acres', args=(crop.id, ))
+
+        limits = crop.limits()
+        res = self.bar.post(url, dict(lo_acres=100, hi_acres=400))
+        self.assertEqual(404, res.status_code)
+
+        crop.refresh_from_db()
+        self.assertEqual(limits, crop.limits())
+
+    def test_editacres_notloggedin(self):
+        '''redirect to login page'''
+        farm = Farm.objects.get(user=self.uFoo)
+        crop = farm.crops.first()
+        url = reverse('farm:edit_acres', args=(crop.id, ))
+
+        limits = crop.limits()
+        res = self.notloggedin.post(url, dict(lo_acres=100, hi_acres=400),
+                                    follow=True)
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual('registration/login.html', res.template_name[0])
+        crop.refresh_from_db()
+        self.assertEqual(limits, crop.limits())
