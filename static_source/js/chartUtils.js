@@ -19,13 +19,30 @@ async function loadScenarioData( scenario_pk ) {
     return scenData
 }
 
+async function getGrossTriangle( prices, yields ) {
+    if ( prices.length != yields.length ) {
+        console.error( "Error in getGrossTriangle()!" )
+        return [0, 0, 0]
+    }
+
+    var grossTri = []
+    for ( var idx in prices ) {
+        grossTri.push( prices[ idx ] * yields[ idx ] )
+    }
+
+    return grossTri 
+}
+
 // Loads data for crops in a specific scenario and returns it.
-async function loadCropData( crop_pk ) {
+async function loadCrop( crop_pk ) {
     const cropData = await $.ajax({
         url: '/api/v1/crop/' + crop_pk +'/',
         type: 'GET',
         dataType: 'json'
     });
+
+    cropData[ 'gross_triangle' ] = await getGrossTriangle( cropData.price_triangle, 
+                                                           cropData.yield_triangle )
 
     return cropData
 }
@@ -94,7 +111,7 @@ function setTriChartOptions( triples, options ) {
 }
 
 // Builds a datatable for plotting a single triangular distribution
-async function setupTriangle( triple, options, formatter ) {
+async function setupTriangle( triple, options, formatter, verticalLine ) {
 
     // Converts [lo, peak, hi] to x-y coordinates. 
     triple[ 'points' ] = await getCoordinates( triple[ 'values' ])
@@ -111,6 +128,14 @@ async function setupTriangle( triple, options, formatter ) {
     dtable.addColumn('number', 'value')
     dtable.addColumn('number', '')
     dtable.addColumn( {type:'string', role:'tooltip'} )
+    if ( verticalLine != undefined ) {
+        dtable.addColumn( {type: 'string', role: 'annotation'} );
+        dtable.addColumn( {type: 'string', role: 'annotationText'} );
+        for ( var row of triple[ 'points' ] ) {
+            row.push ( null, null )
+        }
+        dtable.addRow( [ verticalLine, 0, null, 'Cost', formatter.format( verticalLine )])
+    }
     dtable.addRows( [
         triple[ 'points' ][ 0 ],
         triple[ 'points' ][ 1 ],

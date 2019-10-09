@@ -28,37 +28,30 @@
     </div>
   </div>
 
-  <div class="row">
-    <div class="col"> 
-      <b>Cost per acre</b>: ${{ cropdata.cost|floatformat:2|intcomma }}
-    </div>
-  </div>
-
 </div>
 
-<div class="container" style="text-align:center">
+<div class="container-fluid" >
+
   <div class="row">
-    <div class="col">
+    <div class="col" >
       <hr style="color:blue">
-      <h4>Price Distribution</h3>
+      <h4>Price Distribution</h4>
+      <div id="priceChart"></div>
     </div>
 
     <div class="col">
       <hr style="color:blue">
       <h4>Yield Distribution</h4>
+      <div id="yieldChart"></div>
     </div>
 
-  </div>
-
-  <div class="row">
-    <div class="col">
-      <div id="priceChart" class="chart_div"></div>
-    </div>
-
-    <div class="col">
-      <div id="yieldChart" class="chart_div"></div>
+    <div class="col" >
+      <hr style="color:blue">
+      <h4>Revenue</h4>
+      <div id="grossChart"></div>
     </div>
   </div>
+
 </div>
 
 <script> 
@@ -69,7 +62,7 @@
   // Global for storing options for each chart type.
   var options = []
 
-  // Global settings for triangle plots for prices.
+ // Unique settings for crop price triangle plots. 
   options[ 'price_triangle' ] = {
     hAxis: {
       format: 'currency',
@@ -86,7 +79,7 @@
     }
   }
 
-  // Global settings for triangle plots for yields.
+  // Unique settings for crop yield triangle plots. 
   options[ 'yield_triangle' ] =  {
     hAxis: {
       title: 'Yield ({{cropdata.unit}} / acre)'
@@ -102,40 +95,24 @@
     }
   }
 
-  /**
-   * Attempts to load stats for crop prices. If loading is unsuccesful, 
-   * an error is thrown. Should crop data ever need to be dynamic, 
-   * replace this with an AJAX call.
-   */
-  async function loadCropPrices() {
-    const priceStatsJSON =  '{{ cropdata.prices|escapejs }}'
-
-    if ( priceStatsJSON != '' ) {
-      return {
-        'values': JSON.parse( priceStatsJSON )
+  // Unique settings for crop gross profit triangle plots.
+  options[ 'gross_triangle' ] = {
+    hAxis: {
+      format: 'currency',
+      title: 'Revenue (dollar / acre)'
+    },
+    vAxis: {
+      textPosition: 'none',
+      gridlines: {
+        count: 0
       }
-    } else {
-      throw "Error in loadCropPrices()!"
-    }
-  }
-
-  /**
-   * Attempts to stats for crop yields. If loading is successful, the array
-   * is converted to an array of arrays (formatting for Google Charts') and returned.
-   * If loading is unsuccesful, an error is thrown.
-   *
-   * If crop data ever needs to be dynamic, replace this with an AJAX call.
-   */
-  async function loadCropYields() {
-    const yieldStatsJSON = '{{ cropdata.yields|escapejs }}'
-
-    if ( yieldStatsJSON != '') {
-      return {
-        'values': JSON.parse( yieldStatsJSON )
-      }
-    } else {
-      throw "Error in loadCropYields()!"
-    }
+    },
+    legend: {
+      position: 'none'
+    },
+    annotations: {
+      style: 'line'
+    },
   }
 
   /**
@@ -151,11 +128,27 @@
       containerId: 'yieldChart'
     });
 
-    // Attempts to load yield and price data.
+    var grossChart = new google.visualization.ChartWrapper({
+      containerId: 'grossChart'
+    });
+
+    var regex = '[0-9]+(?=\/$)'
+    var crop_pk = location.pathname.match( regex )[ 0 ]
+
     try {
-      [ prices, yields ] = await Promise.all( [ loadCropPrices(), loadCropYields() ] );
+      cropdata = await loadCrop( crop_pk )
     } catch ( error ) {
       console.log( error )
+    }
+
+    var prices = {
+      'values' : cropdata[ 'price_triangle' ]
+    }
+    var yields = {
+      'values' : cropdata[ 'yield_triangle' ]
+    }
+    var grossProfit = {
+      'values' : cropdata[ 'gross_triangle' ]
     }
 
     var priceFormatter = new Intl.NumberFormat( 'en-US', {
@@ -167,13 +160,16 @@
       style: 'decimal',
     })
 
-
     // Configures and draws triangle distributions.
     setupTriangle( prices, options[ 'price_triangle' ], priceFormatter ).
       then( priceTable => drawChart( priceChart, 'AreaChart', priceTable, options[ 'price_triangle' ]))
 
     setupTriangle( yields, options[ 'yield_triangle' ], yieldFormatter ).
       then( yieldTable => drawChart( yieldChart, 'AreaChart', yieldTable, options[ 'yield_triangle' ]))
+
+    setupTriangle( grossProfit, options[ 'gross_triangle' ], priceFormatter, cropdata[ 'cost' ]).
+      then( grossTable => drawChart( grossChart, 'AreaChart', grossTable, options[ 'gross_triangle' ]))
+      //then( grossTable => addLine( grossTable )).
   }
 
 </script>
