@@ -8,7 +8,7 @@ from farm.models import Farm
 from optimizer.models import CropData
 
 
-class FarmTests(TestCase):
+class HomeTests(TestCase):
     fixtures = ['crop-data', ]
 
     def setUp(self):
@@ -55,13 +55,101 @@ class FarmTests(TestCase):
 
         self.assertNotEqual(fooFarm.id, barFarm.id)
 
+
+class FarmTests(TestCase):
+    fixtures = ['crop-data', ]
+
+    def setUp(self):
+        self.uFoo = User.objects.create_user(username="foo", password="bar")
+        self.uBar = User.objects.create_user(username="bar", password="foo")
+        self.foo = Client()
+        self.foo.login(username="foo", password="bar")
+        # this will create a farm for foo
+        self.foo.get(reverse('home'), follow=True)
+
+        self.bar = Client()
+        self.bar.login(username="bar", password="foo")
+
+        self.notloggedin = Client()
+
+    def tearDown(self):
+        pass
+
+    # FARM page
     def test_farm(self):
         farm = Farm.objects.get(user=self.uFoo)
-        url = reverse('farm', args=(farm.id, ))
+        url = reverse('farm:farm', args=(farm.id, ))
 
         res = self.foo.get(url)
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(farm, res.context['farm'}
+        self.assertEqual(farm, res.context['farm'])
+
+    def test_farm_wrong(self):
+        farm = Farm.objects.get(user=self.uFoo)
+        url = reverse('farm:farm', args=(farm.id, ))
+
+        res = self.bar.get(url)
+        self.assertEqual(res.status_code, 404)
+
+    def test_farm_notloggedin(self):
+        farm = Farm.objects.get(user=self.uFoo)
+        url = reverse('farm:farm', args=(farm.id, ))
+
+        res = self.bar.get(url)
+        self.assertEqual(res.status_code, 404)
+
+
+class AddRmCropTests(TestCase):
+    fixtures = ['crop-data', ]
+
+    def setUp(self):
+        self.uFoo = User.objects.create_user(username="foo", password="bar")
+        self.uBar = User.objects.create_user(username="bar", password="foo")
+        self.foo = Client()
+        self.foo.login(username="foo", password="bar")
+        # this will create a farm for foo
+        self.foo.get(reverse('home'), follow=True)
+
+        self.bar = Client()
+        self.bar.login(username="bar", password="foo")
+
+        self.notloggedin = Client()
+
+    def tearDown(self):
+        pass
+
+    # REMOVE CROP FROM FARM
+    def test_removeCrop(self):
+        farm = Farm.objects.get(user=self.uFoo)
+        crop = farm.crops.first()
+        url = reverse('farm:remove_crop', args=(crop.id, ))
+
+        cnt = farm.crops.count()
+        res = self.foo.get(url)
+        self.assertEqual(res.status_code, 302)
+        self.assertEqual(cnt - 1, farm.crops.count())
+
+    def test_removeCrop_wrong_crop(self):
+        farm = Farm.objects.get(user=self.uFoo)
+
+        incrops = [c.data.id for c in farm.crops.all()]
+        outcrops = CropData.objects.exclude(id__in=incrops)
+        url = reverse('farm:remove_crop', args=(outcrops[0].id, ))
+
+        cnt = farm.crops.count()
+        res = self.foo.get(url)
+        self.assertEqual(res.status_code, 302)
+        self.assertEqual(cnt, farm.crops.count())
+
+    def test_removeCrop_wrong_user(self):
+        farm = Farm.objects.get(user=self.uFoo)
+        crop = farm.crops.first()
+        url = reverse('farm:remove_crop', args=(crop.id, ))
+
+        cnt = farm.crops.count()
+        res = self.bar.get(url)
+        self.assertEqual(res.status_code, 404)
+        self.assertEqual(cnt, farm.crops.count())
 
     # ADD CROP TO FARM
     def test_addCrop_addone(self):
@@ -133,3 +221,113 @@ class FarmTests(TestCase):
         res = self.bar.post(url, dict(crops=['tobacco']))
         self.assertEqual(404, res.status_code)
         self.assertEqual(cnt, farm.crops.count())
+
+
+class AcresTest(TestCase):
+    fixtures = ['crop-data', ]
+
+    def setUp(self):
+        self.uFoo = User.objects.create_user(username="foo", password="bar")
+        self.uBar = User.objects.create_user(username="bar", password="foo")
+        self.foo = Client()
+        self.foo.login(username="foo", password="bar")
+        # this will create a farm for foo
+        self.foo.get(reverse('home'), follow=True)
+
+        self.bar = Client()
+        self.bar.login(username="bar", password="foo")
+
+        self.notloggedin = Client()
+
+    def tearDown(self):
+        pass
+
+    # EDIT ACRES
+    def test_editacres(self):
+        farm = Farm.objects.get(user=self.uFoo)
+        crop = farm.crops.first()
+        url = reverse('farm:edit_acres', args=(crop.id, ))
+
+        # clear limits
+        L, H = 0, 0
+        res = self.foo.post(url, dict(lo_acres=L, hi_acres=H), follow=True)
+        self.assertEqual(res.status_code, 200)
+        crop.refresh_from_db()
+        lo, hi = crop.limits()
+        self.assertEqual(L, lo)
+        self.assertEqual(H, hi)
+
+        # change lo
+        L = 100
+        res = self.foo.post(url, dict(lo_acres=L, hi_acres=H), follow=True)
+        self.assertEqual(res.status_code, 200)
+        crop.refresh_from_db()
+        lo, hi = crop.limits()
+        self.assertEqual(L, lo)
+        self.assertEqual(H, hi)
+
+        # change hi
+        H = 500
+        res = self.foo.post(url, dict(lo_acres=L, hi_acres=H), follow=True)
+        self.assertEqual(res.status_code, 200)
+        crop.refresh_from_db()
+        lo, hi = crop.limits()
+        self.assertEqual(L, lo)
+        self.assertEqual(H, hi)
+
+        # change both
+        L, H = 400, 800
+        res = self.foo.post(url, dict(lo_acres=L, hi_acres=H), follow=True)
+        self.assertEqual(res.status_code, 200)
+        crop.refresh_from_db()
+        lo, hi = crop.limits()
+        self.assertEqual(L, lo)
+        self.assertEqual(H, hi)
+
+    def test_editacres_bad(self):
+        farm = Farm.objects.get(user=self.uFoo)
+        crop = farm.crops.first()
+        url = reverse('farm:edit_acres', args=(crop.id, ))
+
+        # clear
+        L, H = 0, 0
+        res = self.foo.post(url, dict(lo_acres=L, hi_acres=H), follow=True)
+        self.assertEqual(res.status_code, 200)
+        crop.refresh_from_db()
+        lo, hi = crop.limits()
+        self.assertEqual(L, lo)
+        self.assertEqual(H, hi)
+
+        # lo greater than hi
+        res = self.foo.post(url, dict(lo_acres=800, hi_acres=400), follow=True)
+        self.assertEqual(res.status_code, 200)
+        crop.refresh_from_db()
+        lo, hi = crop.limits()
+        self.assertEqual(L, lo)
+        self.assertEqual(H, hi)
+        self.assertContains(res, "not lower than")
+
+    def test_editacres_bad1(self):
+        farm = Farm.objects.get(user=self.uFoo)
+        crop = farm.crops.first()
+        url = reverse('farm:edit_acres', args=(crop.id, ))
+
+        # clear
+        L, H = 0, 0
+        res = self.foo.post(url, dict(lo_acres=L, hi_acres=H), follow=True)
+        self.assertEqual(res.status_code, 200)
+        crop.refresh_from_db()
+        lo, hi = crop.limits()
+        self.assertEqual(L, lo)
+        self.assertEqual(H, hi)
+
+        # lo greater than hi
+        res = self.foo.post(url, dict(lo_acres=-800, hi_acres=-400),
+                            follow=True)
+        self.assertEqual(res.status_code, 200)
+        crop.refresh_from_db()
+        lo, hi = crop.limits()
+        self.assertEqual(L, lo)
+        self.assertEqual(H, hi)
+        # this string is in the field error
+        self.assertContains(res, "greater")
