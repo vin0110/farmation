@@ -471,3 +471,63 @@ class ExpenseTest(TestCase):
         self.assertEqual('registration/login.html', res.template_name[0])
         farm.refresh_from_db()
         self.assertEqual(expense, farm.max_expense)
+
+
+class NoteTest(TestCase):
+    fixtures = ['crop-data', ]
+
+    def setUp(self):
+        self.uFoo = User.objects.create_user(username="foo", password="bar")
+        self.uBar = User.objects.create_user(username="bar", password="foo")
+        self.foo = Client()
+        self.foo.login(username="foo", password="bar")
+        # this will create a farm for foo
+        self.foo.get(reverse('home'), follow=True)
+
+        self.bar = Client()
+        self.bar.login(username="bar", password="foo")
+
+        self.notloggedin = Client()
+
+    def tearDown(self):
+        pass
+
+    # EDIT ACRES
+    def test_editNote(self):
+        farm = Farm.objects.get(user=self.uFoo)
+        url = reverse('farm:edit_note', args=(farm.id, ))
+
+        #
+        M = "my farm"
+        N = "Is great"
+        res = self.foo.post(url, dict(name=M, note=N))
+        self.assertEqual(res.status_code, 302)
+        farm.refresh_from_db()
+        self.assertEqual(M, farm.name)
+        self.assertEqual(N, farm.note)
+
+    def test_editNote_wrong_user(self):
+        farm = Farm.objects.get(user=self.uFoo)
+        url = reverse('farm:edit_note', args=(farm.id, ))
+
+        note = farm.note
+        N = note + "XYZ"
+        res = self.bar.post(url, dict(note=N))
+        self.assertEqual(404, res.status_code)
+        farm.refresh_from_db()
+        self.assertNotEqual(N, farm.note)
+
+    def test_editNote_notloggedin(self):
+        '''redirect to login page'''
+        farm = Farm.objects.get(user=self.uFoo)
+        url = reverse('farm:edit_note', args=(farm.id, ))
+
+        note = farm.note
+        N = note + "123"
+
+        res = self.notloggedin.post(url, dict(note=N),
+                                    follow=True)
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual('registration/login.html', res.template_name[0])
+        farm.refresh_from_db()
+        self.assertNotEqual(N, farm.note)
