@@ -17,7 +17,8 @@
       <form method="post">{% csrf_token %}
       {{ form.as_p }}
       <input type="submit" value="Update" />
-      <input type="button" value="Cancel" onclick="location.href='{{ request.META.HTTP_REFERER }}'"/>
+      <input type="button" value="Cancel"
+             onclick="location.href='{% url 'farm:farm' farm.id %}'"/>
       </form>
       <br/>
       Hold shift key to add multiple crops.
