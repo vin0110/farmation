@@ -92,19 +92,8 @@ class AbstractCrop(models.Model):
         y = json.loads(self.yields())
         return [p[i] * y[i] for i in range(3)]
 
-    def prices(self):
-        if self.isPriceOverride():
-            return self.price_override
-        else:
-            return self.data.prices
-
-    def yields(self):
-        if self.isYieldOverride():
-            return self.yield_override
-        else:
-            return self.data.yields
-
     def isOverride(self):
+        '''checks the three parts of the gross revenue'''
         if self.price_override != '' or self.yield_override != '' or\
            self.cost_override != 0.0:
             return True
@@ -140,6 +129,18 @@ class FarmCrop(AbstractCrop):
     farm = models.ForeignKey('farm.Farm', on_delete=models.CASCADE,
                              related_name='crops')
 
+    def prices(self):
+        if self.isPriceOverride():
+            return self.price_override
+        else:
+            return self.data.prices
+
+    def yields(self):
+        if self.isYieldOverride():
+            return self.yield_override
+        else:
+            return self.data.yields
+
     def net_cost(self):
         if self.cost_override != 0.0:
             return self.cost_override
@@ -160,13 +161,13 @@ class Crop(AbstractCrop):
         if self.isPriceOverride():
             return self.price_override
         else:
-            return self.data.prices
+            return self.farmcrop.prices()
 
     def yields(self):
-        if self.farmcrop.isYieldOverride():
-            return self.farmcrop.yields()
+        if self.isYieldOverride():
+            return self.yield_override
         else:
-            return super().yields()
+            return self.farmcrop.yields()
 
     def net_cost(self):
         if self.cost_override != 0.0:
