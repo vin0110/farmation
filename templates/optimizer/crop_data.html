@@ -47,7 +47,7 @@
 
     <div class="col" >
       <hr style="color:blue">
-      <h4>Revenue</h4>
+      <h4>Gross Revenue</h4>
       <div id="grossChart"></div>
     </div>
   </div>
@@ -99,7 +99,7 @@
   options[ 'gross_triangle' ] = {
     hAxis: {
       format: 'currency',
-      title: 'Revenue (dollar / acre)'
+      title: 'Gross Revenue (dollar / acre)'
     },
     vAxis: {
       textPosition: 'none',
@@ -111,7 +111,10 @@
       position: 'none'
     },
     annotations: {
-      style: 'line'
+      alwaysOutside: true,
+      stem: {
+        color: 'red'
+      }
     },
   }
 
@@ -169,7 +172,6 @@
 
     setupTriangle( grossProfit, options[ 'gross_triangle' ], priceFormatter, cropdata[ 'cost' ]).
       then( grossTable => drawChart( grossChart, 'AreaChart', grossTable, options[ 'gross_triangle' ]))
-      //then( grossTable => addLine( grossTable )).
   }
 
 </script>
