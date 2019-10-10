@@ -30,7 +30,7 @@
               <div class="modal-header">
                 <h5 class="modal-title" id="editName">
                   Edit Scenario Name
-                </h5>
+                </h5>''
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                   <span aria-hidden="true">&times;</span>
                 </button>
@@ -127,12 +127,13 @@
         {{ crop.data.name|capfirst }}
       </h4>
       <hr/>
-      <b>Predicted profit</b>
+      <b>Predicted Gross (per acre)</b>
       {% if crop.isOverride %}
       &nbsp;
       <i class="fas fa-exclamation fa-sm" style="color:orange"></i>
       {% endif %}
-      <img class="card-img-top" src="{% static "img/fake-gross.png" %}" width="10rem" alt="Card image cap"/>
+      <div class="card-img-top cr crop-charts" id="cropChart_{{ crop.data.pk }}" >
+      </div>
       <a class="btn btn-secondary btn-sm" data-toggle="modal"
          href="#cropOver{{ forloop.counter }}">
         Modify
@@ -250,8 +251,6 @@
 </div>
 
 <script>
-
-// Loads Google Charts. When finished loading, drawCharts() is called.
 google.charts.load('current', {'packages': ['corechart', 'bar']});
 google.charts.setOnLoadCallback( chartSetup )
 
@@ -297,6 +296,30 @@ options[ 'partitions' ]= {
     alwaysOutside: true,
   }
 };
+options[ 'gross_triangle' ] = {
+  hAxis: {
+    gridlines: {
+      count: 0
+    },
+    backgroundColor: { fill:'transparent' },
+    format: 'currency',
+  },
+  vAxis: {
+    textPosition: 'none',
+    gridlines: {
+      count: 0
+    }
+  },
+  legend: {
+    position: 'none'
+  },
+  annotations: {
+    alwaysOutside: true,
+    stem: {
+      color: 'red'
+    }
+  },
+}
 
 async function setupMultiTriangle( triples, options ) {
 
@@ -373,6 +396,7 @@ async function buildDataTable( triples, rows ) {
 }
 
 async function chartSetup() {
+  drawCropCharts( options[ 'gross_triangle' ])
 
   // Aliasing this to a shorter function.
   var ChartWrapper = google.visualization.ChartWrapper
@@ -424,9 +448,6 @@ async function setupPartitions( scenario, scenario_pk ) {
   ]);
 
   return dtable 
-
-  //var chart = new google.visualization.BarChart( document.getElementById( "partitionsChart" ))
-  //chart.draw( data, options[ 'crop_partitions'])
 }
 
 // Formats the partitions so they can be used to draw a chart.
@@ -455,9 +476,12 @@ function formatPartitions( scnrio ) {
     currency: 'USD',
   }); 
 
-  scnrio[ 'min_partition'  ] = format( scnrio[ 'min_partition'  ], 'Pessimistic', formatter.format( scnrio[ 'min_expense' ])) 
-  scnrio[ 'mean_partition' ] = format( scnrio[ 'mean_partition' ], 'Expected',    formatter.format( scnrio[ 'mean_expense' ])) 
-  scnrio[ 'max_partition'  ] = format( scnrio[ 'max_partition'  ], 'Optimistic',  formatter.format( scnrio[ 'max_expense' ])) 
+  scnrio[ 'min_partition'  ] = format( scnrio[ 'min_partition'  ], 'Pessimistic', 
+    formatter.format( scnrio[ 'min_expense' ])) 
+  scnrio[ 'mean_partition' ] = format( scnrio[ 'mean_partition' ], 'Expected',    
+    formatter.format( scnrio[ 'mean_expense' ])) 
+  scnrio[ 'max_partition'  ] = format( scnrio[ 'max_partition'  ], 'Optimistic',  
+    formatter.format( scnrio[ 'max_expense' ])) 
 
   return scnrio 
 }
