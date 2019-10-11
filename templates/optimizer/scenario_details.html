@@ -132,7 +132,7 @@
       &nbsp;
       <i class="fas fa-exclamation fa-sm" style="color:orange"></i>
       {% endif %}
-      <div class="card-img-top cr crop-charts" id="cropChart_{{ crop.data.pk }}" >
+      <div class="card-img-top cr crop-charts" id="cropChart_{{ crop.pk }}" >
       </div>
       <a class="btn btn-secondary btn-sm" data-toggle="modal"
          href="#cropOver{{ forloop.counter }}">
@@ -282,7 +282,7 @@ options[ 'partitions' ]= {
   isStacked: 'percent',
   height: CHART_HEIGHT,
   width: CHART_WIDTH,
-  chartArea: { width: "70%", height: "60%" },
+  chartArea: { width: "60%", height: "60%" },
   legend: { position: 'bottom', maxLines: 4 },
   haxis: {
     minValue: 0,
@@ -294,33 +294,9 @@ options[ 'partitions' ]= {
       fontName: 'Cousine'
     },
     alwaysOutside: true,
+    stemColor: 'red'
   }
 };
-options[ 'gross_triangle' ] = {
-  hAxis: {
-    gridlines: {
-      count: 0
-    },
-    backgroundColor: { fill:'transparent' },
-    format: 'currency',
-  },
-  vAxis: {
-    textPosition: 'none',
-    gridlines: {
-      count: 0
-    }
-  },
-  legend: {
-    position: 'none'
-  },
-  annotations: {
-    alwaysOutside: true,
-    stem: {
-      color: 'red'
-    }
-  },
-}
-
 async function setupMultiTriangle( triples, options ) {
 
     for ( var triple of triples ) {
@@ -396,7 +372,7 @@ async function buildDataTable( triples, rows ) {
 }
 
 async function chartSetup() {
-  drawCropCharts( options[ 'gross_triangle' ])
+  drawCropCharts( 'crop-charts', croptypes.SCEN_CROP )
 
   // Aliasing this to a shorter function.
   var ChartWrapper = google.visualization.ChartWrapper

@@ -159,7 +159,7 @@
       &nbsp;
       <i class="fas fa-exclamation fa-sm" style="color:orange"></i>
       {% endif %}
-      <div class="card-img-top cr crop-charts" id="cropChart_{{ crop.data.pk }}" >
+      <div class="card-img-top cr crop-charts" id="cropChart_{{ crop.pk }}" >
       </div>
       <a class="btn btn-secondary btn-sm" data-toggle="modal"
          href="#cropOver{{ forloop.counter }}">
@@ -318,34 +318,8 @@
 google.charts.load('current', {'packages': ['corechart', 'bar']});
 google.charts.setOnLoadCallback( run )
 
-async function run() {
-  drawCropCharts( options )
-}
-
-// Unique settings for crop gross profit triangle plots.
-var options = {
-  hAxis: {
-    gridlines: {
-      count: 0
-    },
-    backgroundColor: { fill:'transparent' },
-    format: 'currency',
-  },
-  vAxis: {
-    textPosition: 'none',
-    gridlines: {
-      count: 0
-    }
-  },
-  legend: {
-    position: 'none'
-  },
-  annotations: {
-    alwaysOutside: true,
-    stem: {
-      color: 'red'
-    }
-  },
+function run() {
+  drawCropCharts( 'crop-charts', croptypes.FARM_CROP )
 }
 </script>
 

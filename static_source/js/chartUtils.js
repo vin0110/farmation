@@ -19,32 +19,35 @@ async function loadScenarioData( scenario_pk ) {
     return scenData
 }
 
-async function getGrossTriangle( prices, yields ) {
-    if ( prices.length != yields.length ) {
-        console.error( "Error in getGrossTriangle()!" )
-        return [0, 0, 0]
-    }
+async function loadFarmCrop( farmcrop_pk ) {
+    const farmCrop = await $.ajax({
+        url: '/api/v1/farmcrop/' + farmcrop_pk + '/',
+        type: 'GET',
+        dataType: 'json'
+    });
 
-    var grossTri = []
-    for ( var idx in prices ) {
-        grossTri.push( prices[ idx ] * yields[ idx ] )
-    }
+    return farmCrop
+}
+// Loads data for crops in a specific scenario and returns it.
+async function loadCropData( cropdata_pk ) {
+    const cropData = await $.ajax({
+        url: '/api/v1/cropdata/pk/' + cropdata_pk + '/',
+        type: 'GET',
+        dataType: 'json'
+    });
 
-    return grossTri 
+    return cropData
 }
 
 // Loads data for crops in a specific scenario and returns it.
-async function loadCrop( crop_pk ) {
-    const cropData = await $.ajax({
+async function loadScenCrop( crop_pk ) {
+    const crop = await $.ajax({
         url: '/api/v1/crop/' + crop_pk +'/',
         type: 'GET',
         dataType: 'json'
     });
 
-    cropData[ 'gross_triangle' ] = await getGrossTriangle( cropData.price_triangle, 
-                                                           cropData.yield_triangle )
-
-    return cropData
+    return crop
 }
 
 async function loadScenarioCrops( scenario_pk ) {
@@ -173,48 +176,95 @@ function drawChart( chartWrapper, chartType, dtable, options ) {
     chartWrapper.draw()
 }
 
+var grossOptions = {
+  hAxis: {
+    gridlines: {
+      count: 5
+    },
+    minorGridlines: {
+      count: 0
+    },
+    backgroundColor: { fill:'transparent' },
+    format: 'currency',
+  },
+  vAxis: {
+    textPosition: 'none',
+    gridlines: {
+      count: 0
+    }
+  },
+  legend: {
+    position: 'none'
+  },
+  annotations: {
+    alwaysOutside: true,
+    stem: {
+      color: 'red'
+    }
+  },
+}
+
+const croptypes = {
+    FARM_CROP: 'farmcrop',
+    SCEN_CROP: 'crop',
+    CROP_DATA: 'cropdata',
+}
 // Draws triangular plots in every div with class 'crop-charts'.
-async function drawCropCharts( options ) {
+async function drawCropCharts( htmlClass, croptype ) {
+    var loadCropFnc
+    switch( croptype ) {
+        case croptypes.FARM_CROP:
+            loadCropFnc = loadFarmCrop
+            break;
 
-  // Locates the generated crop chart divs.
-  var cropChartDivs = document.getElementsByClassName( 'crop-charts' )
+        case croptypes.SCEN_CROP:
+            loadCropFnc = loadScenCrop
+            break;
 
-  var chartWrappers = []
-  var cropPks = []
+        default:
+            console.error( "Invalid croptype in drawCropCharts()!")
+    }
 
-  // Iterates through divs. Creates ChartWrappers and 
-  // builds list of scenario crops' primary keys.
-  for ( var i = 0; i < cropChartDivs.length; i++ ) {
+    // Locates the generated crop chart divs.
+    var cropChartDivs = document.getElementsByClassName( htmlClass )
+
+    var chartWrappers = []
+    var cropPks = []
+
+    // Iterates through divs. Creates ChartWrappers and 
+    // builds list of scenario crops' primary keys.
+    for ( var i = 0; i < cropChartDivs.length; i++ ) {
     currDivId = cropChartDivs.item( i ).id
 
+    // Each div ID is formatted as 'cropCharts_<crop_pk>'.
     cropPk = parseInt( currDivId.split( '_' )[ 1 ] )
     cropPks.push( cropPk )
 
     chartWrappers[ cropPk ] = new google.visualization.ChartWrapper({
-      containerId: currDivId
+        containerId: currDivId
     });
-  }
+    }
 
-  // Formats numbers as US dollars.
-  var priceFormatter = new Intl.NumberFormat( 'en-US', {
+    // Formats numbers as US dollars.
+    var priceFormatter = new Intl.NumberFormat( 'en-US', {
     style: 'currency',
     currency: 'USD',
-  })
+    })
 
-  // For each Crop in the Scenario, draws a graph.
-  cropPks.forEach( async (crop_pk) => {
+    // For each Crop in the Scenario, draws a graph.
+    cropPks.forEach( async (crop_pk) => {
     try {
-      cropdata = await loadCrop( crop_pk )
+        crop = await loadCropFnc( crop_pk )
     } catch ( error ) {
-      console.log( error )
+        console.log( error )
     }
 
     var grossProfit = {
-      'values' : cropdata[ 'gross_triangle' ]
+        'values' : crop[ 'gross' ]
     }
 
-    setupTriangle( grossProfit, options, priceFormatter, cropdata[ 'cost' ]).
-      then( cropTable => drawChart( chartWrappers[ crop_pk ], 'AreaChart', cropTable, options ))
+    setupTriangle( grossProfit, grossOptions, priceFormatter, crop[ 'cost' ]).
+        then( cropTable => drawChart( chartWrappers[ crop_pk ], 'AreaChart', cropTable, grossOptions ))
 
-  })
+    })
 }

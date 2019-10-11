@@ -139,19 +139,19 @@
     var crop_pk = location.pathname.match( regex )[ 0 ]
 
     try {
-      cropdata = await loadCrop( crop_pk )
+      cropdata = await loadCropData( crop_pk )
     } catch ( error ) {
       console.log( error )
     }
 
     var prices = {
-      'values' : cropdata[ 'price_triangle' ]
+      'values' : cropdata[ 'prices' ]
     }
     var yields = {
-      'values' : cropdata[ 'yield_triangle' ]
+      'values' : cropdata[ 'yields' ]
     }
-    var grossProfit = {
-      'values' : cropdata[ 'gross_triangle' ]
+    var gross = {
+      'values' : cropdata[ 'gross' ]
     }
 
     var priceFormatter = new Intl.NumberFormat( 'en-US', {
@@ -170,7 +170,7 @@
     setupTriangle( yields, options[ 'yield_triangle' ], yieldFormatter ).
       then( yieldTable => drawChart( yieldChart, 'AreaChart', yieldTable, options[ 'yield_triangle' ]))
 
-    setupTriangle( grossProfit, options[ 'gross_triangle' ], priceFormatter, cropdata[ 'cost' ]).
+    setupTriangle( gross, options[ 'gross_triangle' ], priceFormatter, cropdata[ 'cost' ]).
       then( grossTable => drawChart( grossChart, 'AreaChart', grossTable, options[ 'gross_triangle' ]))
   }
 
