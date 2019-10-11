@@ -14,31 +14,27 @@ from .serializers import (CropDataSerializer,
                           )
 
 
-# crop/<int:pk>
 class CropDetailById(generics.RetrieveAPIView):
-    '''Return cropdata by pk'''
+    '''Return Crop by pk'''
     serializer_class = CropSerializer
     queryset = Crop.objects.all()
 
 
-# cropdata/<str:name>
 class CropDataDetail(generics.RetrieveAPIView):
-    '''Return cropdata by name'''
+    '''Return Cropdata by name'''
     serializer_class = CropDataSerializer
     queryset = CropData.objects.all()
     lookup_field = 'name'
 
 
-# cropdata/<jnt:pk>
 class CropDataDetailById(generics.RetrieveAPIView):
-    '''Return cropdata by pk'''
+    '''Return CropData by pk'''
     serializer_class = CropDataSerializer
     queryset = CropData.objects.all()
 
 
-# farmcrop/<int:pk>
 class FarmCropDetailById(generics.RetrieveAPIView):
-    #Return FarmCrop by pk
+    '''Return FarmCrop by pk'''
     serializer_class = FarmCropSerializer
     queryset = FarmCrop.objects.all()
 
