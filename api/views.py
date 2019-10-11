@@ -3,15 +3,25 @@ from rest_framework import generics
 from django.http import JsonResponse
 from optimizer.models import (CropData,
                               Scenario, 
-                              Crop, )
+                              Crop,
+                              FarmCrop, )
 
 from .serializers import (CropDataSerializer,
                           ScenarioListSerializer,
                           ScenarioDetailSerializer, 
                           CropSerializer,
+                          FarmCropSerializer,
                           )
 
 
+# crop/<int:pk>
+class CropDetailById(generics.RetrieveAPIView):
+    '''Return cropdata by pk'''
+    serializer_class = CropSerializer
+    queryset = Crop.objects.all()
+
+
+# cropdata/<str:name>
 class CropDataDetail(generics.RetrieveAPIView):
     '''Return cropdata by name'''
     serializer_class = CropDataSerializer
@@ -19,10 +29,18 @@ class CropDataDetail(generics.RetrieveAPIView):
     lookup_field = 'name'
 
 
+# cropdata/<jnt:pk>
 class CropDataDetailById(generics.RetrieveAPIView):
-    '''Return cropdata by id'''
+    '''Return cropdata by pk'''
     serializer_class = CropDataSerializer
     queryset = CropData.objects.all()
+
+
+# farmcrop/<int:pk>
+class FarmCropDetailById(generics.RetrieveAPIView):
+    #Return FarmCrop by pk
+    serializer_class = FarmCropSerializer
+    queryset = FarmCrop.objects.all()
 
 
 class ScenarioDetail(generics.RetrieveAPIView):
@@ -51,12 +69,6 @@ class ScenarioCropsList(generics.GenericAPIView):
         scenario_crops = scenario.crops.all()
         data = { 'cropnames': [ c.data.name for c in scenario_crops ] }
         return JsonResponse(data)
-
-
-class CropTriangles(generics.RetrieveAPIView):
-    '''Return cropdata by name'''
-    serializer_class = CropSerializer
-    queryset = Crop.objects.all()
 
 
 class CropList(generics.ListAPIView):
