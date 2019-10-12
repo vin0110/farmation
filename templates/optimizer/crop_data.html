@@ -31,27 +31,30 @@
 </div>
 
 <div class="container-fluid" >
-
   <div class="row">
     <div class="col" >
-      <hr style="color:blue">
+      <hr style="color:blue"/>
+      <h4>Gross Revenue</h4>
+      <div id="grossChart"></div>
+    </div>
+
+    <div class="col" >
+      <hr style="color:blue"/>
       <h4>Price Distribution</h4>
       <div id="priceChart"></div>
     </div>
 
     <div class="col">
-      <hr style="color:blue">
+      <hr style="color:blue"/>
       <h4>Yield Distribution</h4>
       <div id="yieldChart"></div>
     </div>
-
-    <div class="col" >
-      <hr style="color:blue">
-      <h4>Gross Revenue</h4>
-      <div id="grossChart"></div>
+  </div>
+  <div class="row">
+    <div class="col">
+      {% include "triangle-explain.html" %}
     </div>
   </div>
-
 </div>
 
 <script> 
