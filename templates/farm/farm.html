@@ -2,6 +2,12 @@
 {% load humanize %}
 {% load static %}
 
+{% block extra_head %}
+  <!-- Loads Google Charts library. -->
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <script type="text/javascript" src="{% static "js/chartUtils.js" %}"></script>
+{% endblock %}
+
 {% block head_title %}Farm{% endblock %}
 
 {% block body %}
@@ -148,12 +154,13 @@
         {{ crop.data.name|capfirst }}
       </h4>
       <hr/>
-      <b>Predicted profit</b>
+      <b>Predicted Gross (per acre)</b>
       {% if crop.isOverride %}
       &nbsp;
       <i class="fas fa-exclamation fa-sm" style="color:orange"></i>
       {% endif %}
-      <img class="card-img-top" src="{% static "img/fake-gross.png" %}" width="10rem" alt="Card image cap"/>
+      <div class="card-img-top cr crop-charts" id="cropChart_{{ crop.pk }}" >
+      </div>
       <a class="btn btn-secondary btn-sm" data-toggle="modal"
          href="#cropOver{{ forloop.counter }}">
         Modify
@@ -306,5 +313,14 @@
     </div>
   </div>
 </div>
+
+<script>
+google.charts.load('current', {'packages': ['corechart', 'bar']});
+google.charts.setOnLoadCallback( run )
+
+function run() {
+  drawCropCharts( 'crop-charts', croptypes.FARM_CROP )
+}
+</script>
 
 {% endblock %}

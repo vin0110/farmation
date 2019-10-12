@@ -19,15 +19,35 @@ async function loadScenarioData( scenario_pk ) {
     return scenData
 }
 
+async function loadFarmCrop( farmcrop_pk ) {
+    const farmCrop = await $.ajax({
+        url: '/api/v1/farmcrop/' + farmcrop_pk + '/',
+        type: 'GET',
+        dataType: 'json'
+    });
+
+    return farmCrop
+}
 // Loads data for crops in a specific scenario and returns it.
-async function loadCropData( crop_pk ) {
+async function loadCropData( cropdata_pk ) {
     const cropData = await $.ajax({
-        url: '/api/v1/crop/' + crop_pk +'/',
+        url: '/api/v1/cropdata/pk/' + cropdata_pk + '/',
         type: 'GET',
         dataType: 'json'
     });
 
     return cropData
+}
+
+// Loads data for crops in a specific scenario and returns it.
+async function loadScenCrop( crop_pk ) {
+    const crop = await $.ajax({
+        url: '/api/v1/crop/' + crop_pk +'/',
+        type: 'GET',
+        dataType: 'json'
+    });
+
+    return crop
 }
 
 async function loadScenarioCrops( scenario_pk ) {
@@ -93,8 +113,9 @@ function setTriChartOptions( triples, options ) {
     }
 }
 
+
 // Builds a datatable for plotting a single triangular distribution
-async function setupTriangle( triple, options, formatter ) {
+async function setupTriangle( triple, options, formatter, verticalLine ) {
 
     // Converts [lo, peak, hi] to x-y coordinates. 
     triple[ 'points' ] = await getCoordinates( triple[ 'values' ])
@@ -111,12 +132,39 @@ async function setupTriangle( triple, options, formatter ) {
     dtable.addColumn('number', 'value')
     dtable.addColumn('number', '')
     dtable.addColumn( {type:'string', role:'tooltip'} )
+    if ( verticalLine != undefined ) {
+        dtable.addColumn( {type: 'string', role: 'annotation'} );
+        for ( var row of triple[ 'points' ] ) {
+            row.push ( null )
+        }
+        // Getting the value of the triangle distribution at 
+        // the x-coordinate of 'cost'.
+        var intersect = getIntersection( triple[ 'points' ], verticalLine )
+
+         dtable.addRow( [ verticalLine, intersect,  'Cost (dollar / acre): ' + formatter.format( verticalLine ), null] )
+         dtable.addRow( [ verticalLine, 0, 'Cost (dollar / acre): ' + formatter.format( verticalLine ), null] )
+    }
     dtable.addRows( [
         triple[ 'points' ][ 0 ],
         triple[ 'points' ][ 1 ],
         triple[ 'points' ][ 2 ]
     ]);
-    return dtable
+
+   return dtable
+}
+
+function getIntersection( points, cost ) {
+    if ( cost < points[ 0 ][ 0 ] || cost > points[ 2 ][ 0 ] ) {
+        return points[ 1 ][ 1 ]
+    } else if ( cost < points[ 1 ][ 0 ] ) {
+        var slope = ( points[ 1 ][ 1 ] - points[ 0 ][ 1 ] ) /
+                    ( points[ 1 ][ 0 ] - points[ 0 ][ 0 ] )
+        return slope * ( cost - points[ 1 ][ 0 ] ) + points[ 1 ][ 1 ]
+    } else if ( cost > points[ 1 ][ 0 ] ) {
+        var slope = ( points[ 2 ][ 1 ] - points[ 1 ][ 1 ] ) /
+                    ( points[ 2 ][ 0 ] - points[ 1 ][ 0 ] )
+        return slope * ( cost - points[ 1 ][ 0 ] ) + points[ 1 ][ 1 ]
+    }
 }
 
 // Given a ChartWrapper, its type ('AreaChart', 'Histogram', etc), a 
@@ -126,4 +174,97 @@ function drawChart( chartWrapper, chartType, dtable, options ) {
     chartWrapper.setDataTable( dtable ) 
     chartWrapper.setOptions( options )
     chartWrapper.draw()
+}
+
+var grossOptions = {
+  hAxis: {
+    gridlines: {
+      count: 5
+    },
+    minorGridlines: {
+      count: 0
+    },
+    backgroundColor: { fill:'transparent' },
+    format: 'currency',
+  },
+  vAxis: {
+    textPosition: 'none',
+    gridlines: {
+      count: 0
+    }
+  },
+  legend: {
+    position: 'none'
+  },
+  annotations: {
+    alwaysOutside: true,
+    stem: {
+      color: 'red'
+    }
+  },
+}
+
+const croptypes = {
+    FARM_CROP: 'farmcrop',
+    SCEN_CROP: 'crop',
+    CROP_DATA: 'cropdata',
+}
+// Draws triangular plots in every div with class 'crop-charts'.
+async function drawCropCharts( htmlClass, croptype ) {
+    var loadCropFnc
+    switch( croptype ) {
+        case croptypes.FARM_CROP:
+            loadCropFnc = loadFarmCrop
+            break;
+
+        case croptypes.SCEN_CROP:
+            loadCropFnc = loadScenCrop
+            break;
+
+        default:
+            console.error( "Invalid croptype in drawCropCharts()!")
+    }
+
+    // Locates the generated crop chart divs.
+    var cropChartDivs = document.getElementsByClassName( htmlClass )
+
+    var chartWrappers = []
+    var cropPks = []
+
+    // Iterates through divs. Creates ChartWrappers and 
+    // builds list of scenario crops' primary keys.
+    for ( var i = 0; i < cropChartDivs.length; i++ ) {
+    currDivId = cropChartDivs.item( i ).id
+
+    // Each div ID is formatted as 'cropCharts_<crop_pk>'.
+    cropPk = parseInt( currDivId.split( '_' )[ 1 ] )
+    cropPks.push( cropPk )
+
+    chartWrappers[ cropPk ] = new google.visualization.ChartWrapper({
+        containerId: currDivId
+    });
+    }
+
+    // Formats numbers as US dollars.
+    var priceFormatter = new Intl.NumberFormat( 'en-US', {
+    style: 'currency',
+    currency: 'USD',
+    })
+
+    // For each Crop in the Scenario, draws a graph.
+    cropPks.forEach( async (crop_pk) => {
+    try {
+        crop = await loadCropFnc( crop_pk )
+    } catch ( error ) {
+        console.log( error )
+    }
+
+    var grossProfit = {
+        'values' : crop[ 'gross' ]
+    }
+
+    setupTriangle( grossProfit, grossOptions, priceFormatter, crop[ 'cost' ]).
+        then( cropTable => drawChart( chartWrappers[ crop_pk ], 'AreaChart', cropTable, grossOptions ))
+
+    })
 }

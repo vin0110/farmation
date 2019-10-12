@@ -16,6 +16,13 @@ class CropData(models.Model):
     yields = models.CharField(max_length=4096, default='')
     cost = models.FloatField(default=0.0)
 
+    def gross(self):
+        p = json.loads(self.prices)
+        y = json.loads(self.yields)
+        gross_triangle = [p[i] * y[i] for i in range(3)]
+
+        return map(lambda x: round(x, 2), gross_triangle)
+
     def __str__(self):
         return self.name
 
@@ -91,6 +98,24 @@ class AbstractCrop(models.Model):
         p = json.loads(self.prices())
         y = json.loads(self.yields())
         return [p[i] * y[i] for i in range(3)]
+
+    def prices(self):
+        if self.isPriceOverride():
+            return self.price_override
+        else:
+            return self.data.prices
+
+    def yields(self):
+        if self.isYieldOverride():
+            return self.yield_override
+        else:
+            return self.data.yields
+
+    def cost(self):
+        if self.isCostOverride():
+            return self.cost_override
+        else:
+            return self.data.cost
 
     def isOverride(self):
         '''checks the three parts of the gross revenue'''
