@@ -106,6 +106,7 @@
       <p>
         Set different overrides here to evaluate different scenarios.
       </p>
+      {% include 'triangle-explain.html' %}
       <p size="-1">
         An orange exclaimation point
         (<i class="fas fa-exclamation fa-sm" style="color:orange"></i>)
@@ -127,7 +128,7 @@
         {{ crop.data.name|capfirst }}
       </h4>
       <hr/>
-      <b>Gross revenue (per acre)</b>
+      <b>Gross revenue</b> (per acre)
 
       {% if crop.isOverride %}
       &nbsp;
