@@ -111,12 +111,6 @@ class AbstractCrop(models.Model):
         else:
             return self.data.yields
 
-    def cost(self):
-        if self.isCostOverride():
-            return self.cost_override
-        else:
-            return self.data.cost
-
     def isOverride(self):
         '''checks the three parts of the gross revenue'''
         if self.price_override != '' or self.yield_override != '' or\
@@ -166,7 +160,7 @@ class FarmCrop(AbstractCrop):
         else:
             return self.data.yields
 
-    def net_cost(self):
+    def cost(self):
         if self.cost_override != 0.0:
             return self.cost_override
         else:
@@ -194,11 +188,11 @@ class Crop(AbstractCrop):
         else:
             return self.farmcrop.yields()
 
-    def net_cost(self):
+    def cost(self):
         if self.cost_override != 0.0:
             return self.cost_override
         else:
-            return self.farmcrop.netcost()
+            return self.farmcrop.cost()
 
     def limits(self):
         self.farmcrop

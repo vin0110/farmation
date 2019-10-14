@@ -114,7 +114,7 @@ def addCropToFarm(request, pk):
             return HttpResponseRedirect(reverse('farm:farm', args=(farm.id, )))
     else:
         # GET or invalid form
-        form = form()
+        form = theform()
         form.fields['crops'].choices = possible_crops
 
     if len(possible_crops) == 0:
