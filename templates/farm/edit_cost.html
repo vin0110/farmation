@@ -26,7 +26,7 @@
       {{ form.as_p }}
       <input type="submit" value="Update" />
       <input type="button" value="Cancel"
-             onclick="location.href='{{ request.META.HTTP_REFERER }}'"/>
+             onclick="location.href='{% url 'farm:farm' crop.farm.id %}'"/>
       </form>
       <br/>
       <p>

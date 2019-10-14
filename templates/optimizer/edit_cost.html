@@ -25,7 +25,8 @@
       <form method="post">{% csrf_token %}
       {{ form.as_p }}
       <input type="submit" value="Update" />
-      <input type="button" value="Cancel" onclick="location.href='{{ request.META.HTTP_REFERER }}'"/>
+      <input type="button" value="Cancel"
+             onclick="location.href='{% url 'optimizer:scenario_details' crop.scenario.id %}'"/>
       </form>
       <br/>
       <p>
