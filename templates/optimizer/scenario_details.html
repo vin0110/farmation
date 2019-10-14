@@ -70,7 +70,7 @@
 <div class="container-fluid" >
   <div class="row">
     <div class="col" >
-      <h2>Net profit distributions</h2>
+      <h2>Net Profit Distributions</h2>
       <div id="scenarioChart"></div>
     </div>
     <div class="col-sm">
@@ -278,7 +278,8 @@ options[ 'scenarios' ] = {
   areaOpacity: 0.15,
   explorer: {
     zoomDelta: 1.05
-  }
+  },
+  title: 'Net Profit for Selected Crop Partitions'
 }
 options[ 'partitions' ]= {
   isStacked: 'percent',
@@ -296,8 +297,9 @@ options[ 'partitions' ]= {
       fontName: 'Cousine'
     },
     alwaysOutside: true,
-    stemColor: 'red'
-  }
+  },
+  title: 'Selected Crop Partitions with Expenses (dollars) '
+
 };
 async function setupMultiTriangle( triples, options ) {
 

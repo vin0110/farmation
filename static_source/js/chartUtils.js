@@ -98,7 +98,7 @@ function setTriChartOptions( triples, options ) {
             viewWindow : {
                 min: xAxisLowerBound,
                 max: xAxisUpperBound
-            }
+            },
         }
     }
 
@@ -130,27 +130,44 @@ async function setupTriangle( triple, options, formatter, verticalLine ) {
     // Building the datatable.
     var dtable = new google.visualization.DataTable();
     dtable.addColumn('number', 'value')
-    dtable.addColumn('number', '')
-    dtable.addColumn( {type:'string', role:'tooltip'} )
+
     if ( verticalLine != undefined ) {
         dtable.addColumn( {type: 'string', role: 'annotation'} );
-        for ( var row of triple[ 'points' ] ) {
-            row.push ( null )
-        }
-        // Getting the value of the triangle distribution at 
+        dtable.addColumn( {type: 'string', role: 'annotationText'} );
+    }
+
+    dtable.addColumn('number', '')
+    dtable.addColumn( {type:'string', role:'tooltip'} )
+
+    if ( verticalLine != undefined ) {
+
+        // Getting the y-coordinate of the triangle distribution at 
         // the x-coordinate of 'cost'.
         var intersect = getIntersection( triple[ 'points' ], verticalLine )
 
-         dtable.addRow( [ verticalLine, intersect,  'Cost (dollar / acre): ' + formatter.format( verticalLine ), null] )
-         dtable.addRow( [ verticalLine, 0, 'Cost (dollar / acre): ' + formatter.format( verticalLine ), null] )
-    }
-    dtable.addRows( [
-        triple[ 'points' ][ 0 ],
-        triple[ 'points' ][ 1 ],
-        triple[ 'points' ][ 2 ]
-    ]);
+        for ( var row of triple[ 'points' ] ) {
+            row.splice( 1, 0, null )
+            row.splice( 1, 0, null )
+        }
 
-   return dtable
+        var formattedCost = formatter.format( verticalLine )
+        dtable.addRow( triple[ 'points' ][ 0 ] )
+        if ( verticalLine <= triple[ 'points' ][ 1 ][ 0 ] ) {
+            dtable.addRow( [ verticalLine, 'Cost', 'Cost (dollar / acre): ' + formattedCost, intersect, formattedCost ] )
+            dtable.addRow( triple[ 'points' ][ 1 ] )
+        } else {
+            dtable.addRow( triple[ 'points' ][ 1 ] )
+            dtable.addRow( [ verticalLine, 'Cost', 'Cost (dollar / acre): ' + formattedCost, intersect, formattedCost ] )
+        }
+        dtable.addRow( triple[ 'points' ][ 2 ] )
+    } else { 
+        dtable.addRows( [
+            triple[ 'points' ][ 0 ],
+            triple[ 'points' ][ 1 ],
+            triple[ 'points' ][ 2 ]
+        ]);
+    }
+    return dtable
 }
 
 function getIntersection( points, cost ) {
@@ -177,31 +194,31 @@ function drawChart( chartWrapper, chartType, dtable, options ) {
 }
 
 var grossOptions = {
-  hAxis: {
-    gridlines: {
-      count: 5
+    hAxis: {
+        gridlines: {
+            count: 5
+        },
+        minorGridlines: {
+            count: 0
+        },
+        backgroundColor: { fill:'transparent' },
+        format: 'currency',
     },
-    minorGridlines: {
-      count: 0
+    vAxis: {
+        textPosition: 'none',
+        gridlines: {
+            count: 0
+        }
     },
-    backgroundColor: { fill:'transparent' },
-    format: 'currency',
-  },
-  vAxis: {
-    textPosition: 'none',
-    gridlines: {
-      count: 0
-    }
-  },
-  legend: {
-    position: 'none'
-  },
-  annotations: {
-    alwaysOutside: true,
-    stem: {
-      color: 'red'
-    }
-  },
+    legend: {
+        position: 'none'
+    },
+    annotations: {
+        style: 'line',
+        stem: {
+            color: 'red',
+        }
+    },
 }
 
 const croptypes = {
@@ -265,6 +282,5 @@ async function drawCropCharts( htmlClass, croptype ) {
 
     setupTriangle( grossProfit, grossOptions, priceFormatter, crop[ 'cost' ]).
         then( cropTable => drawChart( chartWrappers[ crop_pk ], 'AreaChart', cropTable, grossOptions ))
-
     })
 }
