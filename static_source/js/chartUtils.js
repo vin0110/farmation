@@ -99,10 +99,6 @@ function setTriChartOptions( triples, options ) {
                 min: xAxisLowerBound,
                 max: xAxisUpperBound
             },
-            gridlines: {
-                color: 'red',
-                count: 1
-            }
         }
     }
 
