@@ -12,6 +12,7 @@ django = "*"
 djangorestframework = "*"
 markdown = "*"
 django-filter = "*"
+coverage = "*"
 
 [requires]
 python_version = "3.6"
