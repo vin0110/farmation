@@ -81,6 +81,14 @@ class AcreageForm(forms.ModelForm):
         model = Crop
         fields = ['lo_acres', 'hi_acres', ]
 
+    def clean(self):
+        cleaned_data = super().clean()
+        low = cleaned_data.get('lo_acres')
+        high = cleaned_data.get('hi_acres')
+        if low and high and high > 0 and low > high:
+            raise forms.ValidationError(
+                'low is not lower than high')
+
 
 class CostForm(forms.ModelForm):
     class Meta:
