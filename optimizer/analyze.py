@@ -56,8 +56,7 @@ def analyzeScenario(crops):
             prices[1] * yields[1],
             prices[2] * yields[2],
         ]
-        thisDict['cost'] = cropdata.cost + farmcrop.cost_override +\
-            crop.cost_override
+        thisDict['cost'] = crop.cost()
 
         overs = []
         over_acres = 0
