@@ -50,6 +50,7 @@ urlpatterns = [
     path('crop/price/rm/<int:pk>/', removePrice, name='remove_price'),
 
     path('crop/edit/cost/<int:pk>/', editCost, name='edit_cost'),
+    path('crop/edit/cost/reset/<int:pk>/', editCost, dict(reset=True, ), name='reset_cost'),
     path('crop/edit/acres/<int:pk>/', editAcres, name='edit_acres'),
 
     path('analyze/<int:pk>/', analyze, name='analyze'),

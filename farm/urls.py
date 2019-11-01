@@ -22,4 +22,5 @@ urlpatterns = [
     path('edit/acres/<int:pk>/', editAcres, name='edit_acres',),
 
     path('edit/cost/<int:pk>/', editCost, name='edit_cost',),
+    path('edit/cost/reset/<int:pk>/', editCost, dict(reset=True), name='reset_cost',),
 ]
