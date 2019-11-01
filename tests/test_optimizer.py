@@ -17,7 +17,6 @@ import json
 class ScenarioTests(TestCase):
     fixtures = ['crop-data', ]
 
-    @tag('slow')
     def setUp(self):
         # Creating user and logging in.
         self.uFoo = User.objects.create_user(username="foo", password="bar")
@@ -44,11 +43,9 @@ class ScenarioTests(TestCase):
         self.scenarios = self.farm.scenarios.all()
         self.scen_one = self.scenarios[0]
 
-    @tag('slow')
     def tearDown(self):
         pass
 
-    @tag('slow')
     def test_scenarioList(self):
         url = reverse('optimizer:list', args=(self.scenarios[0].pk,))
         res = self.foo.get(url)
@@ -56,13 +53,11 @@ class ScenarioTests(TestCase):
         self.assertEquals(res.context['farm'], self.farm)
         self.assertTemplateUsed(res, "optimizer/list.html")
 
-    @tag('slow')
     def test_scenarioList_invalidpk(self):
         url = reverse('optimizer:list', args=(1928173,))
         res = self.foo.get(url)
         self.assertEqual(res.status_code, 404)
 
-    @tag('slow')
     def test_scenarioAdd(self):
         orig_count = len( self.scenarios )
         self.foo.get(reverse('optimizer:scenario_add', args=(self.farm.pk,)),
@@ -70,12 +65,10 @@ class ScenarioTests(TestCase):
         new_count = len(self.farm.scenarios.all())
         self.assertEqual( new_count, orig_count + 1)
 
-    @tag('slow')
     def test_scenarioAdd_invalidfarmpk(self):
         res = self.foo.get(reverse('optimizer:scenario_add', args=(9999,)), follow=True)
         self.assertEqual(res.status_code, 404)
 
-    @tag('slow')
     def test_scenarioAdd_usernotloggedin(self):
         res = self.notloggedin.get(reverse('optimizer:scenario_add',
             args=(self.farm.pk,)), follow=True)
@@ -83,7 +76,6 @@ class ScenarioTests(TestCase):
         #self.assertEqual(res.status_code, 404)
         self.assertEqual(res.status_code, 200)
 
-    @tag('slow')
     def test_scenarioDelete(self):
         self.assertEqual(len( self.farm.scenarios.all() ), 2)
         self.assertEqual(self.farm.scenarios.all()[1].name, 'two')
@@ -94,7 +86,6 @@ class ScenarioTests(TestCase):
         self.assertEqual(len( self.farm.scenarios.all() ), 1)
         self.assertEqual(self.farm.scenarios.all()[0].name, 'one')
 
-    @tag('slow')
     def test_scenarioDelete_invalidscenariopk(self):
         numScens = len(self.farm.scenarios.all())
         res = self.foo.get(reverse('optimizer:scenario_delete',
@@ -102,13 +93,11 @@ class ScenarioTests(TestCase):
         self.assertEqual(res.status_code, 404)
         self.assertEqual(numScens, len(self.farm.scenarios.all()))
 
-    @tag('slow')
     def test_scenarioDetails(self):
         res = self.foo.get(reverse('optimizer:scenario_details', 
             args=(self.scen_one.pk,)), follow=True)
         self.assertEqual(res.status_code, 200)
 
-    @tag('slow')
     def test_scenarioDetails_nofarmcrops(self):
         res = self.foo.get(reverse('optimizer:scenario_details', 
             args=(self.scen_one.pk,)), follow=True)
@@ -123,7 +112,6 @@ class ScenarioTests(TestCase):
             args=(self.scen_one.pk,)), follow=True)
         self.assertContains( res, 'No crops', 1)
 
-    @tag('slow')
     def test_scenarioDetails_namechange(self):
         self.assertEqual('one', self.scen_one.name)
 
@@ -133,7 +121,6 @@ class ScenarioTests(TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(self.farm.scenarios.all()[0].name, 'newScenarioName')
 
-    @tag('slow')
     def test_addCropToScenario(self):
         # Deletes any crops added to scenario "one".
         self.farm.scenarios.all()[0].crops.all().delete()
@@ -158,7 +145,6 @@ class ScenarioTests(TestCase):
             dict(crops=availCrops.last().data.name))
         self.assertEqual( numCrops + 1, len(self.farm.scenarios.all()[0].crops.all()))
 
-    @tag('slow')
     def test_addCropToScenario_unavailablecrop(self):
         # Removes some FarmCrop.
         numFarmCrops = len(self.farm.crops.all())
@@ -181,7 +167,6 @@ class ScenarioTests(TestCase):
         self.assertEqual(0, numCrops)
         self.assertEqual(res.status_code, 200)
 
-    @tag('slow')
     def test_addCropToScenario_wronguser(self):
         # Deleting any crops added to scenario "one".
         self.farm.scenarios.all()[0].crops.all().delete()
@@ -201,7 +186,6 @@ class ScenarioTests(TestCase):
         numCrops = len(self.farm.scenarios.all()[0].crops.all())
         self.assertEqual(0, numCrops)
 
-    @tag('slow')
     def test_scenarioDetails_addallfarmcrops(self):
         # Adding all available FarmCrops to Scenario.
         for farmCrop in self.farm.crops.all():
@@ -227,7 +211,6 @@ class ScenarioTests(TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertContains( res, 'All crops allowed in this farm have been added. Must reconfigure farm to add more crops.', 1 )
 
-    @tag('slow')
     def test_scenarioDetails_addallcrops(self):
         # Getting all FarmCrops not added to Scenario.
         incrops = [c.data.id for c in self.farm.crops.all()]
@@ -256,7 +239,6 @@ class ScenarioTests(TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertContains( res, 'All crops have been added to this scenario.', 1)
 
-    @tag('slow')
     def test_editcost(self):
         crop = self.scen_one.crops.first()
         url = reverse('optimizer:edit_cost', args=(crop.id, ))
@@ -267,7 +249,6 @@ class ScenarioTests(TestCase):
             crop.refresh_from_db()
             self.assertEqual(cost, crop.cost_override)
    
-    @tag('slow')
     def test_editCost_wronguser(self):
         crop = self.scen_one.crops.first()
         url = reverse('optimizer:edit_cost', args=(crop.pk, ))
@@ -279,7 +260,6 @@ class ScenarioTests(TestCase):
         crop.refresh_from_db()
         self.assertEqual(cost, crop.cost_override)
         
-    @tag('slow')
     def test_editCost_notloggedIn(self):
         crop = self.scen_one.crops.first()
         url = reverse('optimizer:edit_cost', args=(crop.id, ))
@@ -292,7 +272,6 @@ class ScenarioTests(TestCase):
         crop.refresh_from_db()
         self.assertEqual(cost, crop.cost_override)
 
-    @tag('slow')
     def test_editCost_getrequest(self):
         crop = self.scen_one.crops.first()
         url = reverse('optimizer:edit_cost', args=(crop.id, ))
@@ -312,7 +291,6 @@ class ScenarioTests(TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(NEW_COST, res.context['form'].initial['cost_override'])
 
-    @tag('slow')
     def test_editTriangle_getrequest(self):
         crop = self.scen_one.crops.first()
 
@@ -360,7 +338,6 @@ class ScenarioTests(TestCase):
         self.assertEqual(yield_res.context['form'].initial['peak'], peak_yield)
         self.assertEqual(yield_res.context['form'].initial['high'], high_yield)
 
-    @tag('slow')
     def test_editTriangle_price(self):
         crop = self.scen_one.crops.first()
         url = reverse('optimizer:edit_crop_price', args=(crop.id, ))
@@ -382,7 +359,6 @@ class ScenarioTests(TestCase):
             self.assertEqual(price_triangle[1], price['peak'])
             self.assertEqual(price_triangle[2], price['high'])
    
-    @tag('slow')
     def test_editTriangle_price_wronguser(self):
         crop = self.scen_one.crops.first()
         url = reverse('optimizer:edit_crop_price', args=(crop.id, ))
@@ -402,7 +378,6 @@ class ScenarioTests(TestCase):
         self.assertFalse(crop.isPriceOverride())
         self.assertEqual(curr_prices, init_prices)
         
-    @tag('slow')
     def test_editTriangle_price_notloggedin(self):
         crop = self.scen_one.crops.first()
         url = reverse('optimizer:edit_crop_price', args=(crop.id, ))
@@ -423,7 +398,6 @@ class ScenarioTests(TestCase):
         self.assertFalse(crop.isPriceOverride())
         self.assertEqual(curr_prices, init_prices)
     
-    @tag('slow')
     def test_editTriangle_price_reset(self):
         crop = self.scen_one.crops.first()
 
@@ -446,7 +420,6 @@ class ScenarioTests(TestCase):
         self.assertFalse(crop.isPriceOverride())
         self.assertNotEquals(crop.prices(), new_prices)
 
-    @tag('slow')
     def test_editTriangle_yield(self):
         crop = self.scen_one.crops.first()
         url = reverse('optimizer:edit_crop_yield', args=(crop.id, ))
@@ -468,7 +441,6 @@ class ScenarioTests(TestCase):
             self.assertEqual(yield_triangle[1], this_yield['peak'])
             self.assertEqual(yield_triangle[2], this_yield['high'])
 
-    @tag('slow')
     def test_editTriangle_yield_wronguser(self):
         crop = self.scen_one.crops.first()
         url = reverse('optimizer:edit_crop_yield', args=(crop.id, ))
@@ -488,7 +460,6 @@ class ScenarioTests(TestCase):
         self.assertFalse(crop.isYieldOverride())
         self.assertEqual(curr_yields, init_yields)
 
-    @tag('slow')
     def test_editTriangle_yield_notloggedin(self):
         crop = self.scen_one.crops.first()
         url = reverse('optimizer:edit_crop_yield', args=(crop.id, ))
@@ -509,7 +480,6 @@ class ScenarioTests(TestCase):
         self.assertFalse(crop.isYieldOverride())
         self.assertEqual(curr_yields, init_yields)
  
-    @tag('slow')
     def test_editTriangle_yield_reset(self):
         crop = self.scen_one.crops.first()
 
@@ -532,7 +502,6 @@ class ScenarioTests(TestCase):
         self.assertFalse(crop.isYieldOverride())
         self.assertNotEquals(crop.yields(), new_yields)
 
-    @tag('slow')
     def test_editTriangle_invalidvalues(self):
         crop = self.scen_one.crops.first()
         url = reverse('optimizer:edit_crop_price', args=(crop.id, ))
@@ -561,7 +530,6 @@ class ScenarioTests(TestCase):
             self.assertNotEqual(price_triangle[1], price['peak'])
             self.assertNotEqual(price_triangle[2], price['high'])
         
-    @tag('slow')
     def test_editAcres(self):
         crop = self.scen_one.crops.first()
         url = reverse('optimizer:edit_acres', args=(crop.id, ))
@@ -587,7 +555,6 @@ class ScenarioTests(TestCase):
             self.assertEqual(limits['lo'], lo)
             self.assertEqual(limits['hi'], hi)
 
-    @tag('slow')
     def test_editAcres_invalidlimits(self):
         crop = self.scen_one.crops.first()
         url = reverse('optimizer:edit_acres', args=(crop.id, ))
@@ -613,7 +580,6 @@ class ScenarioTests(TestCase):
             self.assertEqual(init_lo, lo)
             self.assertEqual(init_hi, hi)
 
-    @tag('slow')
     def test_editAcres_getrequest(self):
         crop = self.scen_one.crops.first()
         url = reverse('optimizer:edit_acres', args=(crop.id, ))
