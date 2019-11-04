@@ -33,4 +33,4 @@ class CropDataAdmin(admin.ModelAdmin):
 
 @admin.register(PriceOrder)
 class PriceOrderAdmin(admin.ModelAdmin):
-    list_display = ('crop', 'units', 'price', 'safety', 'factor', )
+    list_display = ('crop', 'units', 'price', 'safety', )

@@ -60,11 +60,11 @@ class EditTriangleForm(forms.Form):
 
 class PriceOrderForm(forms.ModelForm):
     safety = forms.ChoiceField(choices=[
-        (90, 'Very high'),
-        (75, 'High'),
-        (50, 'Medium'),
-        (25, 'Low'),
-        (10, 'Very low'), ])
+        ('Very high', 'Very high'),
+        ('High', 'High'),
+        ('Medium', 'Medium'),
+        ('Low', 'Low'),
+        ('Very low', 'Very low'), ], initial="Medium", )
 
     class Meta:
         model = PriceOrder

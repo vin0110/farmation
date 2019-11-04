@@ -220,13 +220,12 @@ class Crop(AbstractCrop):
 class PriceOrder(models.Model):
     '''hold price order info for a crop in a scenario'''
     crop = models.ForeignKey(Crop, on_delete=models.CASCADE,
-                             related_name='price_overrides')
+                             related_name='price_orders')
 
     units = models.PositiveSmallIntegerField(default=0)
     price = models.FloatField(default=0.0)
 
-    safety = models.PositiveSmallIntegerField(default=50)
-    factor = models.FloatField(default=1.0)
+    safety = models.CharField(max_length=10)
 
     def __str__(self):
         return '{}:{}'.format(self.crop.data.name, self.crop.scenario.name)

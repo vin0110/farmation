@@ -13,6 +13,8 @@
         Set amount of crop in {{ price.crop.data.unit }}{{"2"|pluralize }}
         and the price (dollars per {{ price.crop.data.unit }})
         for this order.
+      </p>
+      <p>
         Also, select a <em>safety</em> factor.
         A high safety factor will reserve <em>more</em> acres for this
         order, which lowers the risk of failing to meet this order.
@@ -28,6 +30,34 @@
       <input type="button" value="Cancel"
              onclick="location.href='{% url 'optimizer:scenario_details' price.crop.scenario.id %}'"/>
       </form>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col">
+      <hr/>
+      <h3>Safety explained</h3>
+      <p>
+        The safety determines how many acres are planted
+        to fulfill the order.
+        It is based on the yield distribution.
+      </p>
+      <ul>
+        <li>
+          Very high safety: at least 90% of project yields will fulfill the order.
+        </li>
+        <li>
+          High safety: at least 75% of project yields will fulfill the order.
+        </li>
+        <li>
+          Medium: at least 50% of project yields will fulfill the order.
+        </li>
+        <li>
+          Low safety: at least 25% of project yields will fulfill the order.
+        </li>
+        <li>
+          Very low safety: at least 10% of project yields will fulfill the order.
+        </li>
     </div>
   </div>
 </div>

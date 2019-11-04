@@ -190,7 +190,7 @@
           <i class="fas fa-plus-circle"></i>
         </a>
       </h5>
-      {% for price in crop.price_overrides.all %}
+      {% for price in crop.price_orders.all %}
       <div class="row">
         <div class="col">
           {{ price.units }}
