@@ -89,7 +89,6 @@ def analyzeScenario(crops):
             factor = safety_acres(thisDict['yields'], order.safety)
             acres = order.units/factor
             value = order.price * order.units
-            print('O', order.crop.data.name, order.units, factor, acres, value)
             order_acres += acres
             orders.append(dict(
                 units=order.units,
