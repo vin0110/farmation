@@ -113,6 +113,12 @@ function setTriChartOptions( triples, options ) {
     }
 }
 
+// Calling currencyFormatter.format( <some_number> ) will return 
+// a string like $12.34.
+var currencyFormatter = new Intl.NumberFormat( 'en-US', {
+    style: 'currency',
+    currency: 'USD',
+})
 
 // Builds a datatable for plotting a single triangular distribution
 async function setupTriangle( triple, options, formatter, verticalLine ) {

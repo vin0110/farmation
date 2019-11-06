@@ -22,16 +22,66 @@
   <div class="row">
     <div class="col">
       <h4>Triangle</h4>
-      <p>
-        low = {{ partition.triangle.0 }}<br/>
-        peak = {{ partition.triangle.1 }}<br/>
-        high = {{ partition.triangle.2 }}<br/>
-      </p>
+      <div id="grossTriangleChart"></div>
       <h4>Expenses</h4>
-      <p>{{ partition.expense }}</p>
+      <p id="partitionExpense"></p>
       <h4>Crop partition</h4>
       <p>{{ partition.partition }}</p>
     </div>
   </div>
 </div>
+
+<script> 
+  document.getElementById("partitionExpense").innerHTML = 
+    currencyFormatter.format( {{ partition.expense }})
+
+  // Loads Google Charts packages, then calls chartSetup()
+  google.charts.load('current', {'packages': ['corechart', 'controls']});
+  google.charts.setOnLoadCallback( chartSetup )
+
+  // Global for storing options for charts (if there are ever multiple).
+  var options = []
+
+  // Settings for a triangular distribution chart for Gross Profit.
+  options[ 'triangle' ] = {
+    hAxis: {
+      format: 'currency',
+      title: 'Gross Profit'
+    },
+    vAxis: {
+      textPosition: 'none',
+      gridlines: {
+        count: 0
+      }
+    },
+    legend: {
+      position: 'none'
+    }
+  }
+
+  /**
+   * Loads data needed for charts into ChartWrappers, 
+   * configures the charts, then plots the data. 
+   */
+  async function chartSetup() {
+    var triChart = new google.visualization.ChartWrapper({
+      containerId: 'grossTriangleChart'
+    });
+
+
+    var triple = {
+      values: [
+        {{ partition.triangle.0|floatformat:"0" }},
+        {{ partition.triangle.1|floatformat:"0" }},
+        {{ partition.triangle.2|floatformat:"0" }}
+      ]
+    }
+
+    // Configures and draws triangle distributions.
+    setupTriangle( triple, options[ 'triangle' ], currencyFormatter ).
+      then( grossTable => drawChart( triChart, 'AreaChart', grossTable, options[ 'triangle' ]))
+  }
+
+</script>
+
 {% endblock %}
