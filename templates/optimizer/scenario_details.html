@@ -72,21 +72,36 @@
   <div class="row">
     <div class="col">
       <h2>Profit vs. Risk</h2>
-      <p>
-        <b>Profit</b> is determined by the <em>average</em> of gross.<br/>
-        <b>Risk</b> is determined by the <em>16.7th percentile</em> of gross.<br/>
-        Size of the dot represents the expenses; larger is more.
-      </p>
-      <p>
-        The partition lists the number of 100 acres fields for the crops
-        in this order:<br/>
-        {{ crops }}
-      <p>
-        To zoom in, drag across a horizontal range.
-        Right click to reset to full view.
-      </p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
       <div id="chart_div" style="width: 900px; height: 500px;"></div>
       <hr/>
+    </div>
+    <div class="col">
+      <small>
+      <ul>
+        <li>
+          <b>Profit</b> is determined by the <em>average</em> of gross.
+        </li>
+        <li>
+          <b>Risk</b> is determined by the <em>16.7th percentile</em> of gross.
+        </li>
+        <li>
+          Size of the dot represents the expenses; larger is more.
+        </li>
+        <li>
+          The partition lists the number of 100-acre fields for the crops
+          in this order:<br/>
+          {{ crops }}
+        </li>
+        <li>
+          To zoom in, drag across a horizontal range.
+          Right click to reset to full view.
+        </li>
+      </ul>
+      </small>
     </div>
   </div>
 </div>
