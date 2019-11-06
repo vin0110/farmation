@@ -147,12 +147,11 @@
   {% for crop in farm.crops.all %}
   <div class="{% cycle "card" "card bg-light" %}" style="width: 16rem;">
     <div class="card-body">
-      <h4 class="card-title" >
-        <a href="{% url "optimizer:crop_data" crop.data.id %}">
-          <i class="fas fa-info-circle fa-sm"></i>
+      <h4 class="card-title text-center" >
+        <a href="{% url "optimizer:crop_data" crop.data.id %}" data-toggle="tooltip" 
+           title="Global data for {{crop.data.name|capfirst}}">
+          {{ crop.data.name|capfirst }}
         </a>
-        &nbsp;
-        {{ crop.data.name|capfirst }}
       </h4>
       <hr/>
       <b>Gross revenue</b> (per acre)
