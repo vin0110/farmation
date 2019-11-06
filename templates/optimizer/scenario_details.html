@@ -80,6 +80,12 @@
   </div>
   <div class="row">
     <div class="col">
+      {% if scenario.max_expense == 0.0 %}
+      <p class="text-danger text-center">
+        <i class="fas fa-exclamation-triangle"></i>
+        No valid solutions given your constraints.
+      </p>
+      {% endif %}
       <hr/>
     </div>
   </div>
