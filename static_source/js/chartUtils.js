@@ -19,6 +19,7 @@ async function loadScenarioData( scenario_pk ) {
     return scenData
 }
 
+// Loads a FarmCrop given its primary key.
 async function loadFarmCrop( farmcrop_pk ) {
     const farmCrop = await $.ajax({
         url: '/api/v1/farmcrop/' + farmcrop_pk + '/',
@@ -39,7 +40,7 @@ async function loadCropData( cropdata_pk ) {
     return cropData
 }
 
-// Loads data for crops in a specific scenario and returns it.
+// Loads a ScenarioCrop given its primary key.
 async function loadScenCrop( crop_pk ) {
     const crop = await $.ajax({
         url: '/api/v1/crop/' + crop_pk +'/',
@@ -50,6 +51,7 @@ async function loadScenCrop( crop_pk ) {
     return crop
 }
 
+// Loads array of cropnames in a Scenario, given the Scenario's primary key.
 async function loadScenarioCrops( scenario_pk ) {
     const cropList = await $.ajax({
         url: '/api/v1/scenario/listcrops/' + scenario_pk +'/',
@@ -57,7 +59,7 @@ async function loadScenarioCrops( scenario_pk ) {
         dataType: 'json'
     });
 
-    return cropList
+    return cropList['cropnames']
 }
 
 // Returns coordinates for a triangle distribution from a 
@@ -257,21 +259,21 @@ async function drawCropCharts( htmlClass, croptype ) {
     // Iterates through divs. Creates ChartWrappers and 
     // builds list of scenario crops' primary keys.
     for ( var i = 0; i < cropChartDivs.length; i++ ) {
-    currDivId = cropChartDivs.item( i ).id
+        currDivId = cropChartDivs.item( i ).id
 
-    // Each div ID is formatted as 'cropCharts_<crop_pk>'.
-    cropPk = parseInt( currDivId.split( '_' )[ 1 ] )
-    cropPks.push( cropPk )
+        // Each div ID is formatted as 'cropCharts_<crop_pk>'.
+        cropPk = parseInt( currDivId.split( '_' )[ 1 ] )
+        cropPks.push( cropPk )
 
-    chartWrappers[ cropPk ] = new google.visualization.ChartWrapper({
-        containerId: currDivId
-    });
+        chartWrappers[ cropPk ] = new google.visualization.ChartWrapper({
+            containerId: currDivId
+        });
     }
 
     // Formats numbers as US dollars.
     var priceFormatter = new Intl.NumberFormat( 'en-US', {
-    style: 'currency',
-    currency: 'USD',
+        style: 'currency',
+        currency: 'USD',
     })
 
     // For each Crop in the Scenario, draws a graph.
