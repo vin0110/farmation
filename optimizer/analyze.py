@@ -16,6 +16,23 @@ def mkPartitions(size, width):
     return partitions
 
 
+def percentile(lo, peak, hi, perc):
+    # determine the percentile
+    hgt = 100. / (hi - lo)  # using area of 50 units
+    al = (peak - lo) * hgt  # area of triangle below peak
+
+    if perc <= 0:
+        return lo
+    if perc >= 100:
+        return hi
+
+    if perc <= al:
+        # select point on rising line to peak
+        return lo + ((perc/al) * (peak - lo)**2)**0.5
+    else:
+        return hi - ((100. - perc)/(100. - al) * (hi - peak)**2)**0.5
+
+
 def analyzeScenario(crops):
     '''analyze the scenario: find expected, pessimistic and optimistic'''
 
@@ -32,16 +49,7 @@ def analyzeScenario(crops):
 
         factor = FACTOR_TABLE[safety]
         lo, peak, hi = yields
-        # determine the percentile
-        hgt = 100. / (hi - lo)  # using area of 50 units
-        al = (peak - lo) * hgt  # area of triangle below peak
-
-        if factor < al:
-            # select point on rising line to peak
-            return lo + ((factor/al) * (peak - lo)**2)**0.5
-
-        else:
-            return hi - ((100. - factor)/(100. - al) * (hi - peak)**2)**0.5
+        return percentile(lo, peak, hi, factor)
 
     if len(crops) == 0:
         # cannot analyze
@@ -52,10 +60,6 @@ def analyzeScenario(crops):
     fields = [f.acreage for f in farm.fields.all()]
 
     partitions = mkPartitions(len(fields), crops.count())
-    best_mean = -1e10
-    max_min = ((-1e10, 0.0, 0.0), None, 0.0)
-    max_mean = ((0.0, -1e10, 0.0), None, 0.0)
-    max_max = ((0.0, 0.0, -1e10), None, 0.0)
 
     # build price, yields, and cost arrays
     cropDict = {}
@@ -99,6 +103,7 @@ def analyzeScenario(crops):
         cropDict[crop_name] = thisDict
 
     max_expense = farm.max_expense if farm.max_expense > 0 else None
+    results = []
     for partition in partitions:
         totals = [0.0, 0.0, 0.0, ]
 
@@ -147,17 +152,6 @@ def analyzeScenario(crops):
         if max_expense and expense > max_expense:
             continue
 
-        if totals[0] > max_min[0][0]:
-            max_min = (totals, partition, expense)
-        this_mean = sum(totals)/3.0
-        if this_mean > best_mean:
-            best_mean = this_mean
-            max_mean = (totals, partition, expense)
-        if totals[2] > max_max[0][2]:
-            max_max = (totals, partition, expense)
-
-    if max_min[1] is None:
-        # then we didn't find any solutions
-        return None
-    else:
-        return (max_min, max_mean, max_max)
+        results.append(
+            dict(triangle=totals, partition=partition, expense=expense))
+    return results

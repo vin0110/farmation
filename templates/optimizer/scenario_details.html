@@ -21,7 +21,7 @@
             <i class="fas fa-edit"></i>
           </a>
         </font>
-      </h3>
+      </h1>
       <!-- Modal -->
       <div class="modal fade" id="editName" tabindex="-1" role="dialog" aria-labelledby="videoTitleLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
@@ -67,25 +67,25 @@
   </div>
 </div>
 
-<div class="container-fluid" >
-  <div class="row">
-    <div class="col" >
-      <h2>Net Profit Distributions</h2>
-      <div id="scenarioChart"></div>
-    </div>
-    <div class="col-sm">
-      <h2>Crop partitions <font size="-1">Operating expenses shown on right</font></h2>
-      <div id="partitionsChart"></div>
-    </div>
-  </div>
+{# SUMMARY #}
+<div class="container">
   <div class="row">
     <div class="col">
-      {% if scenario.max_expense == 0.0 %}
-      <p class="text-danger text-center">
-        <i class="fas fa-exclamation-triangle"></i>
-        No valid solutions given your constraints.
+      <h2>Profit vs. Risk</h2>
+      <p>
+        <b>Profit</b> is determined by the <em>average</em> of gross.<br/>
+        <b>Risk</b> is determined by the <em>16.7th percentile</em> of gross.<br/>
+        Size of the dot represents the expenses; larger is more.
       </p>
-      {% endif %}
+      <p>
+        The partition lists the number of 100 acres fields for the crops
+        in this order:<br/>
+        {{ crops }}
+      <p>
+        To zoom in, drag across a horizontal range.
+        Right click to reset to full view.
+      </p>
+      <div id="chart_div" style="width: 900px; height: 500px;"></div>
       <hr/>
     </div>
   </div>
@@ -258,6 +258,40 @@
   {% endfor %}
 </div>
 
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+      google.charts.load('current', {'packages':['corechart']});
+      google.charts.setOnLoadCallback(drawChart);
+
+      function drawChart() {
+        var data = google.visualization.arrayToDataTable({{ data|safe }});
+
+        var options = {
+          title: 'Profit vs. Risk comparison',
+          hAxis: {title: 'Risk ($)', minValue: {{xmin }}, maxValue: {{ xmax }} },
+          vAxis: {title: 'Profit ($)', minValue:{{ ymin }}, maxValue: {{ ymax }} },
+          legend: 'none',
+          explorer: {
+          actions: ['dragToZoom', 'rightClickToReset'],
+          axis: 'horizontal',
+          keepInBounds: true,
+          maxZoomIn: 4.0
+          }
+        };
+
+        var chart = new google.visualization.ScatterChart(document.getElementById('chart_div'));
+
+ google.visualization.events.addListener(chart, 'select', function (e) {
+            var selection = chart.getSelection();
+                if (selection.length) {
+                    var row = selection[0].row;
+                    let link =data.getValue(row, 2);
+                    location.href = link;
+                }
+                });
+                chart.draw(data, options);
+      }
+    </script>
 <script>
 google.charts.load('current', {'packages': ['corechart', 'bar']});
 google.charts.setOnLoadCallback( chartSetup )
@@ -474,5 +508,4 @@ function formatPartitions( scnrio ) {
 
 
 </script>
-
 {% endblock %}

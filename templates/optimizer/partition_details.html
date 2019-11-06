@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load static %}
+
+{% block head_title %}Scenario|Partition{% endblock %}
+
+{% block extra_head %}
+  <!-- Loads Google Charts library. -->
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <script type="text/javascript" src="{% static "js/chartUtils.js" %}"></script>
+{% endblock %}
+
+{% block body %}
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <h1>
+        Scenario: <b>{{ scenario.name }}</b>
+      </h1>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
+      <h4>Triangle</h4>
+      <p>
+        low = {{ partition.triangle.0 }}<br/>
+        peak = {{ partition.triangle.1 }}<br/>
+        high = {{ partition.triangle.2 }}<br/>
+      </p>
+      <h4>Expenses</h4>
+      <p>{{ partition.expense }}</p>
+      <h4>Crop partition</h4>
+      <p>{{ partition.partition }}</p>
+    </div>
+  </div>
+</div>
+{% endblock %}
