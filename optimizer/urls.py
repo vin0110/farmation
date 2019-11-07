@@ -4,6 +4,7 @@ from .views import (scenarioList,
                     scenarioDetails,
                     scenarioAdd,
                     scenarioDelete,
+                    scenarioReload,
                     cropData,
                     editCost,
                     editCrop,
@@ -33,6 +34,7 @@ urlpatterns = [
          name='addCropScenario'),
 
     path('scenario/update/<int:pk>/', updateScenario, name='updateScenario'),
+    path('scenario/reload/<int:pk>/', scenarioReload, name='scenario_reload'),
     path('scenario/<int:pk>/partition/<int:part>/', partitionDetails,
          name='partition_details'),
 
