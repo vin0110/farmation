@@ -195,7 +195,7 @@ class PriceOrder(models.Model):
     units = models.PositiveSmallIntegerField(default=0)
     price = models.FloatField(default=0.0)
 
-    safety = models.CharField(max_length=10)
+    safety = models.CharField(max_length=10, default="Medium")
 
     def __str__(self):
         return '{}:{}'.format(self.crop.data.name, self.crop.scenario.name)

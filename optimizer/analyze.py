@@ -47,7 +47,10 @@ def analyzeScenario(crops):
             'Very low': 90.,
         }
 
-        factor = FACTOR_TABLE[safety]
+        try:
+            factor = FACTOR_TABLE[safety]
+        except KeyError:
+            factor = 50
         lo, peak, hi = yields
         return percentile(lo, peak, hi, factor)
 
