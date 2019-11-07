@@ -345,7 +345,6 @@ def editTriangle(request, pk, which, reset=False):
     template_name = 'optimizer/edit_triangle.html'
     theform = EditTriangleForm
 
-    print('edittri', which)
     if which not in ['yield', 'price', ]:
         raise Http404
 
