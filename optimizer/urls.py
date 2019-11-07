@@ -15,6 +15,7 @@ from .views import (scenarioList,
                     removeCropFromScenario,
                     addCropToScenario,
                     updateScenario,
+                    partitionDetails,
                     analyze,
                     )
 
@@ -32,6 +33,8 @@ urlpatterns = [
          name='addCropScenario'),
 
     path('scenario/update/<int:pk>/', updateScenario, name='updateScenario'),
+    path('scenario/<int:pk>/partition/<int:part>/', partitionDetails,
+         name='partition_details'),
 
     path('crop/data/<int:pk>/', cropData, name='crop_data'),
     path('crop/edit/<int:pk>/', editCrop, name='edit_crop'),

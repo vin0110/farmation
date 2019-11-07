@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load static %}
+
+{% block head_title %}Scenario|Partition{% endblock %}
+
+{% block extra_head %}
+  <!-- Loads Google Charts library. -->
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <script type="text/javascript" src="{% static "js/chartUtils.js" %}"></script>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+
+  <div class="row">
+    <div class="col">
+      <h1 class="text-center">
+        Scenario: 
+        <a href="{% url "optimizer:scenario_details" scenario.id %}">
+          {{ scenario }}
+        </a>
+      </h1>
+    </div>
+  </div>
+
+  <hr>
+
+  <div class="row">
+    <div class="col">
+      <h4 class="text-center">Gross Profit Distribution </h4>
+      <div id="grossTriangleChart"></div>
+    </div>
+
+    <div class="col">
+      <h4 class="text-center">Crop Partition</h4>
+      <div style="width: 100%; height: 100%" id="partitionPieChart"></div>
+    </div>
+  </div>
+
+  <hr>
+
+  <div class="row">
+    <div class="col">
+      <p class="text-center">
+        <b>Scenario Expenses:</b>
+        <span style="color:red" id="partitionExpense"></span>
+      </p>
+    </div>
+  </div>
+
+</div>
+
+<script> 
+  // Formats the partition's expense as currency.
+  document.getElementById("partitionExpense").innerHTML = 
+    currencyFormatter.format( {{ partition.expense }} )
+
+  // Loads Google Charts packages, then calls drawCharts()
+  google.charts.load('current', {'packages': ['corechart', 'controls']});
+  google.charts.setOnLoadCallback( drawCharts )
+
+  // Add new chart drawing functions here.
+  async function drawCharts() {
+    drawTriChart()
+    drawPieChart()
+  }
+
+  // Global for storing options for charts (if there are ever multiple).
+  var options = []
+
+  // Settings for a Pie Chart. Empty for now.
+  options[ 'pieChart' ] = {}
+
+  // Draws a Pie Chart where a div with id 'partitionPieChart' is placed.
+  async function drawPieChart() {
+    var pieChart = new google.visualization.ChartWrapper({
+      containerId: 'partitionPieChart'
+    });
+
+    // Loads an array of crop names for this scenario.
+    // Ex: ['corn', 'wheat', 'soybeans']
+    var cropnames = await loadScenarioCrops( {{scenario.pk}} )
+    var partition = {{ partition.partition }}
+
+    // Builds DataTable underlying the chart.
+    var dtable = new google.visualization.DataTable();
+    dtable.addColumn('string', 'Crop')
+    dtable.addColumn('number', 'Fields Planted')
+    for ( var idx in cropnames ) {
+      dtable.addRow( [cropnames[ idx ], partition[ idx ]] )
+    }
+
+    // Draws the chart (drawChart() is defined in chartUtils.js).
+    drawChart( pieChart, 'PieChart', dtable, options[ 'pieChart' ])
+  }
+
+  // Settings for a triangular distribution chart for Gross Profit.
+  options[ 'triangle' ] = {
+    hAxis: {
+      format: 'currency',
+      title: 'Gross Profit'
+    },
+    vAxis: {
+      textPosition: 'none',
+      gridlines: {
+        count: 0
+      }
+    },
+    legend: {
+      position: 'none'
+    }
+  }
+
+  // Draws a triangular distribution chart where a div with 'grossTriangleChart' is placed.
+  function drawTriChart() {
+    var triChart = new google.visualization.ChartWrapper({
+      containerId: 'grossTriangleChart'
+    });
+
+    // triple.values is an array of [min, peak, max] for a triangle.
+    var triple = {
+      values: [
+        {{ partition.triangle.0|floatformat:"0" }},
+        {{ partition.triangle.1|floatformat:"0" }},
+        {{ partition.triangle.2|floatformat:"0" }}
+      ]
+    }
+
+    // Configures and draws the triangle.
+    setupTriangle( triple, options[ 'triangle' ], currencyFormatter ).
+      then( grossTable => drawChart( triChart, 'AreaChart', grossTable, options[ 'triangle' ]))
+  }
+
+</script>
+
+{% endblock %}
