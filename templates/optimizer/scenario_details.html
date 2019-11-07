@@ -97,11 +97,15 @@
           {{ crops }}
         </li>
         <li>
-          To zoom in, drag across a horizontal range.
+          Drag to pan. Scroll to zoom.
           Right click to reset to full view.
         </li>
       </ul>
       </small>
+      <a class="btn btn-primary"
+         href="{% url "optimizer:scenario_reload" scenario.id %}">
+        Reload
+      </a>
     </div>
   </div>
 </div>
@@ -290,12 +294,7 @@ function drawScatter() {
     hAxis: {title: 'Risk ($)', minValue: {{ xmin }}, maxValue: {{ xmax }} },
     vAxis: {title: 'Profit ($)', minValue:{{ ymin }}, maxValue: {{ ymax }} },
     legend: 'none',
-    explorer: {
-      actions: ['dragToZoom', 'rightClickToReset'],
-      axis: 'horizontal',
-      keepInBounds: true,
-      maxZoomIn: 4.0
-    }
+    explorer: {}
   }
 
   var chart = new google.visualization.ScatterChart(document.getElementById('chart_div'));

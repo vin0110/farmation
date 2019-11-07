@@ -82,6 +82,19 @@ def scenarioDelete(request, pk):
 
 
 @login_required
+def scenarioReload(request, pk):
+    '''update a scenario; actually just del the cached data from session'''
+    scenario = get_object_or_404(Scenario, pk=pk, farm__user=request.user)
+    key = 'partitions_{}'.format(scenario.id)
+    try:
+        del request.session[key]
+    except KeyError:
+        pass
+    return HttpResponseRedirect(reverse('optimizer:scenario_details',
+                                        args=(scenario.id, )))
+
+
+@login_required
 def scenarioDetails(request, pk):
     '''edit a scenario'''
 
@@ -105,6 +118,7 @@ def scenarioDetails(request, pk):
     partitions = request.session.get(key, None)
     if partitions is None:
         partitions = scenario.analyzeScenario()
+        request.session[key] = partitions
 
     xmin = +1e10
     xmax = -1e10
