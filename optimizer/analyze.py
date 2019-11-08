@@ -56,7 +56,7 @@ def analyzeScenario(crops):
 
     if len(crops) == 0:
         # cannot analyze
-        return ('', 0.0), ('', 0.0), ('', 0.0)
+        return []
 
     farm = crops.first().scenario.farm
 

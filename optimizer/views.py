@@ -81,11 +81,15 @@ def scenarioDelete(request, pk):
     return HttpResponseRedirect(reverse('optimizer:list', args=(farm.id, )))
 
 
+def mkKey(id):
+    return 'scenario_details_{}'.format(id)
+
+
 @login_required
 def scenarioReload(request, pk):
     '''update a scenario; actually just del the cached data from session'''
     scenario = get_object_or_404(Scenario, pk=pk, farm__user=request.user)
-    key = 'partitions_{}'.format(scenario.id)
+    key = mkKey(scenario.id)
     try:
         del request.session[key]
     except KeyError:
@@ -113,49 +117,59 @@ def scenarioDetails(request, pk):
         # GET
         form = theform(instance=scenario)
 
-    # get data for the scatter plot
-    key = 'partitions_{}'.format(scenario.id)
-    partitions = request.session.get(key, None)
-    if partitions is None:
-        partitions = scenario.analyzeScenario()
-        request.session[key] = partitions
-
-    xmin = +1e10
-    xmax = -1e10
-    ymin = +1e10
-    ymax = -1e10
-    data = [['Risk', 'Profit',
-             {'role': 'link'},
-             {'role': 'tooltip'},
-             {'type': 'string', 'role': 'style'}],
-            ]
-
-    for n, p in enumerate(partitions):
-        lo, peak, hi = p['triangle']
-        x = percentile(lo, peak, hi, 16.7)
-        y = (lo + peak + hi)/3.  # average
-        z = p['expense']
-        style = 'point { size: %d; }' % (z/200000 + 1, )
-        link = reverse('optimizer:partition_details',
-                       args=(scenario.id, n))
-        tip = 'Expense ${}K; partition: {}'.format(
-            int(p['expense']/1000), p['partition'])
-        data.append([x, y, link, tip, style])
-        xmin = min(xmin, x)
-        xmax = max(xmax, x)
-        ymin = min(ymin, y)
-        ymax = max(ymax, y)
-
-    crops = ', '.join([c.data.name for c in scenario.crops.all()])
     context = dict(scenario=scenario,
-                   form=ScenarioEditForm(),
-                   data=json.dumps(data),
-                   crops=crops,
-                   xmax=xmax,
-                   ymax=ymax,
-                   xmin=xmin,
-                   ymin=ymin, )
+                   form=ScenarioEditForm(),)
 
+    # get data for the scatter plot
+    key = mkKey(scenario.id)
+    details = request.session.get(key, None)
+    if details is None:
+        partitions = scenario.analyzeScenario()
+        if partitions == []:
+            state = dict(scenario=scenario,
+                         form=ScenarioEditForm(),
+                         data=json.dumps([]), )
+            context.update(state)
+            return HttpResponse(render(request, template_name, context))
+
+        xmin = +1e10
+        xmax = -1e10
+        ymin = +1e10
+        ymax = -1e10
+        data = [['Risk', 'Profit',
+                 {'role': 'link'},
+                 {'role': 'tooltip'},
+                 {'type': 'string', 'role': 'style'}],
+                ]
+
+        for n, p in enumerate(partitions):
+            lo, peak, hi = p['triangle']
+            x = percentile(lo, peak, hi, 16.7)
+            y = (lo + peak + hi)/3.  # average
+            z = p['expense']
+            style = 'point { size: %d; }' % (z/200000 + 1, )
+            link = reverse('optimizer:partition_details',
+                           args=(scenario.id, n))
+            tip = 'Expense ${}K; partition: {}'.format(
+                int(p['expense']/1000), p['partition'])
+            data.append([x, y, link, tip, style])
+            xmin = min(xmin, x)
+            xmax = max(xmax, x)
+            ymin = min(ymin, y)
+            ymax = max(ymax, y)
+
+        crops = ', '.join([c.data.name for c in scenario.crops.all()])
+        state = dict(data=json.dumps(data),
+                     crops=crops,
+                     xmax=xmax,
+                     ymax=ymax,
+                     xmin=xmin,
+                     ymin=ymin, )
+        request.session[key] = (state, partitions)
+    else:
+        state = details[0]
+
+    context.update(state)
     return HttpResponse(render(request, template_name, context))
 
 
@@ -168,10 +182,12 @@ def partitionDetails(request, pk, part):
     scenario = get_object_or_404(Scenario, pk=pk, farm__user=request.user)
 
     # get data for the scatter plot
-    key = 'partitions_{}'.format(scenario.id)
-    partitions = request.session.get(key, None)
-    if partitions is None:
+    key = mkKey(scenario.id)
+    details = request.session.get(key, None)
+    if details is None:
         partitions = scenario.analyzeScenario()
+    else:
+        partitions = details[1]
 
     try:
         partition = partitions[part]
