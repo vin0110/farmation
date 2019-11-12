@@ -21,18 +21,17 @@
         crop mixes, prices, yields, or costs.
         Create multiple scenarios to explore the tradeoffs.
       </p>
+      <hr>
     </div>
   </div>
 </div>
-
-<hr>
 
 <!-- Start of Scenario list. -->
 <div class="container-fluid">
   <div class="row">
     {% for scenario in farm.scenarios.all %}
     <!-- Definition of an individual Scenario card. -->
-    <div class="{% cycle "card" "card bg-light" %}" style="width: 20rem;">
+    <div class="{% cycle "card" "card bg-light" %}" style="width: 16rem;">
       <div class="card-body">
 
         <!-- Card title / Scenario name -->
@@ -82,23 +81,27 @@
     </div> <!-- End of individual Scenario card. -->
 
     {% empty %}
-    <div class="row">
-      <div class="col">
-        <p>
-          You have no scenarios.
-        </p>
-        <p>
-          Click below to create a new <b><i>scenario</i></b>.
-        </p>
+    <!-- This text is wrapped in a "container" div so it 
+         aligns with the text at the top of the page. -->
+    <div class="container">
+      <div class="row">
+        <div class="col">
+          <p>
+            You have no scenarios.
+          </p>
+          <p>
+            Click below to create a new <b><i>scenario</i></b>.
+          </p>
+        </div>
       </div>
-    </div>
-        {% endfor %}
+  </div>
+
+    {% endfor %}
   </div>
 </div>
 
-<hr>
-
 <div class="container">
+  <hr>
   <div class="row">
     <div class="col">
       <a href="{% url "optimizer:scenario_add" farm.id %}">
