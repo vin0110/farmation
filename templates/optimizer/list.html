@@ -8,6 +8,23 @@
 
 {% block body %}
 <div class="container">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/">Home</a></li>
+      <li class="breadcrumb-item"><a href='{% url "farm:farm" farm.id %}'>{{ farm.name }}</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Scenarios</li>
+    </ol>
+  </nav>
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/">Home</a></li>
+      <li class="breadcrumb-item"><a href='{% url "farm:farm" farm.id %}'>Farm</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Scenarios</li>
+    </ol>
+  </nav>
+</div>
+
+<div class="container">
   <div class="row">
     <div class="col">
       <h1>
@@ -16,6 +33,7 @@
           <img src={% static "img/barn.png" %}></img>
         </a>
       </h1>
+
       <p>
         Scenarios are a playground to experiment with different
         crop mixes, prices, yields, or costs.
