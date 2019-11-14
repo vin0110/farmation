@@ -13,6 +13,17 @@
 {% block body %}
 
 {# TITLE #}
+
+<!-- Breadcrumbs -->
+<div class="container">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/">Home</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Farm</li>
+    </ol>
+  </nav>
+</div>
+
 <div class="container">
   <div class="jumbotron">
     <h1 class="display-6">{{ farm.name }}</h1>
@@ -130,7 +141,8 @@
       </p>
       {% include 'triangle-explain.html' %}
       <p size="-1">
-        An orange exclaimation point
+        An orange exclamation point
+        
         (<i class="fas fa-exclamation fa-sm" style="color:orange"></i>)
         indicates that defaults have been overridden.
     </div>
