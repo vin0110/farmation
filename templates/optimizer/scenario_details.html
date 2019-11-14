@@ -11,15 +11,9 @@
 {% endblock %}
 
 {% block body %}
+
+<!-- Breadcrumbs -->
 <div class="container">
-  <nav aria-label="breadcrumb">
-    <ol class="breadcrumb">
-      <li class="breadcrumb-item"><a href="/">Home</a></li>
-      <li class="breadcrumb-item"><a href='{% url "farm:farm" scenario.farm.id %}'>{{ scenario.farm.name }}</a></li>
-      <li class="breadcrumb-item"><a href='{% url "optimizer:list" scenario.farm.id %}'>Scenarios</a></li>
-      <li class="breadcrumb-item active" aria-current="page">"{{scenario.name}}"</li>
-    </ol>
-  </nav>
   <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
       <li class="breadcrumb-item"><a href="/">Home</a></li>
@@ -28,7 +22,6 @@
       <li class="breadcrumb-item active" aria-current="page">Scenario Details</li>
     </ol>
   </nav>
-
 </div>
 
 <div class="container">
