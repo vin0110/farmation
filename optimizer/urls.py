@@ -10,6 +10,7 @@ from .views import (scenarioList,
                     editAcres,
                     editTriangle,
                     addPrice,
+                    cancelPrice,
                     editPrice,
                     removePrice,
                     removeCropFromScenario,
@@ -47,6 +48,7 @@ urlpatterns = [
 
     path('crop/price/add/<int:pk>/', addPrice, name='add_price'),
     path('crop/price/edit/<int:pk>/', editPrice, name='edit_price'),
+    path('crop/price/cancel/<int:pk>/', cancelPrice, name='cancel_price'),
     path('crop/price/rm/<int:pk>/', removePrice, name='remove_price'),
 
     path('crop/edit/cost/<int:pk>/', editCost, name='edit_cost'),

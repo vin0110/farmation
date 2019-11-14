@@ -332,6 +332,18 @@ def addPrice(request, pk):
 
 
 @login_required
+def cancelPrice(request, pk) :
+    ''' deletes a PriceOrder if its values are both the default value (should be 0) '''
+    price = get_object_or_404(PriceOrder, pk=pk)
+    if (price.price == PriceOrder._meta.get_field('price').default and 
+        price.units == PriceOrder._meta.get_field('units').default) :
+        price.delete()
+
+    return HttpResponseRedirect(
+        reverse('optimizer:scenario_details', args=(price.crop.scenario.id, )))
+
+
+@login_required
 def editPrice(request, pk):
     '''edit the price override'''
     template_name = 'optimizer/edit_price.html'
