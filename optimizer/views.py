@@ -425,6 +425,18 @@ def addPrice(request, pk):
 
 
 @login_required
+def cancelPrice(request, pk) :
+    ''' deletes a PriceOrder if its values are both the default value (should be 0) '''
+    price = get_object_or_404(PriceOrder, pk=pk)
+    if (price.price == PriceOrder._meta.get_field('price').default and 
+        price.units == PriceOrder._meta.get_field('units').default) :
+        price.delete()
+
+    return HttpResponseRedirect(
+        reverse('optimizer:scenario_details', args=(price.crop.scenario.id, )))
+
+
+@login_required
 def editPrice(request, pk):
     '''edit the price override'''
     template_name = 'optimizer/edit_price.html'
@@ -496,12 +508,19 @@ def editAcres(request, pk):
 
 
 @login_required
-def editCost(request, pk):
+def editCost(request, pk, reset=False):
     '''edit the overrides in farmcrop'''
     template_name = 'optimizer/edit_cost.html'
     theform = CostForm
 
     crop = get_object_or_404(Crop, pk=pk)
+
+    if reset:
+        crop.cost_override = 0.0
+        crop.save()
+        return HttpResponseRedirect(
+            reverse('optimizer:scenario_details',
+                    args=(crop.scenario.id, )))
 
     if request.method == "POST":
         form = theform(request.POST, instance=crop)
@@ -514,5 +533,6 @@ def editCost(request, pk):
         # GET
         form = theform(instance=crop)
 
-    context = dict(crop=crop, form=form)
+    reset_url = reverse('optimizer:reset_cost', args=(crop.pk, ))
+    context = dict(crop=crop, form=form, reset_url=reset_url)
     return render(request, template_name, context)
