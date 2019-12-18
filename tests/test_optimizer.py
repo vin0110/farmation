@@ -9,13 +9,17 @@ from farm.models import Farm
 from optimizer.models import CropData
 from optimizer.models import Crop
 from optimizer.models import Scenario
+from optimizer.models import PriceOrder 
 
 from optimizer.forms import EditTriangleForm
+from optimizer.analyze import percentile
+import pprint
 
 import json
 
 class ScenarioTests(TestCase):
     fixtures = ['crop-data', ]
+
 
     def setUp(self):
         # Creating user and logging in.
@@ -46,6 +50,7 @@ class ScenarioTests(TestCase):
     def tearDown(self):
         pass
 
+    @tag("slow")
     def test_scenarioList(self):
         url = reverse('optimizer:list', args=(self.scenarios[0].pk,))
         res = self.foo.get(url)
@@ -53,11 +58,13 @@ class ScenarioTests(TestCase):
         self.assertEquals(res.context['farm'], self.farm)
         self.assertTemplateUsed(res, "optimizer/list.html")
 
+    @tag("slow")
     def test_scenarioList_invalidpk(self):
         url = reverse('optimizer:list', args=(1928173,))
         res = self.foo.get(url)
         self.assertEqual(res.status_code, 404)
 
+    @tag("slow")
     def test_scenarioAdd(self):
         orig_count = len( self.scenarios )
         self.foo.get(reverse('optimizer:scenario_add', args=(self.farm.pk,)),
@@ -65,10 +72,12 @@ class ScenarioTests(TestCase):
         new_count = len(self.farm.scenarios.all())
         self.assertEqual( new_count, orig_count + 1)
 
+    @tag("slow")
     def test_scenarioAdd_invalidfarmpk(self):
         res = self.foo.get(reverse('optimizer:scenario_add', args=(9999,)), follow=True)
         self.assertEqual(res.status_code, 404)
 
+    @tag("slow")
     def test_scenarioAdd_usernotloggedin(self):
         res = self.notloggedin.get(reverse('optimizer:scenario_add',
             args=(self.farm.pk,)), follow=True)
@@ -76,6 +85,7 @@ class ScenarioTests(TestCase):
         #self.assertEqual(res.status_code, 404)
         self.assertEqual(res.status_code, 200)
 
+    @tag("slow")
     def test_scenarioDelete(self):
         self.assertEqual(len( self.farm.scenarios.all() ), 2)
         self.assertEqual(self.farm.scenarios.all()[1].name, 'two')
@@ -86,6 +96,7 @@ class ScenarioTests(TestCase):
         self.assertEqual(len( self.farm.scenarios.all() ), 1)
         self.assertEqual(self.farm.scenarios.all()[0].name, 'one')
 
+    @tag("slow")
     def test_scenarioDelete_invalidscenariopk(self):
         numScens = len(self.farm.scenarios.all())
         res = self.foo.get(reverse('optimizer:scenario_delete',
@@ -93,11 +104,13 @@ class ScenarioTests(TestCase):
         self.assertEqual(res.status_code, 404)
         self.assertEqual(numScens, len(self.farm.scenarios.all()))
 
+    @tag("slow")
     def test_scenarioDetails(self):
         res = self.foo.get(reverse('optimizer:scenario_details', 
             args=(self.scen_one.pk,)), follow=True)
         self.assertEqual(res.status_code, 200)
 
+    @tag("slow")
     def test_scenarioDetails_nofarmcrops(self):
         res = self.foo.get(reverse('optimizer:scenario_details', 
             args=(self.scen_one.pk,)), follow=True)
@@ -112,6 +125,7 @@ class ScenarioTests(TestCase):
             args=(self.scen_one.pk,)), follow=True)
         self.assertContains( res, 'No crops', 1)
 
+    @tag("slow")
     def test_scenarioDetails_namechange(self):
         self.assertEqual('one', self.scen_one.name)
 
@@ -121,6 +135,7 @@ class ScenarioTests(TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(self.farm.scenarios.all()[0].name, 'newScenarioName')
 
+    @tag("slow")
     def test_addCropToScenario(self):
         # Deletes any crops added to scenario "one".
         self.farm.scenarios.all()[0].crops.all().delete()
@@ -145,6 +160,7 @@ class ScenarioTests(TestCase):
             dict(crops=availCrops.last().data.name))
         self.assertEqual( numCrops + 1, len(self.farm.scenarios.all()[0].crops.all()))
 
+    @tag("slow")
     def test_addCropToScenario_unavailablecrop(self):
         # Removes some FarmCrop.
         numFarmCrops = len(self.farm.crops.all())
@@ -167,6 +183,7 @@ class ScenarioTests(TestCase):
         self.assertEqual(0, numCrops)
         self.assertEqual(res.status_code, 200)
 
+    @tag("slow")
     def test_addCropToScenario_wronguser(self):
         # Deleting any crops added to scenario "one".
         self.farm.scenarios.all()[0].crops.all().delete()
@@ -186,6 +203,7 @@ class ScenarioTests(TestCase):
         numCrops = len(self.farm.scenarios.all()[0].crops.all())
         self.assertEqual(0, numCrops)
 
+    @tag("slow")
     def test_scenarioDetails_addallfarmcrops(self):
         # Adding all available FarmCrops to Scenario.
         for farmCrop in self.farm.crops.all():
@@ -211,6 +229,7 @@ class ScenarioTests(TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertContains( res, 'All crops allowed in this farm have been added. Must reconfigure farm to add more crops.', 1 )
 
+    @tag("slow")
     def test_scenarioDetails_addallcrops(self):
         # Getting all FarmCrops not added to Scenario.
         incrops = [c.data.id for c in self.farm.crops.all()]
@@ -239,6 +258,7 @@ class ScenarioTests(TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertContains( res, 'All crops have been added to this scenario.', 1)
 
+    @tag("slow")
     def test_editcost(self):
         crop = self.scen_one.crops.first()
         url = reverse('optimizer:edit_cost', args=(crop.id, ))
@@ -249,6 +269,7 @@ class ScenarioTests(TestCase):
             crop.refresh_from_db()
             self.assertEqual(cost, crop.cost_override)
    
+    @tag("slow")
     def test_editCost_wronguser(self):
         crop = self.scen_one.crops.first()
         url = reverse('optimizer:edit_cost', args=(crop.pk, ))
@@ -260,6 +281,7 @@ class ScenarioTests(TestCase):
         crop.refresh_from_db()
         self.assertEqual(cost, crop.cost_override)
         
+    @tag("slow")
     def test_editCost_notloggedIn(self):
         crop = self.scen_one.crops.first()
         url = reverse('optimizer:edit_cost', args=(crop.id, ))
@@ -272,6 +294,7 @@ class ScenarioTests(TestCase):
         crop.refresh_from_db()
         self.assertEqual(cost, crop.cost_override)
 
+    @tag("slow")
     def test_editCost_getrequest(self):
         crop = self.scen_one.crops.first()
         url = reverse('optimizer:edit_cost', args=(crop.id, ))
@@ -291,6 +314,7 @@ class ScenarioTests(TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(NEW_COST, res.context['form'].initial['cost_override'])
 
+    @tag("slow")
     def test_editTriangle_getrequest(self):
         crop = self.scen_one.crops.first()
 
@@ -338,6 +362,7 @@ class ScenarioTests(TestCase):
         self.assertEqual(yield_res.context['form'].initial['peak'], peak_yield)
         self.assertEqual(yield_res.context['form'].initial['high'], high_yield)
 
+    @tag("slow")
     def test_editTriangle_price(self):
         crop = self.scen_one.crops.first()
         url = reverse('optimizer:edit_crop_price', args=(crop.id, ))
@@ -359,6 +384,7 @@ class ScenarioTests(TestCase):
             self.assertEqual(price_triangle[1], price['peak'])
             self.assertEqual(price_triangle[2], price['high'])
    
+    @tag("slow")
     def test_editTriangle_price_wronguser(self):
         crop = self.scen_one.crops.first()
         url = reverse('optimizer:edit_crop_price', args=(crop.id, ))
@@ -378,6 +404,7 @@ class ScenarioTests(TestCase):
         self.assertFalse(crop.isPriceOverride())
         self.assertEqual(curr_prices, init_prices)
         
+    @tag("slow")
     def test_editTriangle_price_notloggedin(self):
         crop = self.scen_one.crops.first()
         url = reverse('optimizer:edit_crop_price', args=(crop.id, ))
@@ -398,6 +425,7 @@ class ScenarioTests(TestCase):
         self.assertFalse(crop.isPriceOverride())
         self.assertEqual(curr_prices, init_prices)
     
+    @tag("slow")
     def test_editTriangle_price_reset(self):
         crop = self.scen_one.crops.first()
 
@@ -420,6 +448,7 @@ class ScenarioTests(TestCase):
         self.assertFalse(crop.isPriceOverride())
         self.assertNotEquals(crop.prices(), new_prices)
 
+    @tag("slow")
     def test_editTriangle_yield(self):
         crop = self.scen_one.crops.first()
         url = reverse('optimizer:edit_crop_yield', args=(crop.id, ))
@@ -441,6 +470,7 @@ class ScenarioTests(TestCase):
             self.assertEqual(yield_triangle[1], this_yield['peak'])
             self.assertEqual(yield_triangle[2], this_yield['high'])
 
+    @tag("slow")
     def test_editTriangle_yield_wronguser(self):
         crop = self.scen_one.crops.first()
         url = reverse('optimizer:edit_crop_yield', args=(crop.id, ))
@@ -460,6 +490,7 @@ class ScenarioTests(TestCase):
         self.assertFalse(crop.isYieldOverride())
         self.assertEqual(curr_yields, init_yields)
 
+    @tag("slow")
     def test_editTriangle_yield_notloggedin(self):
         crop = self.scen_one.crops.first()
         url = reverse('optimizer:edit_crop_yield', args=(crop.id, ))
@@ -480,6 +511,7 @@ class ScenarioTests(TestCase):
         self.assertFalse(crop.isYieldOverride())
         self.assertEqual(curr_yields, init_yields)
  
+    @tag("slow")
     def test_editTriangle_yield_reset(self):
         crop = self.scen_one.crops.first()
 
@@ -502,6 +534,7 @@ class ScenarioTests(TestCase):
         self.assertFalse(crop.isYieldOverride())
         self.assertNotEquals(crop.yields(), new_yields)
 
+    @tag("slow")
     def test_editTriangle_invalidvalues(self):
         crop = self.scen_one.crops.first()
         url = reverse('optimizer:edit_crop_price', args=(crop.id, ))
@@ -530,6 +563,7 @@ class ScenarioTests(TestCase):
             self.assertNotEqual(price_triangle[1], price['peak'])
             self.assertNotEqual(price_triangle[2], price['high'])
         
+    @tag("slow")
     def test_editAcres(self):
         crop = self.scen_one.crops.first()
         url = reverse('optimizer:edit_acres', args=(crop.id, ))
@@ -555,6 +589,7 @@ class ScenarioTests(TestCase):
             self.assertEqual(limits['lo'], lo)
             self.assertEqual(limits['hi'], hi)
 
+    @tag("slow")
     def test_editAcres_invalidlimits(self):
         crop = self.scen_one.crops.first()
         url = reverse('optimizer:edit_acres', args=(crop.id, ))
@@ -580,6 +615,7 @@ class ScenarioTests(TestCase):
             self.assertEqual(init_lo, lo)
             self.assertEqual(init_hi, hi)
 
+    @tag("slow")
     def test_editAcres_getrequest(self):
         crop = self.scen_one.crops.first()
         url = reverse('optimizer:edit_acres', args=(crop.id, ))
@@ -604,3 +640,173 @@ class ScenarioTests(TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(res.context['form'].initial['lo_acres'], NEW_LO)
         self.assertEqual(res.context['form'].initial['hi_acres'], NEW_HI)
+
+class AnalyzeTests(TestCase):
+    fixtures = ['crop-data', ]
+
+    def setUp(self):
+        # Creating user and logging in.
+        self.uFoo = User.objects.create_user(username="foo", password="bar")
+        self.foo = Client()
+        self.foo.login(username="foo", password="bar")
+
+        # Entering site and getting user's farm.
+        self.foo.get(reverse('home'), follow=True)
+        self.farm = Farm.objects.get(user=self.uFoo)
+
+        # Adding a scenario. Should be called "one". 
+        self.foo.get(reverse('optimizer:scenario_add', args=(self.farm.pk,)),
+            follow=True)
+        self.scen_one = self.farm.scenarios.all()[0]
+
+
+    def tearDown(self):
+        pass
+
+    def test_analyze_simplecase(self):
+
+        # Deletes all but one crop, to simplify testing.
+        for i in range( len( self.scen_one.crops.all()) - 1 ):
+            self.scen_one.crops.first().delete()
+        self.assertEqual(len(self.scen_one.crops.all()), 1)
+
+        results = self.scen_one.analyzeScenario()
+
+        # There should only be one result for a single crop (one possible partition).
+        self.assertEqual( len( results ), 1) 
+        self.assertEqual( len( results[0]['partition'] ), 1 )
+        crop = self.scen_one.crops.first()
+
+        # Expense should be 1000 times the cost-per-acre (for 1000 acres)
+        exp_expense = crop.cost() * 1000
+        self.assertEqual(results[0]['expense'], exp_expense)
+        crop_prices = json.loads(crop.prices())
+        crop_yields = json.loads(crop.yields())
+
+        # Checks that the gross profit triangle is calculated as expected.
+        for i in range( 3 ) :
+            net = results[0]['triangle'][i]
+            exp_net = 1000 * (crop_prices[i] * crop_yields[i] - crop.cost() )
+            self.assertEqual( exp_net, net)
+
+    def test_analyze_nocrops(self):
+
+        # Deletes all crops.
+        for crop in self.scen_one.crops.all():
+            crop.delete()
+        self.assertEqual(len(self.scen_one.crops.all()), 0)
+
+        results = self.scen_one.analyzeScenario()
+        self.assertEqual(len(results), 0)
+
+    def test_analyze_overrides(self):
+
+        # Deletes all but one crop, to simplify testing.
+        for i in range( len( self.scen_one.crops.all()) - 1 ):
+            self.scen_one.crops.first().delete()
+        self.assertEqual(len(self.scen_one.crops.all()), 1)
+
+        # Overrides cost and price and yield triangles.
+        price_override = [5.0, 6.0, 7.0]
+        yield_override = [25.0, 50.0, 75.0]
+        cost_override = 200.0
+
+        crop = self.scen_one.crops.first()
+        crop.price_override = json.dumps(price_override)
+        crop.yield_override = json.dumps(yield_override)
+        crop.cost_override = cost_override
+        crop.save()
+
+        # Checks that the gross profit triangle is calculated using the overridden values.
+        results = self.scen_one.analyzeScenario()
+        for i in range( 3 ) :
+            net = results[0]['triangle'][i]
+            exp_net = 1000 * (price_override[i] * yield_override[i] - cost_override )
+            self.assertEqual(net, exp_net)
+
+    def test_analyze_priceorders(self):
+
+        pp = pprint.PrettyPrinter(indent=4)
+        # Deletes all but two crops, to simplify testing.
+        for i in range( len( self.scen_one.crops.all()) - 2 ):
+            self.scen_one.crops.first().delete()
+        self.assertEqual(len(self.scen_one.crops.all()), 2)
+
+        # Adds price order to first crop.
+        # url = reverse( 'optimizer:add_price', args=(self.scen_one.crops.first().pk,))
+        # res = self.foo.post(url) 
+
+        crop_one = self.scen_one.crops.first()
+        crop_two = self.scen_one.crops.last()
+
+        results = self.scen_one.analyzeScenario()
+        num_partitions = len( results )
+        pp.pprint( results )
+
+        ### Creates PriceOrder that should take 1 100-acre field to satisfy with medium safety.
+        price = PriceOrder.objects.create(crop=crop_one)
+        price.price = json.loads(crop_one.prices())[1] * 1.5
+        self.assertEqual(price.safety, 'Medium')
+
+        yields = json.loads(crop_one.yields())
+        medium_yield = percentile( yields[0], yields[1], yields[2], 50)
+        price.units = 100 * medium_yield 
+
+        price.save()
+
+        results = self.scen_one.analyzeScenario()
+
+        # One partition should have been excluded, since one field must now be planted.
+        self.assertEqual(len(results), num_partitions - 1)
+        num_partitions = len(results)
+
+        
+        ### Checks that the net triangle calculation factors in the value of the forward order.
+        crop_one_prices = json.loads(crop_one.prices())
+        crop_one_yields = json.loads(crop_one.yields())
+        crop_two_prices = json.loads(crop_two.prices())
+        crop_two_yields = json.loads(crop_two.yields())
+        forward_value = price.units * price.price
+        pp.pprint( results )
+        for partition in results:
+            # Iterates through min, peak, and max.
+            for i in range( 3 ) :
+                net = partition['triangle'][i]
+
+                # Revenue from of all but one field of crop one.
+                crop_one_base_revenue = ((partition['partition'][0] - 1) * 100 * 
+                    crop_one_prices[i] * crop_one_yields[i])
+
+                # Base revenue plus value of forward order minus total cost of planting crop_one.
+                crop_one_net = (forward_value + crop_one_base_revenue - 
+                    (partition['partition'][0] * 100 * crop_one.cost()))
+
+                # This net can be simply calculated. It's all the same price.
+                crop_two_net = ((partition['partition'][1] * 100) * 
+                    (crop_two_prices[i] * crop_two_yields[i] - crop_two.cost()))
+
+                total_net = crop_one_net + crop_two_net 
+                print( total_net )
+                print( partition['triangle'][i])
+                # self.assertEqual( total_net, partition['triangle'][i])
+
+        ### Adds PriceOrder that should take 2 100-acre fields to satisfy with medium safety.
+        price = PriceOrder.objects.create(crop=crop_two)
+        price.price = json.loads(crop_two.prices())[1]
+        self.assertEqual(price.safety, 'Medium')
+
+        yields = json.loads(crop_two.yields())
+        medium_yield = percentile( yields[0], yields[1], yields[2], 50)
+        price.units = 200 * medium_yield 
+
+        price.save()
+
+        # Checks that two partitions were eliminated.
+        results = self.scen_one.analyzeScenario()
+        self.assertEqual(len(results), num_partitions - 2)
+
+        # Checks that if only part of a field is needed, the whole field is still reserved.
+        price.units = 201 * medium_yield
+        price.save()
+        results = self.scen_one.analyzeScenario()
+        self.assertEqual(len(results), num_partitions - 3)
