@@ -7,7 +7,6 @@ from .views import (scenarioList,
                     scenarioReload,
                     cropData,
                     editCost,
-                    editCrop,
                     editAcres,
                     editTriangle,
                     addPrice,
@@ -16,9 +15,7 @@ from .views import (scenarioList,
                     removePrice,
                     removeCropFromScenario,
                     addCropToScenario,
-                    updateScenario,
                     partitionDetails,
-                    analyze,
                     )
 
 urlpatterns = [
@@ -34,13 +31,11 @@ urlpatterns = [
     path('scenario/crop/add/<int:pk>/', addCropToScenario,
          name='addCropScenario'),
 
-    path('scenario/update/<int:pk>/', updateScenario, name='updateScenario'),
     path('scenario/reload/<int:pk>/', scenarioReload, name='scenario_reload'),
     path('scenario/<int:pk>/partition/<int:part>/', partitionDetails,
          name='partition_details'),
 
     path('crop/data/<int:pk>/', cropData, name='crop_data'),
-    path('crop/edit/<int:pk>/', editCrop, name='edit_crop'),
 
     path('crop/yield/<int:pk>/', editTriangle,
          dict(which='yield', ), name='edit_crop_yield'),
@@ -59,8 +54,6 @@ urlpatterns = [
     path('crop/edit/cost/<int:pk>/', editCost, name='edit_cost'),
     path('crop/edit/cost/reset/<int:pk>/', editCost, dict(reset=True, ), name='reset_cost'),
     path('crop/edit/acres/<int:pk>/', editAcres, name='edit_acres'),
-
-    path('analyze/<int:pk>/', analyze, name='analyze'),
 
     path('<int:pk>/', scenarioList, name='list'),
 ]

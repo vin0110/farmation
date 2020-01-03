@@ -276,86 +276,6 @@ def addCropToScenario(request, pk):
 
 
 @login_required
-def analyze(request, pk):
-    '''analyze scenario'''
-    scenario = get_object_or_404(Scenario, pk=pk, farm__user=request.user)
-
-    try:
-        scenario.analyzeScenario()
-        messages.info(request,
-                      'Analyzed scenario "{}"'.format(scenario))
-    except ValueError as e:
-        messages.error(request, e)
-
-    return HttpResponseRedirect(
-        request.META.get(
-            'HTTP_REFERER',
-            reverse('optimizer:scenario_details', args=(scenario.id, ))))
-
-
-@login_required
-def editCrop(request, pk):
-    '''edit the overrides in crop'''
-    template_name = 'optimizer/edit_crop.html'
-    theform = CropForm
-
-    crop = get_object_or_404(Crop, pk=pk)
-    scenario = crop.scenario
-
-    if request.method == "POST":
-        form = theform(request.POST, instance=crop)
-        if form.is_valid():
-            valid = True
-            farmcrop = scenario.farm.crops.get(data=crop.data)
-            lo = form.cleaned_data['lo_acres']
-            hi = form.cleaned_data['hi_acres']
-            flo = farmcrop.lo_acres
-            fhi = farmcrop.hi_acres
-            if lo > 0:
-                if lo < flo:
-                    messages.error(
-                        request,
-                        'cannot set low limit to less than the '
-                        'farm low limit of {}'.format(flo))
-                    valid = False
-                if fhi > 0 and lo > fhi:
-                    messages.error(
-                        request,
-                        'cannot set low limit to greater than the '
-                        'farm low limit of {}'.format(fhi))
-                    valid = False
-            if hi > 0:
-                if fhi > 0 and hi > fhi:
-                    messages.error(
-                        request,
-                        'cannot set high limit to greater than the '
-                        'farm high limit of {}'.format(fhi))
-                    valid = False
-                if flo > 0 and hi < flo:
-                    messages.error(
-                        request,
-                        'cannot set high limit to less than the '
-                        'farm low limit of {}'.format(flo))
-                    valid = False
-            if hi > 0 and lo > hi:
-                messages.error(
-                    request,
-                    'low limit ({}) is greater than high ({})'.format(lo, hi))
-                valid = False
-            if valid:
-                form.save()
-                return HttpResponseRedirect(
-                    reverse('optimizer:scenario_details',
-                            args=(scenario.id, )))
-    else:
-        # GET
-        form = theform(instance=crop)
-
-    context = dict(crop=crop, form=form)
-    return render(request, template_name, context)
-
-
-@login_required
 def editTriangle(request, pk, which, reset=False):
     '''edit a yield override'''
     template_name = 'optimizer/edit_triangle.html'
@@ -471,17 +391,6 @@ def removePrice(request, pk):
     price.delete()
     return HttpResponseRedirect(
         reverse('optimizer:scenario_details', args=(scenario.id, )))
-
-
-@login_required
-def updateScenario(request, pk):
-    '''update scenario analysis'''
-    scenario = get_object_or_404(Scenario, pk=pk)
-    if scenario.farm.user != request.user:
-        raise Http404
-    scenario.analyzeScenario()
-    return HttpResponseRedirect(
-        reverse('optimizer:scenario_details', args=(pk, )))
 
 
 @login_required
