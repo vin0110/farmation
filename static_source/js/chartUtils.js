@@ -1,24 +1,3 @@
-
-// Loads a serialized Scenario object, formats it and returns it.
-async function loadScenarioData( scenario_pk ) {
-    var scenData = await $.ajax({
-        url: '/api/v1/scenario/' + scenario_pk +'/',
-        type: 'GET',
-        dataType: 'json'
-    })
-
-    // Pattern that matches only the iterable fields.
-    var iterable = RegExp( '.*_(partition|triangle)' )
-    for ( var key in scenData ) {
-        if ( iterable.test( key ) ) {
-            scenData[ key ] = JSON.parse( scenData[ key ])
-            scenData[ key ] = scenData[ key ].map( val => Math.round( val ) ) 
-        } 
-    }
-
-    return scenData
-}
-
 // Loads a FarmCrop given its primary key.
 async function loadFarmCrop( farmcrop_pk ) {
     const farmCrop = await $.ajax({
