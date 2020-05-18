@@ -161,7 +161,7 @@ server {
 
         # location = /favicon.ico { access_log off; log_not_found off; }
         location /static/ {
-             root /home/vwfreeh/farmation
+             root /home/vwfreeh/farmation;
         }
 
         location / {
