@@ -10,12 +10,18 @@ Use python3 and pipenv.
 pip3 install --user pipenv
 ```
 
-Test if `pip3` is found.
+If `pip3` is not found:
+```
+sudo apt install python3-pip
+```
 
 Get the code
 ```
 git@github.ncsu.edu:vwfreeh/farmation.git
 ```
+
+May have to create public key (`ssh-keygen`) and upload (`.ssh/id-rsa.pub`)
+to github.
 
 Enter the environment (if it doesn't exist _shell_ command will create
 it) and install required software.

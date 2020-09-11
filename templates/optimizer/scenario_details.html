@@ -15,17 +15,9 @@
   <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
       <li class="breadcrumb-item"><a href="/">Home</a></li>
-      <li class="breadcrumb-item"><a href='{% url "farm:farm" scenario.farm.id %}'>{{ scenario.farm.name }}</a></li>
-      <li class="breadcrumb-item"><a href='{% url "optimizer:list" scenario.farm.id %}'>Scenarios</a></li>
-      <li class="breadcrumb-item active" aria-current="page">"{{scenario.name}}"</li>
-    </ol>
-  </nav>
-  <nav aria-label="breadcrumb">
-    <ol class="breadcrumb">
-      <li class="breadcrumb-item"><a href="/">Home</a></li>
       <li class="breadcrumb-item"><a href='{% url "farm:farm" scenario.farm.id %}'>Farm</a></li>
       <li class="breadcrumb-item"><a href='{% url "optimizer:list" scenario.farm.id %}'>Scenarios</a></li>
-      <li class="breadcrumb-item active" aria-current="page">Scenario Details</li>
+      <li class="breadcrumb-item active" aria-current="page">Details</li>
     </ol>
   </nav>
 
@@ -164,7 +156,7 @@
   </div>
 </div>
 
-<div class="container-fluid">
+<div class="container">
   <div class="row">
   {% for crop in scenario.crops.all %}
   <div class="{% cycle "card" "card bg-light" %}" style="width: 20rem;">

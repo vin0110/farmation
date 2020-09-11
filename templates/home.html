@@ -4,11 +4,14 @@
 
 {% block body %}
 
-{% for farm in farms %}
 <div class="container">
   <ol class="breadcrumb">
     <li class="breadcrumb-item active" aria-current="page">Home</li>
   </ol>
+</div>
+
+{% for farm in farms %}
+<div class="container">
   <div class="jumbotron">
     <h1 class="display-6">{{ farm.name }}</h1>
     <p class="lead">
