@@ -13,18 +13,18 @@
 {% block body %}
 
 <!-- Breadcrumbs -->
-<div class="container">
+<div class="container-fluid">
   <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
       <li class="breadcrumb-item"><a href="/">Home</a></li>
       <li class="breadcrumb-item"><a href='{% url "farm:farm" scenario.farm.id %}'>Farm</a></li>
       <li class="breadcrumb-item"><a href='{% url "optimizer:list" scenario.farm.id %}'>Scenarios</a></li>
-      <li class="breadcrumb-item active" aria-current="page">Scenario Details</li>
+      <li class="breadcrumb-item active" aria-current="page">Details</li>
     </ol>
   </nav>
 </div>
 
-<div class="container">
+<div class="container-fluid">
   <div class="row">
     <div class="col">
       <h1>
@@ -81,7 +81,7 @@
 </div>
 
 {# SUMMARY #}
-<div class="container">
+<div class="container-fluid">
   <div class="row">
     <div class="col">
       <h2>Profit vs. Risk</h2>
@@ -99,10 +99,10 @@
       <small>
       <ul>
         <li>
-          <b>Profit</b> is determined by the <em>average</em> of gross.
+          <b>Profit</b> is determined by the <em>average</em> of net.
         </li>
         <li>
-          <b>Risk</b> is determined by the <em>16.7th percentile</em> of gross.
+          <b>Risk</b> is determined by the <em>16.7th percentile</em> of net.
         </li>
         <li>
           Size of the dot represents the expenses; larger is more.
@@ -110,7 +110,9 @@
         <li>
           The partition lists the number of 100-acre fields for the crops
           in this order:<br/>
+          <strong>
           {{ crops }}
+          </strong>
         </li>
         <li>
           Drag an area to zoom.
@@ -128,7 +130,7 @@
 </div>
 
 {# CROPS LIST #}
-<div class="container">
+<div class="container-fluid">
   <div class="row">
     <div class="col">
       <h2>Crops</h2>

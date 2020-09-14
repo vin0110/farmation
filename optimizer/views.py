@@ -203,8 +203,9 @@ def cropData(request, pk):
     '''display a crop'''
     template_name = 'optimizer/crop_data.html'
 
+    farm = Farm.objects.get(user=request.user)
     cropdata = get_object_or_404(CropData, pk=pk)
-    context = dict(cropdata=cropdata, )
+    context = dict(cropdata=cropdata, farm=farm, )
     return render(request, template_name, context)
 
 

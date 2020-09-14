@@ -18,11 +18,26 @@
 {% endblock %}
 {% block body %}
 
-
+<!-- Breadcrumbs -->
+'{{ request.META.HTTP_REFERER }}'
 <div class="container">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/">Home</a></li>
+      <li class="breadcrumb-item"><a href='{% url "farm:farm" farm.id %}'>Farm</a></li>
+      {% if 'optimizer' in request.META.HTTP_REFERER %}
+      <li class="breadcrumb-item"><a href='{% url "optimizer:list" farm.id%}'>Scenarios</a></li>
+      <li class="breadcrumb-item"><a href='{{request.META.HTTP_REFERER}}'>Scenario Details</a></li>
+      {% endif %}
+      <li class="breadcrumb-item active" aria-current="page">Crop Data</li>
+    </ol>
+  </nav>
+</div>
+
+<div class="container-fluid">
   <div class="row">
     <div class="col">
-      <h3 style="text-align: center">
+      <h3 >
       Crop Data : <b style="text-transform: uppercase"><font color="blue">{{ cropdata.name }}</font></b>
       </h3>
     </div>
