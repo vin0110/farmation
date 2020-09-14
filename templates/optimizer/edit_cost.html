@@ -5,7 +5,7 @@
 {% block head_title %}Optimizer|Edit Crop Cost{% endblock %}
 
 {% block body %}
-<div class="container">
+<div class="container-fluid">
   <div class="row">
     <div class="col">
       <h3>
@@ -19,12 +19,13 @@
   </div>
 </div>
 
-<div class="container">
+<div class="container-fluid">
   <div class="row">
     <div class="col">
       <form method="post">{% csrf_token %}
       {{ form.as_p }}
       <input type="submit" value="Update" />
+      <input type="button" value="Reset" onclick="location.href='{{ reset_url }}'"/>
       <input type="button" value="Cancel"
              onclick="location.href='{% url 'optimizer:scenario_details' crop.scenario.id %}'"/>
       </form>

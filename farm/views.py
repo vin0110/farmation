@@ -150,12 +150,18 @@ def editAcres(request, pk):
 
 
 @login_required
-def editCost(request, pk):
+def editCost(request, pk, reset=False):
     '''edit the overrides in farmcrop'''
     template_name = 'farm/edit_cost.html'
     theform = FarmCostForm
 
     crop = get_object_or_404(FarmCrop, pk=pk, farm__user=request.user)
+
+    if reset:
+        crop.cost_override = 0.0
+        crop.save()
+        return HttpResponseRedirect(
+            reverse('farm:farm', args=(crop.farm.id, )))
 
     if request.method == "POST":
         form = theform(request.POST, instance=crop)
@@ -167,7 +173,8 @@ def editCost(request, pk):
         # GET
         form = theform(instance=crop)
 
-    context = dict(crop=crop, form=form)
+    reset_url = reverse('farm:reset_cost', args=(crop.id, ))
+    context = dict(crop=crop, form=form, reset_url=reset_url)
     return render(request, template_name, context)
 
 
