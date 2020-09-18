@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
 import os
+import json
 
 from django.urls import reverse_lazy
 from django.contrib.messages import constants as messages
@@ -159,3 +160,15 @@ MESSAGE_TAGS = {
     messages.WARNING: 'alert-warning',
     messages.ERROR: 'alert-danger',
 }
+
+######################
+# price and yields data # @@@
+######################
+MARS_PRICES = json.load(open(os.path.join(
+    BASE_DIR,
+    'farmation',
+    'prices_mars_nc_5yr_ave.json')))
+NASS_YIELDS = json.load(open(os.path.join(
+    BASE_DIR,
+    'farmation',
+    'yields_nass_nc_county_5yr_ave.json')))
