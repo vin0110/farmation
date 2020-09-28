@@ -42,8 +42,8 @@
 
   <div class="row">
     <div class="col">
-      <h4 class="text-center">Gross Profit Distribution </h4>
-      <div id="grossTriangleChart"></div>
+      <h4 class="text-center">Net Profit Distribution </h4>
+      <div id="netTriangleChart"></div>
     </div>
 
     <div class="col">
@@ -109,11 +109,11 @@
     drawChart( pieChart, 'PieChart', dtable, options[ 'pieChart' ])
   }
 
-  // Settings for a triangular distribution chart for Gross Profit.
+  // Settings for a triangular distribution chart for net Profit.
   options[ 'triangle' ] = {
     hAxis: {
       format: 'currency',
-      title: 'Gross Profit'
+      title: 'Net Profit'
     },
     vAxis: {
       textPosition: 'none',
@@ -126,10 +126,10 @@
     }
   }
 
-  // Draws a triangular distribution chart where a div with 'grossTriangleChart' is placed.
+  // Draws a triangular distribution chart where a div with 'netTriangleChart' is placed.
   function drawTriChart() {
     var triChart = new google.visualization.ChartWrapper({
-      containerId: 'grossTriangleChart'
+      containerId: 'netTriangleChart'
     });
 
     // triple.values is an array of [min, peak, max] for a triangle.
