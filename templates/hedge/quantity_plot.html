@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block head_title %}Quantity{% endblock %}
+
+{% block nobreadcrumbs %}{% endblock %}
+
+{% block body %}
+
+<div class="container">
+
+  <div class="row">
+    <div class="col">
+      <h1>Quantity</h1>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col">
+      <p>
+        Showing the benefit of hedging, varying amount of crop hedged.
+      </p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-2">
+      <strong>
+        Location:
+      </strong>
+    </div>
+    <div class="col-md-3">
+      {{ location.name }}
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-2">
+      <strong>
+        Crop:
+      </strong>
+    </div>
+    <div class="col-md-3">
+      {{ crop }}
+    </div>
+    <div class="col-md-2">
+      <strong>
+        Contract month:
+      </strong>
+    </div>
+    <div class="col-md-3">
+      {{ month }}
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-2">
+      <strong>
+        Hedge date:
+      </strong>
+    </div>
+    <div class="col-md-3">
+      {{ hdate }}
+    </div>
+    <div class="col-md-2">
+      <strong>
+        Reconcilation date:
+      </strong>
+    </div>
+    <div class="col-md-3">
+      {{ rdate }}
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col">
+      <hr/>
+    </div>
+  </div>
+  
+  <div id="quantity_plot"></div>
+
+  <div class="row">
+    <div class="col">
+      <hr/>
+    </div>
+  </div>
+  
+  <div class="row">
+    <div class="col">
+      <table>
+        <tr>
+          <td width="50"><b>Year</b></td>
+          <td width="100" align="right"><b>No hedge</b></td>
+          <td width="100" align="right"><b>100% hedge</b></td>
+        </tr>
+          
+        {% for year in data.items %}
+        {% with year.1 as value %}
+        <tr>
+          <td>
+            {{ year.0 }}
+          </td>
+          <td align="right">
+            ${{ value.0 }}
+          </td>
+          <td align="right">
+            ${{ value.100|floatformat:2 }}
+          </td>
+        </div>
+        {% endwith %}
+        {% empty %}
+        <tr>
+          <td colspan="3">
+            Error
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
+
+</div>
+
+{% endblock %}
+
+{% block styles %}
+<style> /* set the CSS */
+
+path { 
+    stroke-width: 2;
+    fill: none;
+}
+
+.axis path,
+.axis line {
+    fill: none;
+    stroke: grey;
+    stroke-width: 1;
+    shape-rendering: crispEdges;
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://d3js.org/d3.v4.js"></script>
+
+<script>
+  data = {{ df|safe }};
+</script>
+
+<script src="{% static "js/quantity_plot.js" %}"></script>
+{% endblock %}
