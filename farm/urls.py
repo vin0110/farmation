@@ -3,6 +3,7 @@ from django.urls import path
 # from django.views.generic import TemplateView
 
 from .views import (farm,
+                    add_farm,
                     removeCropFromFarm,
                     addCropToFarm,
                     editExpense,
@@ -13,6 +14,7 @@ from .views import (farm,
 
 urlpatterns = [
     path('<int:pk>/', farm, name='farm'),
+    path('add/', add_farm, name='add_farm'),
     path('crop/rm/<int:pk>/', removeCropFromFarm,
          name='remove_crop'),
     path('crop/add/<int:pk>/', addCropToFarm, name='add_crop'),

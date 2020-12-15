@@ -19,6 +19,7 @@ from django.urls import path, include
 from django.views.generic import TemplateView
 
 from farm import urls as farm_urls
+from hedge import urls as hedge_urls
 from optimizer import urls as optimizer_urls
 from api import urls as api_urls
 from farm.views import home
@@ -28,8 +29,10 @@ urlpatterns = [
     path('accounts/', include('django.contrib.auth.urls')),
     path('tbd/', TemplateView.as_view(template_name="tbd.html"), name='tbd'),
     path('', home, name='home'),
-    path('help/', TemplateView.as_view(template_name="help.html"), name='help'),
+    path('help/', TemplateView.as_view(template_name="help.html"),
+         name='help'),
     path('farm/', include((farm_urls, 'farm'), namespace='farm')),
+    path('hedge/', include((hedge_urls, 'hedge'), namespace='hedge')),
     path('optimizer/',
          include((optimizer_urls, 'optimizer'), namespace='optimizer')),
     path('api-auth/', include('rest_framework.urls')),

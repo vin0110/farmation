@@ -11,41 +11,43 @@
   </ol>
 </div>
 
-{% for farm in farms %}
-<div class="container-fluid">
-  <div class="jumbotron">
-    <h1 class="display-6">{{ farm.name }}</h1>
-    <p class="lead">
-     {{ farm.note }}
-    </p>
-    <hr class="my-4"/>
-    <div class="row">
-      <div class="col-md-4">
-        <a class="btn btn-primary btn-lg" href="{% url "farm:farm" farm.id %}" role="button">Configuration</a>
-        <p>View or edit farm settings</p>
-      </div>
-      <div class="col-md-4">
-        <a class="btn btn-primary btn-lg" href="{% url "optimizer:list" farm.id %}" role="button">Analyze</a>
-        <p>Analyze the farm</p>
-      </div>
-      <div class="col-md-2">
-        <a class="btn btn-danger btn-lg" href="{% url "tbd" %}" role="button">Delete</a>
-        <p>Cannot be undone</p>
-      </div>
-    </div>
-  </div>
-</div>
-{% empty %}
-<div class="container-fluid">
-  <div class="jumbotron">
-    <h1 class="display-4">No farms</h1>
-  </div>
-</div>
-{% endfor %}
 <div class="container-fluid">
   <div class="row">
     <div class="col">
-      <!a href="{% url "tbd" %}">
+      <h2>Farms</h2>
+    </div>
+  </div>
+  <div class="row">
+    {% for farm in farms %}
+    <div class="col-md-3 d-flex align-items-stretch">
+      <div class="card" style="width: 90%">
+        <div class="card-body">
+          <h5 class="card-title">{{ farm.name }}</h5>
+          {# <h6 class="card-subtitle mb-2 text-muted">Card subtitle</h6> #}
+          <p class="card-text">
+            {{ farm.note }}
+          </p>
+          <a class="btn btn-primary btn-sm" href="{% url "farm:farm" farm.id %}" role="button">Configure</a>
+          <a class="btn btn-primary btn-sm" href="{% url "optimizer:list" farm.id %}" role="button">Analyze</a>
+          <a class="btn btn-danger btn-sm" href="{% url "tbd" %}" role="button">Delete</a>
+          </span>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="container-fluid">
+      <div class="jumbotron">
+        <h1 class="display-4">No farms</h1>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+<div class="container-fluid">
+  <div class="row">
+    <div class="col">
+      <hr/>
+      <a href="{% url "farm:add_farm" %}">
         <i class="fas fa-plus-circle"></i>
         Add farm
       </a>
