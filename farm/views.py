@@ -19,10 +19,22 @@ from .forms import (FarmExpenseForm,
 @login_required
 def home(request):
     '''the overall home view'''
-    def create1KFarm(user):
+
+    template_name = "home.html"
+
+    farms = Farm.objects.filter(user=request.user)
+    context = dict(
+        farms=farms,
+    )
+    return HttpResponse(render(request, template_name, context))
+
+
+@login_required
+def add_farm(request):
+    def create1KFarm(user, name):
         '''create a 1000-acre farm'''
         farm = Farm(user=user,
-                    name="Thousand-Acre Farm",)
+                    name=name,)
         farm.save()
         for n in ['one', 'two', 'three', 'four', 'five',
                   'six', 'seven', 'eight', 'nine', 'ten']:
@@ -35,19 +47,18 @@ def home(request):
             FarmCrop.objects.create(farm=farm, data=crop_data)
         return farm
 
-    template_name = "home.html"
-
+    n_farms = Farm.objects.filter(user=request.user).count()
+    limit = 10
+    if n_farms >= limit:
+        messages.warning(
+            request,
+            f'Limit ({limit}) reached. Cannot create more farms')
+        return HttpResponseRedirect(reverse('home'))
     farms = Farm.objects.filter(user=request.user)
-    cnt = farms.count()
-    if cnt == 0:
-        # no farms; create default and reset queryset
-        create1KFarm(request.user)
-        farms = Farm.objects.filter(user=request.user)
+    name = "Default farm {}".format(n_farms+1)
+    farm = create1KFarm(request.user, name)
 
-    context = dict(
-        farms=farms,
-    )
-    return HttpResponse(render(request, template_name, context))
+    return HttpResponseRedirect(reverse('farm:farm', args=(farm.id, )))
 
 
 @login_required

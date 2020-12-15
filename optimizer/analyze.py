@@ -16,6 +16,22 @@ def mkPartitions(size, width):
     return partitions
 
 
+def percentile2(lo, peak, hi, val):
+    '''determine the percentile within the triangle of value'''
+    hgt = 100. / (hi - lo)       # pre divide by 2: A == 100 = 1/2 B x H
+    if val <= lo:
+        return 0.
+    if val >= hi:
+        return 100.
+    if val < peak:
+        base = val - lo
+        return hgt * base * base / (peak - lo)
+    else:
+        # peak <= val < hi
+        base = hi - val
+        return 100 - hgt * base * base / (hi - peak)
+
+
 def percentile(lo, peak, hi, perc):
     # determine the percentile
     hgt = 100. / (hi - lo)  # using area of 50 units
