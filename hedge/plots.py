@@ -25,7 +25,7 @@ def quantity_plot(crop, location, hday, hmon, rday, rmon, month,
             hdate = datetime.date(y, hmon, hday)
             rdate = datetime.date(y, rmon, rday)
             try:
-                mars = Price.objects.get_by_date(hdate, crop, location)
+                mars = Price.objects.get_by_date(rdate, crop, location)
                 sell = Future.objects.get_by_date(hdate, crop, y, month)
                 buy = Future.objects.get_by_date(rdate, crop, y, month)
                 net = float(sell.close) - float(buy.close)
@@ -52,20 +52,25 @@ def contract_plot(crop, location, hday, hmon, rday, rmon, quantity,
         months = range(1, 13)
 
     for m in months:
-        df[m] = {}
+        vals = []
         for y in years:
             hdate = datetime.date(y, hmon, hday)
             rdate = datetime.date(y, rmon, rday)
             try:
-                mars = Price.objects.get_by_date(hdate, crop, location)
-                sell = Future.objects.get_by_date(hdate, crop, y, m)
-                buy = Future.objects.get_by_date(rdate, crop, y, m)
+                mars = Price.objects.get_by_date(rdate, crop, location)
+                if rmon >= m:
+                    y_ = y + 1
+                else:
+                    y_ = y
+                sell = Future.objects.get_by_date(hdate, crop, y_, m)
+                buy = Future.objects.get_by_date(rdate, crop, y_, m)
                 net = float(sell.close) - float(buy.close)
                 gross = float(mars.price) + quantity * 0.01 * net
-                df[m][y] = gross
-            except KeyError:
+                vals.append(gross)
+            except KeyError:    # as e:
                 continue
-
+        if len(vals) > 0:
+            df[m] = vals
     return df
 
 

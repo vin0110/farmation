@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block head_title %}Quantity{% endblock %}
+{% block head_title %}Contract{% endblock %}
 
 {% block nobreadcrumbs %}{% endblock %}
 
@@ -11,14 +11,14 @@
 
   <div class="row">
     <div class="col">
-      <h1>Quantity</h1>
+      <h1>Contract</h1>
     </div>
   </div>
 
   <div class="row">
     <div class="col">
       <p>
-        Showing the benefit of hedging, varying amount of crop hedged.
+        Showing the benefit of hedging, varying amount of futures contract.
       </p>
     </div>
   </div>
@@ -30,7 +30,7 @@
       <br/>
       <input type="submit" value="Submit" />
       <input type="button" value="Cancel"
-             onclick="location.href='{% url 'hedge:quantity' %}'"/>
+             onclick="location.href='{% url 'hedge:contract' %}'"/>
       </form>
     </div>
   </div>
@@ -42,33 +42,48 @@
   </div>
 
   {% if data %}
+
   <div class="row">
     <div class="col">
-      <div id="quantity_plot"></div>
+      <div id="contract_plot"></div>
     </div>
 
     <div class="col">
       <table>
         <tr>
-          <td width="50"><b>Year</b></td>
-          <td width="100" align="right"><b>No hedge</b></td>
-          <td width="120" align="right"><b>100% hedge</b></td>
+          <td width="50"><b>Month</b></td>
+          <td width="75" align="right"><b>Min</b></td>
+          <td width="75" align="right"><b>Q1</b></td>
+          <td width="75" align="right"><b>Median</b></td>
+          <td width="75" align="right"><b>Mean</b></td>
+          <td width="75" align="right"><b>Q3</b></td>
+          <td width="75" align="right"><b>Max</b></td>
         </tr>
           
-        {% for year in data.items %}
-        {% with year.1 as value %}
+        {% for row in data %}
         <tr>
-          <td>
-            {{ year.0 }}
+          <td align="center">
+            {{ row.month }}
           </td>
           <td align="right">
-            ${{ value.0|floatformat:2 }}
+            ${{ row.min|floatformat:2 }}
           </td>
           <td align="right">
-            ${{ value.100|floatformat:2 }}
+            ${{ row.q1|floatformat:2 }}
+          </td>
+          <td align="right">
+            ${{ row.med|floatformat:2 }}
+          </td>
+          <td align="right">
+            ${{ row.mean|floatformat:2 }}
+          </td>
+          <td align="right">
+            ${{ row.q3|floatformat:2 }}
+          </td>
+          <td align="right">
+            ${{ row.max|floatformat:2 }}
           </td>
         </div>
-        {% endwith %}
         {% empty %}
         <tr>
           <td colspan="3">
@@ -79,6 +94,17 @@
       </table>
     </div>
   </div>
+
+  {% comment %}
+  <div class="row">
+    <div class="col">
+      <p>{{ data }}</p>
+      <p>{{ df }}</p>
+      <hr/>
+    </div>
+  </div>
+  {% endcomment %}
+
   {% else %}
   <div class="row">
     <div class="col">
@@ -115,5 +141,5 @@ path {
   data = {{ df|safe }};
 </script>
 
-<script src="{% static "js/quantity_plot.js" %}"></script>
+<script src="{% static "js/contract_plot.js" %}"></script>
 {% endblock %}

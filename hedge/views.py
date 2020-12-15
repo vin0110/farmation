@@ -8,8 +8,15 @@ from .models import (
     Location,
 )
 
-from .plots import quantity_plot
-from .forms import QuantityForm
+from .plots import (
+    quantity_plot,
+    contract_plot,
+    stats,
+)
+from .forms import (
+    QuantityForm,
+    ContractForm,
+)
 
 
 def quantity_plot_form(request):
@@ -17,8 +24,7 @@ def quantity_plot_form(request):
     pass
 
 
-def quantity(request, loc=None, hday=None, hmon=None, rday=None,
-             rmon=None, month=None, blank=False):
+def quantity(request):
     template_name = 'hedge/quantity_plot.html'
     theform = QuantityForm
 
@@ -43,13 +49,14 @@ def quantity(request, loc=None, hday=None, hmon=None, rday=None,
                 note = ''
             else:
                 note = 'no data'
+
             context = dict(
                 df=json.dumps(df),
                 data=data,
                 hdate=f'{hmon:02d}-{hday:02d}',
                 rdate=f'{rmon:02d}-{rday:02d}',
                 location=loc,
-                crop="corn",
+                crop=crop,
                 month=month,
                 form=form,
                 note=note,
@@ -61,3 +68,46 @@ def quantity(request, loc=None, hday=None, hmon=None, rday=None,
     context = dict(form=form)
     return HttpResponse(render(request, template_name, context))
 
+
+def contract(request):
+    template_name = 'hedge/contract_plot.html'
+    theform = ContractForm
+
+    if request.method == "POST":
+        form = theform(request.POST)
+        if form.is_valid():
+            crop = form.cleaned_data['crop']
+            loc = form.cleaned_data['location']
+            hmon = int(form.cleaned_data['hedge_month'])
+            hday = form.cleaned_data['hedge_day']
+            rmon = int(form.cleaned_data['reconciliation_month'])
+            rday = form.cleaned_data['reconciliation_day']
+            quantity = form.cleaned_data['quantity']
+
+            data = contract_plot(crop, loc, hday, hmon, rday, rmon, quantity)
+            df = []
+            if data:
+                for month in data:
+                    d = stats(data[month])
+                    d['month'] = month
+                    df.append(d)
+                note = ''
+            else:
+                note = 'no data'
+
+            context = dict(
+                df=json.dumps(df),
+                data=df,
+                hdate=f'{hmon:02d}-{hday:02d}',
+                rdate=f'{rmon:02d}-{rday:02d}',
+                location=loc,
+                crop=crop,
+                form=form,
+                note=note,
+            )
+            return HttpResponse(render(request, template_name, context))
+    else:
+        form = theform()
+
+    context = dict(form=form)
+    return HttpResponse(render(request, template_name, context))

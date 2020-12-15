@@ -4,6 +4,7 @@ from django.views.generic import TemplateView
 
 from .views import (
     quantity,
+    contract,
 )
 
 urlpatterns = [
@@ -11,5 +12,6 @@ urlpatterns = [
          TemplateView.as_view(template_name='hedge/index.html'),
          name='index'),
     path('quantity/', quantity, name='quantity'),
+    path('contract/', contract, name='contract'),
     # path('quantity/', quantity, dict(blank=True), name='quantity_blank'),
 ]

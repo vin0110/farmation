@@ -55,8 +55,6 @@ dataNest.forEach(function(d) {
     cnt++;
 });
 
-var keys = ["Mister A", "Brigitte", "Eleonore", "Another friend", "Batman"];
-
 svg.selectAll("mydots")
     .data(dataNest)
     .enter()
