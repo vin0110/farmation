@@ -22,6 +22,8 @@
       </p>
     </div>
   </div>
+
+  {% comment %}
   <div class="row">
     <div class="col-md-2">
       <strong>
@@ -68,13 +70,28 @@
       {{ rdate }}
     </div>
   </div>
+  {% endcomment %}
 
+
+  <div class="row">
+    <div class="col">
+      <form method="post">{% csrf_token %}
+      {{ form.as_ul }}
+      <br/>
+      <input type="submit" value="Submit" />
+      <input type="button" value="Cancel"
+             onclick="location.href='{% url 'hedge:quantity' %}'"/>
+      </form>
+    </div>
+  </div>
+  
   <div class="row">
     <div class="col">
       <hr/>
     </div>
   </div>
-  
+
+  {% if data %}
   <div id="quantity_plot"></div>
 
   <div class="row">
@@ -114,6 +131,9 @@
         </tr>
         {% endfor %}
       </table>
+  {% else %}
+  <p>{{ note }}</p>
+  {% endif %}
 
 </div>
 

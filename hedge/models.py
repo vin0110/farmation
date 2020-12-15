@@ -37,14 +37,16 @@ class PriceManager(models.Manager):
         if isinstance(date, str):
             date = datetime.datetime.strptime(date, '%Y-%m-%d').date()
 
+        crop_index = crop.upper()[0]
         try:
             return Price.objects.get(
                 date=date,
-                crop=crop.upper()[0],
+                crop=crop_index,
                 location=location)
         except Price.DoesNotExist:
             offset = datetime.timedelta(days=days)
-            prices = Price.objects.filter(date__gte=date - offset)
+            prices = Price.objects.filter(crop=crop_index, location=location)
+            prices = prices.filter(date__gte=date - offset)
             prices = prices.filter(date__lte=date + offset)
             cnt = prices.count()
             if cnt == 0:
@@ -74,15 +76,21 @@ class FutureManager(models.Manager):
         if isinstance(date, str):
             date = datetime.datetime.strptime(date, '%Y-%m-%d').date()
 
+        crop_index = crop.upper()[0]
         try:
             return Future.objects.get(
                 date=date,
-                crop=crop.upper()[0],
+                crop=crop_index,
                 year=year,
                 month=month)
         except Future.DoesNotExist:
             offset = datetime.timedelta(days=days)
-            futures = Future.objects.filter(date__gte=date - offset)
+            futures = Future.objects.filter(
+                crop=crop_index,
+                year=year,
+                month=month
+            )
+            futures = futures.filter(date__gte=date - offset)
             futures = futures.filter(date__lte=date + offset)
             cnt = futures.count()
             if cnt == 0:

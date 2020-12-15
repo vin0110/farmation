@@ -10,8 +10,6 @@ urlpatterns = [
     path('',
          TemplateView.as_view(template_name='hedge/index.html'),
          name='index'),
-    path('quantity/<int:loc>/<int:hday>/<int:hmon>/<int:rday>/'
-         '<int:rmon>/<int:month>/',
-         quantity,
-         name='quantity'),
+    path('quantity/', quantity, name='quantity'),
+    # path('quantity/', quantity, dict(blank=True), name='quantity_blank'),
 ]

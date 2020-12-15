@@ -12,16 +12,15 @@ def quantity_plot(crop, location, hday, hmon, rday, rmon, month,
                   quantities=None, years=None):
     '''return list of hedge data points varying quantity'''
     # assume one date and multiple quantities
-    df = {}
-
     if not years:
         years = range(2010, 2020)
 
     if not quantities:
         quantities = [0, 100]
 
+    df = {}
     for y in years:
-        df[y] = {}
+        quants = {}
         for q in quantities:
             hdate = datetime.date(y, hmon, hday)
             rdate = datetime.date(y, rmon, rday)
@@ -31,9 +30,12 @@ def quantity_plot(crop, location, hday, hmon, rday, rmon, month,
                 buy = Future.objects.get_by_date(rdate, crop, y, month)
                 net = float(sell.close) - float(buy.close)
                 gross = float(mars.price) + net * q * 0.01
-                df[y][q] = gross
+                quants[q] = gross
             except KeyError:
                 continue
+        if len(quants) == len(quantities):
+            # only add this if all quantities were found
+            df[y] = quants
 
     return df
 
