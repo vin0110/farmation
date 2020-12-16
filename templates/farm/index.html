@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block head_title %}Farm{% endblock %}
+
+{% block body %}
+
+<div class="container-fluid">
+  <!-- Breadcrumb -->
+<div class="container-fluid">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/">Home</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Farms</li>
+    </ol>
+  </nav>
+</div>
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col">
+      <h2>Farms</h2>
+    </div>
+  </div>
+  <div class="row">
+    {% for farm in farms %}
+    <div class="col-md-3 d-flex align-items-stretch">
+      <div class="card" style="width: 90%">
+        <div class="card-body">
+          <h5 class="card-title">{{ farm.name }}</h5>
+          {# <h6 class="card-subtitle mb-2 text-muted">Card subtitle</h6> #}
+          <p class="card-text">
+            {{ farm.note }}
+          </p>
+          <a class="btn btn-primary btn-sm" href="{% url "farm:farm" farm.id %}" role="button">Configure</a>
+          <a class="btn btn-primary btn-sm" href="{% url "optimizer:list" farm.id %}" role="button">Analyze</a>
+          <a class="btn btn-danger btn-sm" href="{% url "tbd" %}" role="button">Delete</a>
+          </span>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="container-fluid">
+      <div class="jumbotron">
+        <h1 class="display-4">No farms</h1>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+<div class="container-fluid">
+  <div class="row">
+    <div class="col">
+      <hr/>
+      <a href="{% url "farm:add_farm" %}">
+        <i class="fas fa-plus-circle"></i>
+        Add farm
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

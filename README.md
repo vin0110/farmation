@@ -10,6 +10,14 @@ Use python3 and pipenv.
 pip3 install --user pipenv
 ```
 
+Second time (or at least after the text above was written)
+the `pipenv` command was not found.
+The install proceeded without error -- but command was not found.
+The second time solution was to execute the command below.
+```
+sudo -H pip install -U pipenv
+```
+
 If `pip3` is not found:
 ```
 sudo apt install python3-pip
@@ -28,7 +36,7 @@ it) and install required software.
 
 ```
 pipenv shell
-pipenv sync
+pipenv update
 ```
 
 Before you run django on your install, you need a secret key.
@@ -92,3 +100,51 @@ If that happens, unupgrade:
 ```
 python3 -m pip uninstall pip
 ```
+
+# Gunicorn + Nginx
+
+```
+pipenv install gunicorn
+sudo apt-get install -y nginx
+```
+
+Edit gunicorn config file
+```
+cat /etc/systemd/system/gunicorn.service 
+[Unit]
+Description=gunicorn daemon
+After=network.target
+
+[Service]
+User=root
+Group=www-data
+WorkingDirectory=/home/vwfreeh/farmation
+ExecStart=/home/vwfreeh/farmation/gunicorn.sh
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Create directory for gunicorn: `sudo mkdir /run/gunicorn`
+
+Change permissions: `chmod +x gunicorn.sh`
+
+Edit nginx config file.
+
+# Edit iptables
+
+The command below opens the firewall on VCL.
+```
+sudo iptables -I INPUT 9 -i eth1 -p tcp --dport 80 -m state --state NEW,ESTABLISHED -j ACCEPT
+```
+
+Check connection.
+```
+sudo iptables -nvL
+```
+
+Should see a line similar to:
+```
+    0     0 ACCEPT     tcp  --  eth1   *       0.0.0.0/0            0.0.0.0/0            tcp dpt:80 state NEW,ESTABLISHED
+```
+

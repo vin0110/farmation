@@ -17,10 +17,10 @@ from .forms import (FarmExpenseForm,
 
 
 @login_required
-def home(request):
-    '''the overall home view'''
+def index(request):
+    '''the overall farm view'''
 
-    template_name = "home.html"
+    template_name = "farm/index.html"
 
     farms = Farm.objects.filter(user=request.user)
     context = dict(

@@ -2,17 +2,20 @@ from django.urls import path
 
 # from django.views.generic import TemplateView
 
-from .views import (farm,
-                    add_farm,
-                    removeCropFromFarm,
-                    addCropToFarm,
-                    editExpense,
-                    editNote,
-                    editAcres,
-                    editCost,
-                    )
+from .views import (
+    index,
+    farm,
+    add_farm,
+    removeCropFromFarm,
+    addCropToFarm,
+    editExpense,
+    editNote,
+    editAcres,
+    editCost,
+)
 
 urlpatterns = [
+    path('', index, name='index'),
     path('<int:pk>/', farm, name='farm'),
     path('add/', add_farm, name='add_farm'),
     path('crop/rm/<int:pk>/', removeCropFromFarm,

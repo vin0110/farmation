@@ -22,13 +22,12 @@ from farm import urls as farm_urls
 from hedge import urls as hedge_urls
 from optimizer import urls as optimizer_urls
 from api import urls as api_urls
-from farm.views import home
 
 urlpatterns = [
     path('igloo/', admin.site.urls),
     path('accounts/', include('django.contrib.auth.urls')),
     path('tbd/', TemplateView.as_view(template_name="tbd.html"), name='tbd'),
-    path('', home, name='home'),
+    path('', TemplateView.as_view(template_name="home.html"), name='home'),
     path('help/', TemplateView.as_view(template_name="help.html"),
          name='help'),
     path('farm/', include((farm_urls, 'farm'), namespace='farm')),
