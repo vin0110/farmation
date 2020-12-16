@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block head_title %}Contract{% endblock %}
+
+{% block nobreadcrumbs %}{% endblock %}
+
+{% block body %}
+
+<div class="container">
+
+  <div class="row">
+    <div class="col">
+      <h1>Contract</h1>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col">
+      <p>
+        Showing the benefit of hedging, varying amount of futures contract.
+      </p>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col">
+      <form method="post">{% csrf_token %}
+      {{ form.as_ul }}
+      <br/>
+      <input type="submit" value="Submit" />
+      <input type="button" value="Cancel"
+             onclick="location.href='{% url 'hedge:contract' %}'"/>
+      </form>
+    </div>
+  </div>
+  
+  <div class="row">
+    <div class="col">
+      <hr/>
+    </div>
+  </div>
+
+  {% if data %}
+
+  <div class="row">
+    <div class="col">
+      <div id="contract_plot"></div>
+    </div>
+
+    <div class="col">
+      <table>
+        <tr>
+          <td width="50"><b>Month</b></td>
+          <td width="75" align="right"><b>Min</b></td>
+          <td width="75" align="right"><b>Q1</b></td>
+          <td width="75" align="right"><b>Median</b></td>
+          <td width="75" align="right"><b>Mean</b></td>
+          <td width="75" align="right"><b>Q3</b></td>
+          <td width="75" align="right"><b>Max</b></td>
+        </tr>
+          
+        {% for row in data %}
+        <tr>
+          <td align="center">
+            {{ row.month }}
+          </td>
+          <td align="right">
+            ${{ row.min|floatformat:2 }}
+          </td>
+          <td align="right">
+            ${{ row.q1|floatformat:2 }}
+          </td>
+          <td align="right">
+            ${{ row.med|floatformat:2 }}
+          </td>
+          <td align="right">
+            ${{ row.mean|floatformat:2 }}
+          </td>
+          <td align="right">
+            ${{ row.q3|floatformat:2 }}
+          </td>
+          <td align="right">
+            ${{ row.max|floatformat:2 }}
+          </td>
+        </div>
+        {% empty %}
+        <tr>
+          <td colspan="3">
+            Error
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+
+  {% comment %}
+  <div class="row">
+    <div class="col">
+      <p>{{ data }}</p>
+      <p>{{ df }}</p>
+      <hr/>
+    </div>
+  </div>
+  {% endcomment %}
+
+  {% else %}
+  <div class="row">
+    <div class="col">
+      <p>{{ note }}</p>
+    </div>
+  </div>
+  {% endif %}
+
+
+{% endblock %}
+
+{% block styles %}
+<style> /* set the CSS */
+
+path { 
+    stroke-width: 2;
+    fill: none;
+}
+
+.axis path,
+.axis line {
+    fill: none;
+    stroke: grey;
+    stroke-width: 1;
+    shape-rendering: crispEdges;
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://d3js.org/d3.v4.js"></script>
+
+<script>
+  data = {{ df|safe }};
+</script>
+
+<script src="{% static "js/contract_plot.js" %}"></script>
+{% endblock %}

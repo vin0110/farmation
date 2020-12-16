@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block head_title %}Quantity{% endblock %}
+
+{% block nobreadcrumbs %}{% endblock %}
+
+{% block body %}
+
+<div class="container">
+
+  <div class="row">
+    <div class="col">
+      <h1>Quantity</h1>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col">
+      <p>
+        Showing the benefit of hedging, varying amount of crop hedged.
+      </p>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col">
+      <form method="post">{% csrf_token %}
+      {{ form.as_ul }}
+      <br/>
+      <input type="submit" value="Submit" />
+      <input type="button" value="Cancel"
+             onclick="location.href='{% url 'hedge:quantity' %}'"/>
+      </form>
+    </div>
+  </div>
+  
+  <div class="row">
+    <div class="col">
+      <hr/>
+    </div>
+  </div>
+
+  {% if data %}
+  <div class="row">
+    <div class="col">
+      <div id="quantity_plot"></div>
+    </div>
+
+    <div class="col">
+      <table>
+        <tr>
+          <td width="50"><b>Year</b></td>
+          <td width="100" align="right"><b>No hedge</b></td>
+          <td width="120" align="right"><b>100% hedge</b></td>
+        </tr>
+          
+        {% for year in data.items %}
+        {% with year.1 as value %}
+        <tr>
+          <td>
+            {{ year.0 }}
+          </td>
+          <td align="right">
+            ${{ value.0|floatformat:2 }}
+          </td>
+          <td align="right">
+            ${{ value.100|floatformat:2 }}
+          </td>
+        </div>
+        {% endwith %}
+        {% empty %}
+        <tr>
+          <td colspan="3">
+            Error
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+  {% else %}
+  <div class="row">
+    <div class="col">
+      <p>{{ note }}</p>
+    </div>
+  </div>
+  {% endif %}
+
+
+{% endblock %}
+
+{% block styles %}
+<style> /* set the CSS */
+
+path { 
+    stroke-width: 2;
+    fill: none;
+}
+
+.axis path,
+.axis line {
+    fill: none;
+    stroke: grey;
+    stroke-width: 1;
+    shape-rendering: crispEdges;
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://d3js.org/d3.v4.js"></script>
+
+<script>
+  data = {{ df|safe }};
+</script>
+
+<script src="{% static "js/quantity_plot.js" %}"></script>
+{% endblock %}
