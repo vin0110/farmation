@@ -83,25 +83,41 @@ def recon_dates_plot(crop, location, hday, hmon, rday, rmonths, quantity,
         years = range(2010, 2020)
 
     for rmon in rmonths:
-        df[rmon] = {}
+        vals = []
         for y in years:
             hdate = datetime.date(y, hmon, hday)
             rdate = datetime.date(y, rmon, rday)
             try:
-                mars = Price.objects.get_by_date(hdate, crop, location)
-                sell = Future.objects.get_by_date(hdate, crop, y, month)
-                buy = Future.objects.get_by_date(rdate, crop, y, month)
+                mars = Price.objects.get_by_date(rdate, crop, location)
+                if rmon >= month:
+                    y_ = y + 1
+                else:
+                    y_ = y
+                sell = Future.objects.get_by_date(hdate, crop, y_, month)
+                buy = Future.objects.get_by_date(rdate, crop, y_, month)
                 net = float(sell.close) - float(buy.close)
                 gross = float(mars.price) + quantity * 0.01 * net
-                df[rmon][y] = gross
+                vals.append(gross)
             except KeyError:
                 continue
-
+        if len(vals) > 0:
+            df[rmon] = vals
     return df
 
 
 def stats(L):
     '''given list of values calcuate stats'''
+    if len(L) < 2:
+        val = L[0] if len(L) == 1 else 0.0
+        return dict(
+            mean=val,
+            min=val,
+            max=val,
+            q1=val,
+            med=val,
+            q3=val,
+        )
+
     quarts = statistics.quantiles(L)
     return dict(
         mean=statistics.mean(L),

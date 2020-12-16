@@ -11,11 +11,13 @@ from .models import (
 from .plots import (
     quantity_plot,
     contract_plot,
+    recon_dates_plot,
     stats,
 )
 from .forms import (
     QuantityForm,
     ContractForm,
+    ReconForm,
 )
 
 
@@ -53,11 +55,6 @@ def quantity(request):
             context = dict(
                 df=json.dumps(df),
                 data=data,
-                hdate=f'{hmon:02d}-{hday:02d}',
-                rdate=f'{rmon:02d}-{rday:02d}',
-                location=loc,
-                crop=crop,
-                month=month,
                 form=form,
                 note=note,
             )
@@ -98,10 +95,49 @@ def contract(request):
             context = dict(
                 df=json.dumps(df),
                 data=df,
-                hdate=f'{hmon:02d}-{hday:02d}',
-                rdate=f'{rmon:02d}-{rday:02d}',
-                location=loc,
-                crop=crop,
+                form=form,
+                note=note,
+            )
+            return HttpResponse(render(request, template_name, context))
+    else:
+        form = theform()
+
+    context = dict(form=form)
+    return HttpResponse(render(request, template_name, context))
+
+
+def recon(request):
+    template_name = 'hedge/recon_dates_plot.html'
+    theform = ReconForm
+
+    if request.method == "POST":
+        form = theform(request.POST)
+        if form.is_valid():
+            crop = form.cleaned_data['crop']
+            loc = form.cleaned_data['location']
+            hmon = int(form.cleaned_data['hedge_month'])
+            hday = form.cleaned_data['hedge_day']
+            rday = form.cleaned_data['reconciliation_day']
+            quantity = form.cleaned_data['quantity']
+            month = int(form.cleaned_data['contract_month'])
+            rmonths = [int(m)
+                       for m in form.cleaned_data['reconciliation_months']]
+
+            data = recon_dates_plot(crop, loc, hday, hmon, rday,
+                                    rmonths, quantity, month)
+            df = []
+            if data:
+                for month in data:
+                    d = stats(data[month])
+                    d['month'] = month
+                    df.append(d)
+                note = ''
+            else:
+                note = 'no data'
+
+            context = dict(
+                df=json.dumps(df),
+                data=df,
                 form=form,
                 note=note,
             )
