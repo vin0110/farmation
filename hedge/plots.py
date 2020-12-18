@@ -1,5 +1,4 @@
 import datetime
-from decimal import Decimal
 import statistics
 
 from .models import (
@@ -42,7 +41,15 @@ def quantity_plot(crop, location, hday, hmon, rday, rmon, month,
 
 def contract_plot(crop, location, hday, hmon, rday, rmon, quantity,
                   years=None, months=None):
-    '''return list of hedge data points varying contract month'''
+    '''return list of hedge data points varying contract month
+
+    @@@ because all 3 prices are needed to calculate 'gross' there
+    can be a different number of 'gross' values per month.  this
+    may lead to some anomalies.  this is noticable when quantity is
+    zero.  in that case all results should be the same (because the
+    computed gross only depends on the mars price); however, the values
+    are often different.
+    '''
     df = {}
 
     if not years:
