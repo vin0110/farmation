@@ -22,6 +22,7 @@ from farm import urls as farm_urls
 from hedge import urls as hedge_urls
 from optimizer import urls as optimizer_urls
 from api import urls as api_urls
+from viewer import urls as viewer_urls
 
 urlpatterns = [
     path('igloo/', admin.site.urls),
@@ -36,4 +37,5 @@ urlpatterns = [
          include((optimizer_urls, 'optimizer'), namespace='optimizer')),
     path('api-auth/', include('rest_framework.urls')),
     path('api/', include((api_urls, 'api'), namespace='api')),
+    path('viewer/', include((viewer_urls, 'viewer'), namespace='viewer')),
 ]

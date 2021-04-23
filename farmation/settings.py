@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'farm',
     'optimizer',
     'hedge',
+    'viewer',
 ]
 
 MIDDLEWARE = [
@@ -73,6 +74,9 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
+            'libraries':{
+                'template_filters': 'viewer.template_filters',
+            },
         },
     },
 ]
@@ -82,6 +86,8 @@ WSGI_APPLICATION = 'farmation.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
 
 DATABASES = {
     'default': {

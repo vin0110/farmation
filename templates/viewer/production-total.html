@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load static %}
+{% load template_filters %}
+
+{% block head_title %}Viewer{% endblock %}
+
+{% block body %}
+
+{# TITLE #}
+<!-- Breadcrumbs -->
+<div class="container-fluid">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/">Home</a></li>
+      <li class="breadcrumb-item">
+        <a href="{% url 'viewer:home' %}">Data</a>
+      </li>
+      <li class="breadcrumb-item active" aria-current="page">{{ title }}</li>
+    </ol>
+  </nav>
+</div>
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col">
+      <h1>{{ title }}</h1>
+      <p>Select state (by 2 letter postal code) and
+      the latest of 5 years</p>
+      <form method="post">
+        {% csrf_token %}
+        <input type="text" name="state" value="{{ state }}" required
+        placeholder="2 letter state"/>
+        <input type="text" name="year" value="{{ year }}" 
+               placeholder="fifth year"/>
+        <input type="submit" value="Submit" />
+        <input type="button" value="Clear"
+               onclick="location.href=''"/>
+      </form>
+    </div>
+  </div>
+  <br/>
+  <div class="row">
+    <div class="col-md-2"></div>
+    <div class="col-md-2">
+      {% if year_earlier %}
+      <form method="post">
+        {% csrf_token %}      
+        <input type="text" name="state" value="{{ state }}" hidden />
+        <input type="text" name="year" value="{{ year_earlier }}" hidden />
+        <input type="submit" value="&laquo; Earlier" />
+      </form>
+      {% else %}
+      <input disabled type="submit" value="&laquo; Earlier" />
+      {% endif %}
+    </div>
+    <div class="col-md-2">
+      {% if year_later %}
+      <form method="post">
+        {% csrf_token %}      
+        <input type="text" name="state" value="{{ state }}" hidden />
+        <input type="text" name="year" value="{{ year_later }}" hidden />
+        <input type="submit" value="Later &raquo;" />
+      </form>
+      {% else %}
+      <input disabled type="submit" value="Later &raquo;" />
+      {% endif %}
+    </div>
+  </div>
+  
+  <hr/>
+</div>
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col">
+      <table id="field_crops">
+        <thead>
+          <tr>
+            <th>Commodity</th>
+            <th></th>
+            {% for year in years %}
+            <th align="right" >{{ year }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+      </table>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
+      <p><em>Values in thousands of dollars</em></p>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js">
+</script>
+<script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js">
+</script>
+
+<script>
+  var array = {{ rows|safe }};
+  $('#field_crops').DataTable({
+    data: array,
+    columns: [
+      {},
+      {},
+      {className: "text-right"},
+      {className: "text-right"},
+      {className: "text-right"},
+      {className: "text-right"},
+      {className: "text-right"}
+    ],
+    "pageLength": 25
+  });
+</script>
+{% endblock %}
+
+{% block styles %}
+
+<link rel="stylesheet" type="text/css"
+      href="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/css/jquery.dataTables.css" />
+{% endblock %}
