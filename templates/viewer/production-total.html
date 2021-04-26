@@ -78,7 +78,9 @@
         <thead>
           <tr>
             <th>Commodity</th>
-            <th></th>
+            {% for col in sub_cols %}
+            <th>{{ col.0 }}</th>
+            {% endfor %}
             {% for year in years %}
             <th align="right" >{{ year }}</th>
             {% endfor %}
