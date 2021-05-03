@@ -8,7 +8,14 @@ from .views import (
     vegetable_totals,
     fruit_tree_totals,
     horticulture_totals,
-    crop_totals
+    crop_totals,
+    livestock_totals,
+    poultry_totals,
+    dairy_totals,
+    aquaculture_totals,
+    specialty_totals,
+    county_production_totals,
+    area_planted_harvested,
 )
 
 
@@ -21,4 +28,13 @@ urlpatterns = [
     path('horticulture_totals/', horticulture_totals,
          name='horticulture_totals'),
     path('crop_totals/', crop_totals, name='crop_totals'),
+    path('livestock_totals/', livestock_totals, name='livestock_totals'),
+    path('poultry_totals/', poultry_totals, name='poultry_totals'),
+    path('dairy_totals/', dairy_totals, name='dairy_totals'),
+    path('aquaculture_totals/', aquaculture_totals, name='aquaculture_totals'),
+    path('specialty_totals/', specialty_totals, name='specialty_totals'),
+    path('county_production_totals/', county_production_totals,
+         name='county_production_totals'),
+    path('area_planted_harvested/', area_planted_harvested,
+         name='area_planted_harvested'),
 ]

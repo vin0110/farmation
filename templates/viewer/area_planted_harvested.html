@@ -16,7 +16,9 @@
       <li class="breadcrumb-item">
         <a href="{% url 'viewer:home' %}">Data</a>
       </li>
-      <li class="breadcrumb-item active" aria-current="page">{{ title }}</li>
+      <li class="breadcrumb-item active" aria-current="page">
+        Area planted harvested
+      </li>
     </ol>
   </nav>
 </div>
@@ -24,15 +26,14 @@
 <div class="container-fluid">
   <div class="row">
     <div class="col">
-      <h1>{{ title }}</h1>
-      <p>Select state (by 2 letter postal code) and
-      the latest of 5 years</p>
+      <h1>Area planted harvested</h1>
+      <p>Select state (by 2 letter postal code) and crop</p>
       <form method="post">
         {% csrf_token %}
         <input type="text" name="state" value="{{ state }}" required
         placeholder="2 letter state"/>
-        <input type="text" name="year" value="{{ year }}" 
-               placeholder="fifth year"/>
+        <input type="text" name="crop" value="{{ crop }}" 
+               placeholder="crop"/>
         <input type="submit" value="Submit" />
         <input type="button" value="Clear"
                onclick="location.href=''"/>
@@ -40,63 +41,69 @@
     </div>
   </div>
   <br/>
-  <div class="row">
-    <div class="col-md-2"></div>
-    <div class="col-md-2">
-      {% if year_earlier %}
-      <form method="post">
-        {% csrf_token %}      
-        <input type="text" name="state" value="{{ state }}" hidden />
-        <input type="text" name="year" value="{{ year_earlier }}" hidden />
-        <input type="submit" value="&laquo; Earlier" />
-      </form>
-      {% else %}
-      <input disabled type="submit" value="&laquo; Earlier" />
-      {% endif %}
-    </div>
-    <div class="col-md-2">
-      {% if year_later %}
-      <form method="post">
-        {% csrf_token %}      
-        <input type="text" name="state" value="{{ state }}" hidden />
-        <input type="text" name="year" value="{{ year_later }}" hidden />
-        <input type="submit" value="Later &raquo;" />
-      </form>
-      {% else %}
-      <input disabled type="submit" value="Later &raquo;" />
-      {% endif %}
-    </div>
-  </div>
-  
-  <hr/>
 </div>
 
 <div class="container-fluid">
   <div class="row">
     <div class="col">
-      <table id="field_crops">
+      <table id="planted_table">
         <thead>
           <tr>
-            <th>Commodity</th>
-            {% for col in sub_cols %}
-            <th>{{ col.0 }}</th>
-            {% endfor %}
-            {% for year in years %}
-            <th align="right" >{{ year }}</th>
-            {% endfor %}
+            <th>Year</th>
+            <th>Planted</th>
+            <th>Harvested</th>
+            <th>% harvested</th>
           </tr>
         </thead>
       </table>
     </div>
   </div>
   <div class="row">
-    <div class="col">
-      <p><em>Values in thousands of dollars</em></p>
-    </div>
   </div>
 </div>
 
+{% comment %}
+<div class="container-fluid">
+  <div class="row">
+    <div class="col">
+      {{ data|safe }}
+    </div>
+  </div>
+</div>
+<div class="container-fluid">
+  <div id="layout">
+    <div id="container">
+      <svg/>
+    </div>
+  </div>
+</div>
+{% endcomment %}
+
 {% endblock %}
+
+{% comment %}
+{% block scripts %}
+<script src="https://d3js.org/d3.v4.js"></script>
+<script src="https://d3js.org/d3.v4.js"></script>
+<script src="{% static "js/bar_plot.js" %}" type="text/javascript" ></script>
+{% endblock %}
+
+{% block styles %}
+<style>
+div#container {
+  width: 1000px;
+  height: 600px;
+  margin: auto;
+  background-color: #EFDACD;
+}
+svg {
+  width: 100%;
+  height: 100%;
+}  
+</style>
+}{% endblock %}
+{% endcomment %}
+
 
 {% block scripts %}
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js">
@@ -106,9 +113,10 @@
 
 <script>
   var array = {{ rows|safe }};
-  $('#field_crops').DataTable({
+  $('#planted_table').DataTable({
     data: array,
-    columns: {{ columns|safe }},
+    columns: [{}, {'className': "text-right"},
+              {'className': "text-right"}, {'className': "text-right"}],
     "pageLength": 25
   });
 </script>
