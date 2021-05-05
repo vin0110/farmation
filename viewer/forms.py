@@ -8,4 +8,4 @@ class StateYearForm(forms.Form):
 
 class StateCropForm(forms.Form):
     state = forms.CharField(label="state")
-    crop = forms.CharField(label="crop")
+    crop = forms.CharField(label="crop", required=False)

@@ -16,6 +16,7 @@ from .views import (
     specialty_totals,
     county_production_totals,
     area_planted_harvested,
+    area_planted_harvested_by_year,
 )
 
 
@@ -37,4 +38,6 @@ urlpatterns = [
          name='county_production_totals'),
     path('area_planted_harvested/', area_planted_harvested,
          name='area_planted_harvested'),
+    path('area_planted_harvested_by_year/', area_planted_harvested_by_year,
+         name='area_planted_harvested_by_year'),
 ]

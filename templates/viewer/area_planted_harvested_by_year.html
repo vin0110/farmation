@@ -27,13 +27,13 @@
   <div class="row">
     <div class="col">
       <h1>Area planted harvested</h1>
-      <p>Select state (by 2 letter postal code) and crop</p>
+      <p>Select state (by 2 letter postal code) and year</p>
       <form method="post">
         {% csrf_token %}
         <input type="text" name="state" value="{{ state }}" required
         placeholder="2 letter state"/>
-        <input type="text" name="crop" value="{{ crop }}" 
-               placeholder="crop"/>
+        <input type="text" name="year" value="{{ year }}" 
+               placeholder="year"/>
         <input type="submit" value="Submit" />
         <input type="button" value="Clear"
                onclick="location.href=''"/>
@@ -41,6 +41,34 @@
     </div>
   </div>
   <br/>
+  <div class="row">
+    <div class="col-md-2"></div>
+    <div class="col-md-2">
+      {% if years.0 %}
+      <form method="post">
+        {% csrf_token %}      
+        <input type="text" name="state" value="{{ state }}" hidden />
+        <input type="text" name="year" value="{{ years.0 }}" hidden />
+        <input type="submit" value="&laquo; Earlier" />
+      </form>
+      {% else %}
+      <input disabled type="submit" value="&laquo; Earlier" />
+      {% endif %}
+    </div>
+    <div class="col-md-2">
+      {% if years.1 %}
+      <form method="post">
+        {% csrf_token %}      
+        <input type="text" name="state" value="{{ state }}" hidden />
+        <input type="text" name="year" value="{{ years.1 }}" hidden />
+        <input type="submit" value="Later &raquo;" />
+      </form>
+      {% else %}
+      <input disabled type="submit" value="Later &raquo;" />
+      {% endif %}
+    </div>
+  </div>
+
 </div>
 
 <div class="container-fluid">
@@ -49,20 +77,30 @@
       <table id="planted_table">
         <thead>
           <tr>
-            <th>Year</th>
+            <th>Commodity</th>
             <th>Planted</th>
             <th>Harvested</th>
             <th>% harvested</th>
-            <th>Yield</th>
-            <th>Produced {{ unit }}</th>
           </tr>
         </thead>
       </table>
     </div>
   </div>
   <div class="row">
+    <div class="col">
+      <br/>
+      <table >
+        <thead>
+          <tr>
+            <td width="220"><strong>Totals</strong></td>
+            <td width="280" align="right">{{ totals.0 }}</td>
+            <td width="280" align="right">{{ totals.1 }}</td>
+            <td width="340" align="right">{{ totals.2 }}</td>
+          </tr>
+        </thead>
+      </table>
+    </div>
   </div>
-</div>
 
 {% comment %}
 <div class="container-fluid">
@@ -117,10 +155,8 @@ svg {
   var array = {{ rows|safe }};
   $('#planted_table').DataTable({
     data: array,
-    columns: [{'href': '#'},
-       {'className': "text-right"}, {'className': "text-right"},
-       {'className': "text-right"}, {'className': "text-right"},
-       {'className': "text-right"}],
+    columns: [{}, {'className': "text-right"},
+              {'className': "text-right"}, {'className': "text-right"}],
     "pageLength": 25
   });
 </script>

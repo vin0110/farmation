@@ -96,8 +96,6 @@ def _production_totals(request, query, query_dict):
             commodities = _mk_commodities(data, query_dict['sub_cols'])
             years = list(range(year-4, year+1))
             rows = _mk_rows(commodities, years)
-            print('r', rows[0])
-            print('y', years)
 
             year_earlier = year - 5
             year_later = year + 5 if year < THIS_YEAR else None
@@ -189,34 +187,105 @@ def area_planted_harvested(request):
     operation = "planted_harvested_by_state"
     theform = StateCropForm
 
+    unit = ''
+
     if request.method == "POST":
         form = theform(request.POST)
+        rows = []
+
         if form.is_valid():
             state = form.cleaned_data['state'].upper()
-            crop = form.cleaned_data['crop'].capitalize()
+            crop = form.cleaned_data['crop']
+            if crop == '':
+                crop = 'corn'
+            crop = crop.capitalize()
 
             response = esp_call(operation, state=state, crop=crop.upper())
             try:
                 op = operation + "Response"
                 data = response[op]['Results']['Result 1']['Row']
-                rows = []
+            except KeyError:
+                messages.warning(request, 'Connect to data server failed: ')
+                data = {}
+
+            if data:
                 for item in data:
                     row = [
                         item['year'],
                         _number_fmt(item['acres_planted']),
                         _number_fmt(item['acres_harvested']),
                         "{:3d}%".format(int(
-                            item['acres_harvested']/item['acres_planted']*100)),
+                            item['acres_harvested']/item['acres_planted']*100)
+                        ),
+                        _number_fmt(item['yield']),
+                        _number_fmt(item['acres_harvested'] * item['yield']),
                     ]
                     rows.append(row)
-            except KeyError:
-                messages.warning(request, 'Connect to data server failed')
-                data = {}
+                unit = data[0]['unit_desc']
+                unit = unit[:unit.find('/ ACRE')].strip()
+        else:
+            state = ''
+            crop = ''
     else:
-        data = {}
+        rows = []
         form = theform()
         state = ''
         crop = ''
 
-    context = dict(form=form, state=state, crop=crop, rows=rows)
+    context = dict(form=form, state=state, crop=crop, rows=rows, unit=unit)
+    return HttpResponse(render(request, template_name, context))
+
+
+def area_planted_harvested_by_year(request):
+    template_name = 'viewer/area_planted_harvested_by_year.html'
+    operation = "planted_harvested_by_year"
+    theform = StateYearForm
+
+    if request.method == "POST":
+        form = theform(request.POST)
+        rows = []
+        if form.is_valid():
+            state = form.cleaned_data['state'].upper()
+            try:
+                year = int(form.cleaned_data['year'])
+            except ValueError:
+                year = 2019
+
+            response = esp_call(operation, state=state, year=year)
+            try:
+                op = operation + "Response"
+                data = response[op]['Results']['Result 1']['Row']
+                totals = [0, 0]
+                for item in data:
+                    row = [
+                        item['commodity_desc'].capitalize(),
+                        _number_fmt(item['acres_planted']),
+                        _number_fmt(item['acres_harvested']),
+                        "{:3d}%".format(int(
+                            item['acres_harvested']/item['acres_planted']*100)
+                        ),
+                    ]
+                    rows.append(row)
+                    totals[0] += item['acres_planted']
+                    totals[1] += item['acres_harvested']
+                years = [year-1 if year > 2000 else None,
+                         year+1 if year < 2020 else None]
+                try:
+                    totals.append("{:3d}%".format(int(totals[1]/totals[0]*100)))
+                except ZeroDivisionError:
+                    totals.append('')
+                totals[0] = _number_fmt(totals[0])
+                totals[1] = _number_fmt(totals[1])
+            except KeyError:
+                messages.warning(request, 'Connect to data server failed')
+    else:
+        rows = []
+        form = theform()
+        state = ''
+        year = ''
+        years = [None, None]
+        totals = ['0', '0', '']
+
+    context = dict(form=form, state=state, year=year, rows=rows,
+                   totals=totals, years=years)
     return HttpResponse(render(request, template_name, context))
