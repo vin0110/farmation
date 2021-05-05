@@ -15,7 +15,7 @@ from .views import (
     aquaculture_totals,
     specialty_totals,
     county_production_totals,
-    area_planted_harvested,
+    area_planted_harvested_by_crop,
     area_planted_harvested_by_year,
 )
 
@@ -36,8 +36,8 @@ urlpatterns = [
     path('specialty_totals/', specialty_totals, name='specialty_totals'),
     path('county_production_totals/', county_production_totals,
          name='county_production_totals'),
-    path('area_planted_harvested/', area_planted_harvested,
-         name='area_planted_harvested'),
+    path('area_planted_harvested_by_crop/', area_planted_harvested_by_crop,
+         name='area_planted_harvested_by_crop'),
     path('area_planted_harvested_by_year/', area_planted_harvested_by_year,
          name='area_planted_harvested_by_year'),
 ]

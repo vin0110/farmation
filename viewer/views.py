@@ -182,7 +182,7 @@ def county_production_totals(request):
     return _production_totals(request, 'field crops', COUNTY_DICT)
 
 
-def area_planted_harvested(request):
+def area_planted_harvested_by_crop(request):
     template_name = 'viewer/area_planted_harvested.html'
     operation = "planted_harvested_by_state"
     theform = StateCropForm
