@@ -15,6 +15,7 @@ from .utils import esp_call
 from .forms import (
     StateYearForm,
     StateCropForm,
+    CountyCropForm,
 )
 
 
@@ -288,4 +289,81 @@ def area_planted_harvested_by_year(request):
 
     context = dict(form=form, state=state, year=year, rows=rows,
                    totals=totals, years=years)
+    return HttpResponse(render(request, template_name, context))
+
+
+def area_planted_harvested_by_crop_county(request, state):
+    template_name = 'viewer/area_planted_harvested_by_county.html'
+    operation = "planted_harvested_by_county"
+    theform = CountyCropForm
+
+    if len(state) != 2:
+        raise Http404
+
+    state = state.upper()
+    unit = ''
+
+    if request.method == "POST":
+        form = theform(request.POST)
+        rows = []
+
+        if form.is_valid():
+            county = form.cleaned_data['county'].upper()
+            crop = form.cleaned_data['crop']
+            if crop == '':
+                crop = 'corn'
+            crop = crop.capitalize()
+
+            #response = esp_call(operation, state=state, county=county.upper())
+            response = []
+            try:
+                op = operation + "Response"
+                data = response[op]['Results']['Result 1']['Row']
+            except KeyError:
+                messages.warning(request, 'Connect to data server failed: ')
+                data = {}
+
+            if data:
+                for item in data:
+                    row = [
+                        item['year'],
+                        _number_fmt(item['acres_planted']),
+                        _number_fmt(item['acres_harvested']),
+                        "{:3d}%".format(int(
+                            item['acres_harvested']/item['acres_planted']*100)
+                        ),
+                        _number_fmt(item['yield']),
+                        _number_fmt(item['acres_harvested'] * item['yield']),
+                    ]
+                    rows.append(row)
+                unit = data[0]['unit_desc']
+                unit = unit[:unit.find('/ ACRE')].strip()
+        else:
+            state = ''
+            crop = ''
+    else:
+        rows = []
+        form = theform()
+        try:
+            key = state + '_counties'
+            counties = request.session[key]
+        except KeyError:
+            operation = 'list_counties'
+            response = esp_call(operation, state=state)
+            try:
+                op = operation + "Response"
+                data = response[op]['Results']['Result 1']['Row']
+                counties = []
+                for row in data:
+                    raw_name = row['county_name']
+                    name = raw_name.strip().title()
+                    counties.append((name, raw_name, ))
+                request.session[key] = counties
+            except KeyError:
+                messages.warning(request, 'Connect to data server failed: ')
+                counties = []
+        form.fields['county'].choices = counties
+        crop = ''
+
+    context = dict(form=form, state=state, crop=crop, rows=rows, unit=unit)
     return HttpResponse(render(request, template_name, context))

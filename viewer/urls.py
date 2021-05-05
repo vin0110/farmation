@@ -17,6 +17,7 @@ from .views import (
     county_production_totals,
     area_planted_harvested_by_crop,
     area_planted_harvested_by_year,
+    area_planted_harvested_by_crop_county,
 )
 
 
@@ -40,4 +41,10 @@ urlpatterns = [
          name='area_planted_harvested_by_crop'),
     path('area_planted_harvested_by_year/', area_planted_harvested_by_year,
          name='area_planted_harvested_by_year'),
+
+    path('select_state', TemplateView.as_view(template_name='tbd.html'),
+         name='select_state'),
+    path('area_planted_harvested_by_crop/<str:state>/',
+         area_planted_harvested_by_crop_county,
+         name='area_planted_harvested_by_crop_county'),
 ]

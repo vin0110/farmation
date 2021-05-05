@@ -9,3 +9,8 @@ class StateYearForm(forms.Form):
 class StateCropForm(forms.Form):
     state = forms.CharField(label="state")
     crop = forms.CharField(label="crop", required=False)
+
+
+class CountyCropForm(forms.Form):
+    county = forms.ChoiceField(label="county", choices=[])
+    crop = forms.CharField(label="crop", required=False)

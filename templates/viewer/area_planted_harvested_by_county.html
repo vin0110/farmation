@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load static %}
+{% load template_filters %}
+
+{% block head_title %}Viewer{% endblock %}
+
+{% block body %}
+
+{# TITLE #}
+<!-- Breadcrumbs -->
+<div class="container-fluid">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/">Home</a></li>
+      <li class="breadcrumb-item">
+        <a href="{% url 'viewer:home' %}">Data</a>
+      </li>
+      <li class="breadcrumb-item active" aria-current="page">
+        Area planted harvested
+      </li>
+    </ol>
+  </nav>
+</div>
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col">
+      <h1>Area planted harvested in {{ state }}</h1>
+      <p>Select county and crop</p>
+      <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+{% comment %}
+        <input type="text" name="county" value="{{ county }}" required
+        placeholder="2 letter state"/>
+        <input type="text" name="crop" value="{{ crop }}" 
+               placeholder="crop"/>
+        <input type="submit" value="Submit" />
+        <input type="button" value="Clear"
+               onclick="location.href=''"/>
+{% endcomment %}
+      </form>
+    </div>
+  </div>
+  <br/>
+</div>
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col">
+      <table id="planted_table">
+        <thead>
+          <tr>
+            <th>Year</th>
+            <th>Planted</th>
+            <th>Harvested</th>
+            <th>% harvested</th>
+            <th>Yield</th>
+            <th>Produced {{ unit }}</th>
+          </tr>
+        </thead>
+      </table>
+    </div>
+  </div>
+  <div class="row">
+  </div>
+</div>
+
+{% comment %}
+<div class="container-fluid">
+  <div class="row">
+    <div class="col">
+      {{ data|safe }}
+    </div>
+  </div>
+</div>
+<div class="container-fluid">
+  <div id="layout">
+    <div id="container">
+      <svg/>
+    </div>
+  </div>
+</div>
+{% endcomment %}
+
+{% endblock %}
+
+{% comment %}
+{% block scripts %}
+<script src="https://d3js.org/d3.v4.js"></script>
+<script src="https://d3js.org/d3.v4.js"></script>
+<script src="{% static "js/bar_plot.js" %}" type="text/javascript" ></script>
+{% endblock %}
+
+{% block styles %}
+<style>
+div#container {
+  width: 1000px;
+  height: 600px;
+  margin: auto;
+  background-color: #EFDACD;
+}
+svg {
+  width: 100%;
+  height: 100%;
+}  
+</style>
+}{% endblock %}
+{% endcomment %}
+
+
+{% block scripts %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js">
+</script>
+<script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js">
+</script>
+
+<script>
+  var array = {{ rows|safe }};
+  $('#planted_table').DataTable({
+    data: array,
+    columns: [{'href': '#'},
+       {'className': "text-right"}, {'className': "text-right"},
+       {'className': "text-right"}, {'className': "text-right"},
+       {'className': "text-right"}],
+    "pageLength": 25
+  });
+</script>
+{% endblock %}
+
+{% block styles %}
+
+<link rel="stylesheet" type="text/css"
+      href="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/css/jquery.dataTables.css" />
+{% endblock %}

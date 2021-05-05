@@ -23,6 +23,11 @@
     </div>
   </div>
   <div class="row">
+    <div class="col">
+      <h2>Production totals</h2>
+    </div>
+  </div>
+  <div class="row">
     <div class="col-md-2">
       <a class="btn btn-primary" href="{% url 'viewer:field_crop_totals' %}">
         Field crop totals
@@ -83,21 +88,29 @@
   </div>
   <div class="row">
     <div class="col">
-    <br/>
+    <hr/>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
+      <h2>Area planted and harvested</h2>
     </div>
   </div>
   <div class="row">
     <div class="col-md-2">
       <a class="btn btn-primary" href="{% url 'viewer:area_planted_harvested_by_crop' %}">
-        Area planted/harvested (by crop)
+        State by crop
       </a>
     </div>
     <div class="col-md-2">
       <a class="btn btn-primary" href="{% url 'viewer:area_planted_harvested_by_year' %}">
-        Area planted/harvested (by year)
+        State by year
       </a>
     </div>
     <div class="col-md-2">
+      <a class="btn btn-primary" href="{% url 'viewer:select_state' %}">
+        County data
+      </a>
     </div>
     <div class="col-md-2">
     </div>
