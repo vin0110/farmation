@@ -17,7 +17,7 @@
         <a href="{% url 'viewer:home' %}">Data</a>
       </li>
       <li class="breadcrumb-item active" aria-current="page">
-        Area planted harvested
+        Area > By year
       </li>
     </ol>
   </nav>
@@ -27,6 +27,12 @@
   <div class="row">
     <div class="col">
       <h1>Area planted harvested</h1>
+      <p>
+        View area by
+        <a href="{% url 'viewer:area_planted_harvested_by_crop' %}">
+          crop
+        </a>
+      </p>
       <p>Select state (by 2 letter postal code) and year</p>
       <form method="post">
         {% csrf_token %}

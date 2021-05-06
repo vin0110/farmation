@@ -40,9 +40,9 @@ urlpatterns = [
     path('aquaculture_totals/', aquaculture_totals, name='aquaculture_totals'),
     path('specialty_totals/', specialty_totals, name='specialty_totals'),
 
-    path('area_planted_harvested_by_crop/', area_planted_harvested_by_crop,
+    path('area/crop/', area_planted_harvested_by_crop,
          name='area_planted_harvested_by_crop'),
-    path('area_planted_harvested_by_year/', area_planted_harvested_by_year,
+    path('area/year/', area_planted_harvested_by_year,
          name='area_planted_harvested_by_year'),
 
     path('production/',
