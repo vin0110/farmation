@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block head_title %}Farm{% endblock %}
+
+{% block body %}
+
+<div class="container-fluid">
+  <!-- Breadcrumb -->
+<div class="container-fluid">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/">Home</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Data</li>
+    </ol>
+  </nav>
+</div>
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col">
+      <h1>
+        Production data
+      </h1>
+      <p>
+        View USDA data
+      </p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
+      <h2>Production totals</h2>
+      <h3>
+        {% if state %}
+        {{ state }} by county
+        <br/>
+        {% endif %}
+      </h3>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-2">
+      <a class="btn btn-primary"
+         {% if state %}
+         href="{% url 'viewer:field_crop_totals' state=state %}"
+         {% else %}
+         href="{% url 'viewer:field_crop_totals' %}"
+         {% endif %}
+         >
+        Field crop totals
+      </a>
+    </div>
+    <div class="col-md-2">
+      <a class="btn btn-primary"
+         {% if state %}
+         href="{% url 'viewer:vegetable_totals' state=state %}"
+         {% else %}
+         href="{% url 'viewer:vegetable_totals' %}"
+         {% endif %}
+         >
+        Vegetable totals
+      </a>
+    </div>
+    <div class="col-md-2">
+      <a class="btn btn-primary"
+         {% if state %}
+         href="{% url 'viewer:fruit_tree_totals' state=state %}"
+         {% else %}
+         href="{% url 'viewer:fruit_tree_totals' %}"
+         {% endif %}
+         >
+        Fruit & tree nuts totals
+      </a>
+    </div>
+    <div class="col-md-2">
+      <a class="btn btn-primary"
+         {% if state %}
+         href="{% url 'viewer:horticulture_totals' state=state %}"
+         {% else %}
+         href="{% url 'viewer:horticulture_totals' %}"
+         {% endif %}
+         >
+        Horticulture totals
+      </a>
+    </div>
+    <div class="col-md-2">
+      {% if not state %}
+      <a class="btn btn-primary" href="{% url 'viewer:crop_totals' %}">
+        Crop totals
+      </a>
+      {% endif %}
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
+    <br/>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-2">
+      <a class="btn btn-primary"
+         {% if state %}
+         href="{% url 'viewer:livestock_totals' state=state %}"
+         {% else %}
+         href="{% url 'viewer:livestock_totals' %}"
+         {% endif %}
+         >
+        Livestock totals
+      </a>
+    </div>
+    <div class="col-md-2">
+      <a class="btn btn-primary"
+         {% if state %}
+         href="{% url 'viewer:poultry_totals' state=state %}"
+         {% else %}
+         href="{% url 'viewer:poultry_totals' %}"
+         {% endif %}
+         >
+        Poultry totals
+      </a>
+    </div>
+    <div class="col-md-2">
+      <a class="btn btn-primary"
+         {% if state %}
+         href="{% url 'viewer:dairy_totals' state=state %}"
+         {% else %}
+         href="{% url 'viewer:dairy_totals' %}"
+         {% endif %}
+         >
+        Dairy totals
+      </a>
+    </div>
+    <div class="col-md-2">
+      <a class="btn btn-primary"
+         {% if state %}
+         href="{% url 'viewer:aquaculture_totals' state=state %}"
+         {% else %}
+         href="{% url 'viewer:aquaculture_totals' %}"
+         {% endif %}
+         >
+        Aquaculture totals
+      </a>
+    </div>
+    <div class="col-md-2">
+      <a class="btn btn-primary"
+         {% if state %}
+         href="{% url 'viewer:specialty_totals' state=state %}"
+         {% else %}
+         href="{% url 'viewer:specialty_totals' %}"
+         {% endif %}
+         >
+        Specialty totals
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

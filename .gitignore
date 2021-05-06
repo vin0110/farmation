@@ -8,3 +8,4 @@ env_setup.sh
 Pipfile.lock
 Pipfile
 Pipfile.lock
+tmp

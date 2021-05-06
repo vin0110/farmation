@@ -11,6 +11,11 @@ class StateCropForm(forms.Form):
     crop = forms.CharField(label="crop", required=False)
 
 
-class CountyCropForm(forms.Form):
+class CountyYearForm(forms.Form):
     county = forms.ChoiceField(label="county", choices=[])
-    crop = forms.CharField(label="crop", required=False)
+    year = forms.CharField(label="year", required=False)
+
+    def __init__(self, *args, **kwargs):
+        county_choices = kwargs.pop('county_choices', [])
+        super().__init__(*args, **kwargs)
+        self.fields['county'].choices = county_choices

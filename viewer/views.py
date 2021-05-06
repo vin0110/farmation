@@ -15,7 +15,7 @@ from .utils import esp_call
 from .forms import (
     StateYearForm,
     StateCropForm,
-    CountyCropForm,
+    CountyYearForm,
 )
 
 
@@ -62,24 +62,63 @@ def _mk_rows(commodities, years):
     return rows
 
 
-def _production_totals(request, query, query_dict):
+def _production_totals(request, state, query, query_dict):
     '''returns production in dollars aggregated by state'''
+
+    if state:
+        if len(state) != 2:
+            raise Http404
+
+        state = state.upper()
+        template_name = "viewer/county-production-total.html"
+        theform = CountyYearForm
+        # get list of counties (use sessions -- counties don't change much
+        try:
+            key = state + '_counties'
+            counties = request.session[key]
+        except KeyError:
+            operation = 'list_counties'
+            response = esp_call(operation, state=state)
+            try:
+                op = operation + "Response"
+                data = response[op]['Results']['Result 1']['Row']
+                counties = []
+                for row in data:
+                    raw_name = row['county_name'].strip()
+                    name = raw_name.title()
+                    counties.append((raw_name, name, ))
+                    request.session[key] = counties
+            except KeyError:
+                messages.warning(request, 'Connect to data server failed: ')
+                counties = []
+    else:
+        theform = StateYearForm
+        counties = []
+        county = ''
     template_name = "viewer/production-total.html"
-    theform = StateYearForm
 
     title = query.capitalize()
 
     if request.method == "POST":
         form = theform(request.POST)
+        if state:
+            form.fields['county'].choices = counties
         if form.is_valid():
-            state = form.cleaned_data['state'].upper()
             try:
                 year = int(form.cleaned_data['year'])
             except ValueError:
                 year = THIS_YEAR
-            operation = query_dict['operation']
-            response = esp_call(operation,
-                                group=query.upper(), state=state, year=year)
+
+            if state:
+                county = form.cleaned_data['county'].upper()
+                operation = query_dict['operation'] + '-county'
+            else:
+                state = form.cleaned_data['state'].upper()
+                operation = query_dict['operation']
+
+            response = esp_call(operation, state=state,
+                                group=query.upper(),
+                                county=county, year=year)
             try:
                 op = operation + "Response"
                 data = response[op]['Results']['Result 1']['Row']
@@ -102,23 +141,28 @@ def _production_totals(request, query, query_dict):
             year_later = year + 5 if year < THIS_YEAR else None
             columns = [{}] * (len(query_dict['sub_cols']) + 1)\
                 + [{'className': "text-right"}] * len(years)
+
     else:
-        form = theform()
+        if state:
+            form = theform(county_choices=counties)
+        else:
+            form = theform()
+
         data = {}
         years = []
         rows = []
         year = ''
-        state = ''
         year_earlier = None
         year_later = None
         columns = []
+        county = ''
 
     years = list(set(years))
     years.sort()
     context = dict(form=form, years=years, year=year, state=state,
                    year_earlier=year_earlier, year_later=year_later,
                    sub_cols=query_dict['sub_cols'],
-                   columns=json.dumps(columns),
+                   columns=json.dumps(columns), county=county,
                    title=title, rows=json.dumps(rows))
     return HttpResponse(render(request, template_name, context))
 
@@ -131,56 +175,66 @@ ANIMAL_DICT = {
     'sub_cols': [('Class', 'class_desc'), ],
     'operation': 'animal-production-total',
 }
-COUNTY_DICT = {
-    'sub_cols': [('Class', 'class_desc'),
-                 ('County', 'county_name'),
-                 ('Practice', 'util_practice_desc'), ],
-    'operation': 'production-total-county',
-}
 
 
-def field_crop_totals(request):
-    return _production_totals(request, 'field crops', CROP_DICT)
+def field_crop_totals(request, state=''):
+    return _production_totals(request, state, 'field crops', CROP_DICT)
 
 
-def vegetable_totals(request):
-    return _production_totals(request, 'vegetables', CROP_DICT)
+def vegetable_totals(request, state=''):
+    return _production_totals(request, state, 'vegetables', CROP_DICT)
 
 
-def fruit_tree_totals(request):
-    return _production_totals(request, 'fruit & tree nuts', CROP_DICT)
+def fruit_tree_totals(request, state=''):
+    return _production_totals(request, state, 'fruit & tree nuts', CROP_DICT)
 
 
-def horticulture_totals(request):
-    return _production_totals(request, 'horticulture', CROP_DICT)
+def horticulture_totals(request, state=''):
+    return _production_totals(request, state, 'horticulture', CROP_DICT)
 
 
-def crop_totals(request):
-    return _production_totals(request, 'crop totals', CROP_DICT)
+def crop_totals(request, state=''):
+    return _production_totals(request, state, 'crop totals', CROP_DICT)
 
 
-def livestock_totals(request):
-    return _production_totals(request, 'livestock', ANIMAL_DICT)
+def livestock_totals(request, state=''):
+    return _production_totals(request, state, 'livestock', ANIMAL_DICT)
 
 
-def poultry_totals(request):
-    return _production_totals(request, 'poultry', ANIMAL_DICT)
+def poultry_totals(request, state=''):
+    return _production_totals(request, state, 'poultry', ANIMAL_DICT)
 
 
-def dairy_totals(request):
-    return _production_totals(request, 'dairy', ANIMAL_DICT)
+def dairy_totals(request, state=''):
+    return _production_totals(request, state, 'dairy', ANIMAL_DICT)
 
 
-def aquaculture_totals(request):
-    return _production_totals(request, 'aquaculture', ANIMAL_DICT)
+def aquaculture_totals(request, state=''):
+    return _production_totals(request, state, 'aquaculture', ANIMAL_DICT)
 
 
-def specialty_totals(request):
-    return _production_totals(request, 'specialty', ANIMAL_DICT)
+def specialty_totals(request, state=''):
+    return _production_totals(request, state, 'specialty', ANIMAL_DICT)
 
 
-def county_production_totals(request):
-    return _production_totals(request, 'field crops', COUNTY_DICT)
+# def county_field_crop_totals(request, state):
+#     return _production_totals(request, state, 'field crops', CROP_DICT)
+
+
+# def county_vegetable_totals(request, state):
+#     return _production_totals(request, state, 'vegetables', CROP_DICT)
+
+
+# def county_fruit_tree_totals(request, state):
+#     return _production_totals(request, state, 'fruit & tree nuts', CROP_DICT)
+
+
+# def county_horticulture_totals(request, state):
+#     return _production_totals(request, state, 'horticulture', CROP_DICT)
+
+
+# def county_crop_totals(request, state):
+#     return _production_totals(request, state, 'crop totals', CROP_DICT)
 
 
 def area_planted_harvested_by_crop(request):
@@ -289,81 +343,4 @@ def area_planted_harvested_by_year(request):
 
     context = dict(form=form, state=state, year=year, rows=rows,
                    totals=totals, years=years)
-    return HttpResponse(render(request, template_name, context))
-
-
-def area_planted_harvested_by_crop_county(request, state):
-    template_name = 'viewer/area_planted_harvested_by_county.html'
-    operation = "planted_harvested_by_county"
-    theform = CountyCropForm
-
-    if len(state) != 2:
-        raise Http404
-
-    state = state.upper()
-    unit = ''
-
-    if request.method == "POST":
-        form = theform(request.POST)
-        rows = []
-
-        if form.is_valid():
-            county = form.cleaned_data['county'].upper()
-            crop = form.cleaned_data['crop']
-            if crop == '':
-                crop = 'corn'
-            crop = crop.capitalize()
-
-            #response = esp_call(operation, state=state, county=county.upper())
-            response = []
-            try:
-                op = operation + "Response"
-                data = response[op]['Results']['Result 1']['Row']
-            except KeyError:
-                messages.warning(request, 'Connect to data server failed: ')
-                data = {}
-
-            if data:
-                for item in data:
-                    row = [
-                        item['year'],
-                        _number_fmt(item['acres_planted']),
-                        _number_fmt(item['acres_harvested']),
-                        "{:3d}%".format(int(
-                            item['acres_harvested']/item['acres_planted']*100)
-                        ),
-                        _number_fmt(item['yield']),
-                        _number_fmt(item['acres_harvested'] * item['yield']),
-                    ]
-                    rows.append(row)
-                unit = data[0]['unit_desc']
-                unit = unit[:unit.find('/ ACRE')].strip()
-        else:
-            state = ''
-            crop = ''
-    else:
-        rows = []
-        form = theform()
-        try:
-            key = state + '_counties'
-            counties = request.session[key]
-        except KeyError:
-            operation = 'list_counties'
-            response = esp_call(operation, state=state)
-            try:
-                op = operation + "Response"
-                data = response[op]['Results']['Result 1']['Row']
-                counties = []
-                for row in data:
-                    raw_name = row['county_name']
-                    name = raw_name.strip().title()
-                    counties.append((name, raw_name, ))
-                request.session[key] = counties
-            except KeyError:
-                messages.warning(request, 'Connect to data server failed: ')
-                counties = []
-        form.fields['county'].choices = counties
-        crop = ''
-
-    context = dict(form=form, state=state, crop=crop, rows=rows, unit=unit)
     return HttpResponse(render(request, template_name, context))

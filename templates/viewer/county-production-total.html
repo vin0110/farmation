@@ -24,28 +24,17 @@
 <div class="container-fluid">
   <div class="row">
     <div class="col">
-      <h1>{{ title }}</h1>
-
-      {% if state %}
-      <h2>{{ state }}</h2>
-        <p>
-          Select county
-        {% else %}
-        <p>
-        Select state (by 2 letter postal code)
-        {% endif %}
-        and the latest of 5 years
-      </p>
+      <h1>{{ title }} in {{ state }}</h1>
+      <p>Select county and the latest of 5 years</p>
       <form method="post">
         {% csrf_token %}
-        {% if state %}
         {{ form.as_p }}
-        {% else %}
+{% comment %}
         <input type="text" name="state" value="{{ state }}" required
         placeholder="2 letter state"/>
         <input type="text" name="year" value="{{ year }}" 
                placeholder="fifth year"/>
-        {% endif %}
+{% endcomment %}
         <input type="submit" value="Submit" />
         <input type="button" value="Clear"
                onclick="location.href=''"/>
@@ -58,12 +47,8 @@
     <div class="col-md-2">
       {% if year_earlier %}
       <form method="post">
-        {% csrf_token %}
-        {% if state %}
+        {% csrf_token %}      
         <input type="text" name="county" value="{{ county }}" hidden />
-        {% else %}
-        <input type="text" name="state" value="{{ state }}" hidden />
-        {% endif %}
         <input type="text" name="year" value="{{ year_earlier }}" hidden />
         <input type="submit" value="&laquo; Earlier" />
       </form>
@@ -75,11 +60,7 @@
       {% if year_later %}
       <form method="post">
         {% csrf_token %}      
-        {% if state %}
         <input type="text" name="county" value="{{ county }}" hidden />
-        {% else %}
-        <input type="text" name="state" value="{{ state }}" hidden />
-        {% endif %}
         <input type="text" name="year" value="{{ year_later }}" hidden />
         <input type="submit" value="Later &raquo;" />
       </form>
@@ -93,6 +74,17 @@
 </div>
 
 <div class="container-fluid">
+  <div class="row">
+    <div class="col">
+      <h2>
+        {% if county %}
+        County: {{ county.title }}
+        {% endif %}
+      </h2>
+      <br/>
+    </div>
+  </div>
+
   <div class="row">
     <div class="col">
       <table id="field_crops">
