@@ -72,6 +72,7 @@ def _production_totals(request, state, query, query_dict):
         state = state.upper()
         template_name = "viewer/county-production-total.html"
         theform = CountyYearForm
+
         # get list of counties (use sessions -- counties don't change much
         try:
             key = state + '_counties'
@@ -89,8 +90,10 @@ def _production_totals(request, state, query, query_dict):
                     counties.append((raw_name, name, ))
                     request.session[key] = counties
             except KeyError:
-                messages.warning(request, 'Connect to data server failed: ')
                 counties = []
+            if len(counties) == 0:
+                messages.warning(request, 'No county data')
+
     else:
         theform = StateYearForm
         counties = []

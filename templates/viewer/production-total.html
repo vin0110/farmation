@@ -16,6 +16,22 @@
       <li class="breadcrumb-item">
         <a href="{% url 'viewer:home' %}">Data</a>
       </li>
+      {% if state %}
+      <li class="breadcrumb-item">
+        <a href="{% url 'viewer:select_state' %}">Production</a>
+      </li>
+      <li class="breadcrumb-item">
+        <a href="{% url 'viewer:production' state=state %}">
+          {{ state }}
+        </a>
+      </li>
+      {% else %}
+      <li class="breadcrumb-item">
+        <a href="{% url 'viewer:production' %}">
+          Production
+        </a>
+      </li>
+      {% endif %}
       <li class="breadcrumb-item active" aria-current="page">{{ title }}</li>
     </ol>
   </nav>

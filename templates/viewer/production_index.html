@@ -10,7 +10,21 @@
   <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
       <li class="breadcrumb-item"><a href="/">Home</a></li>
-      <li class="breadcrumb-item active" aria-current="page">Data</li>
+      <li class="breadcrumb-item">
+        <a href="{% url 'viewer:home' %}">Data</a>
+      </li>
+      {% if state %}
+      <li class="breadcrumb-item">
+        <a href="{% url 'viewer:select_state' %}">Production</a>
+      </li>
+      <li class="breadcrumb-item active" aria-current="page">
+        {{ state }}
+      </li>
+      {% else %}
+      <li class="breadcrumb-item active" aria-current="page">
+        Production
+      </li>
+      {% endif %}
     </ol>
   </nav>
 </div>
