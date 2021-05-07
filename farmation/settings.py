@@ -181,3 +181,10 @@ NASS_YIELDS = json.load(open(os.path.join(
     BASE_DIR,
     'farmation',
     'yields_nass_nc_county_5yr_ave.json')))
+
+######################
+# HPCC access
+######################
+HPCC_END_POINT = os.environ.get(
+    'HPCC_END_POINT',
+    'http://localhost:8124/WsEcl/submit/query/thor/{:s}/json')

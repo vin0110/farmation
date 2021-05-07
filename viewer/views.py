@@ -1,7 +1,7 @@
 import json
 
 # from django.urls import reverse
-from django.http import Http404, HttpResponse, HttpResponseRedirect
+from django.http import Http404, HttpResponse  # , HttpResponseRedirect
 # from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.shortcuts import render
@@ -79,18 +79,21 @@ def _production_totals(request, state, query, query_dict):
             counties = request.session[key]
         except KeyError:
             operation = 'list_counties'
-            response = esp_call(operation, state=state)
             try:
-                op = operation + "Response"
-                data = response[op]['Results']['Result 1']['Row']
-                counties = []
-                for row in data:
-                    raw_name = row['county_name'].strip()
-                    name = raw_name.title()
-                    counties.append((raw_name, name, ))
-                    request.session[key] = counties
-            except KeyError:
-                counties = []
+                response = esp_call(operation, state=state)
+                try:
+                    op = operation + "Response"
+                    data = response[op]['Results']['Result 1']['Row']
+                    counties = []
+                    for row in data:
+                        raw_name = row['county_name'].strip()
+                        name = raw_name.title()
+                        counties.append((raw_name, name, ))
+                        request.session[key] = counties
+                except KeyError:
+                    counties = []
+            except ValueError as e:
+                messages.warning(request, str(e))
             if len(counties) == 0:
                 messages.warning(request, 'No county data')
 
@@ -119,15 +122,18 @@ def _production_totals(request, state, query, query_dict):
                 state = form.cleaned_data['state'].upper()
                 operation = query_dict['operation']
 
-            response = esp_call(operation, state=state,
-                                group=query.upper(),
-                                county=county, year=year)
             try:
-                op = operation + "Response"
-                data = response[op]['Results']['Result 1']['Row']
-            except KeyError:
-                messages.warning(request, 'Connect to data server failed')
-                data = {}
+                response = esp_call(operation, state=state,
+                                    group=query.upper(),
+                                    county=county, year=year)
+                try:
+                    op = operation + "Response"
+                    data = response[op]['Results']['Result 1']['Row']
+                except KeyError:
+                    messages.warning(request, 'Connect to data server failed')
+                    data = {}
+            except ValueError as e:
+                messages.warning(request, str(e))
 
             for i in range(len(data)):
                 for k in data[i].keys():
@@ -258,13 +264,17 @@ def area_planted_harvested_by_crop(request):
                 crop = 'corn'
             crop = crop.capitalize()
 
-            response = esp_call(operation, state=state, crop=crop.upper())
             try:
-                op = operation + "Response"
-                data = response[op]['Results']['Result 1']['Row']
-            except KeyError:
-                messages.warning(request, 'Connect to data server failed: ')
-                data = {}
+                response = esp_call(operation, state=state, crop=crop.upper())
+                try:
+                    op = operation + "Response"
+                    data = response[op]['Results']['Result 1']['Row']
+                except KeyError:
+                    messages.warning(request,
+                                     'Connect to data server failed: ')
+                    data = {}
+            except ValueError as e:
+                messages.warning(request, str(e))
 
             if data:
                 for item in data:
@@ -309,33 +319,38 @@ def area_planted_harvested_by_year(request):
             except ValueError:
                 year = 2019
 
-            response = esp_call(operation, state=state, year=year)
             try:
-                op = operation + "Response"
-                data = response[op]['Results']['Result 1']['Row']
-                totals = [0, 0]
-                for item in data:
-                    row = [
-                        item['commodity_desc'].capitalize(),
-                        _number_fmt(item['acres_planted']),
-                        _number_fmt(item['acres_harvested']),
-                        "{:3d}%".format(int(
-                            item['acres_harvested']/item['acres_planted']*100)
-                        ),
-                    ]
-                    rows.append(row)
-                    totals[0] += item['acres_planted']
-                    totals[1] += item['acres_harvested']
-                years = [year-1 if year > 2000 else None,
-                         year+1 if year < 2020 else None]
+                response = esp_call(operation, state=state, year=year)
                 try:
-                    totals.append("{:3d}%".format(int(totals[1]/totals[0]*100)))
-                except ZeroDivisionError:
-                    totals.append('')
-                totals[0] = _number_fmt(totals[0])
-                totals[1] = _number_fmt(totals[1])
-            except KeyError:
-                messages.warning(request, 'Connect to data server failed')
+                    op = operation + "Response"
+                    data = response[op]['Results']['Result 1']['Row']
+                    totals = [0, 0]
+                    for item in data:
+                        row = [
+                            item['commodity_desc'].capitalize(),
+                            _number_fmt(item['acres_planted']),
+                            _number_fmt(item['acres_harvested']),
+                            "{:3d}%".format(int(
+                                item['acres_harvested'] /
+                                item['acres_planted']*100)
+                            ),
+                        ]
+                        rows.append(row)
+                        totals[0] += item['acres_planted']
+                        totals[1] += item['acres_harvested']
+                    years = [year-1 if year > 2000 else None,
+                             year+1 if year < 2020 else None]
+                    try:
+                        totals.append("{:3d}%".format(
+                            int(totals[1]/totals[0]*100)))
+                    except ZeroDivisionError:
+                        totals.append('')
+                    totals[0] = _number_fmt(totals[0])
+                    totals[1] = _number_fmt(totals[1])
+                except KeyError:
+                    messages.warning(request, 'Connect to data server failed')
+            except ValueError as e:
+                messages.warning(request, str(e))
     else:
         rows = []
         form = theform()
