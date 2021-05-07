@@ -3,9 +3,20 @@
 
 {% block head_title %}Contract{% endblock %}
 
-{% block nobreadcrumbs %}{% endblock %}
 
 {% block body %}
+<!-- Breadcrumb -->
+<div class="container-fluid">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/">Home</a></li>
+      <li class="breadcrumb-item">
+        <a href="{% url 'hedge:index' %}">Hedge</a>
+      </li>
+      <li class="breadcrumb-item active" aria-current="page">Contract</li>
+    </ol>
+  </nav>
+</div>
 
 <div class="container">
 
