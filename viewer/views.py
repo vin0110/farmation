@@ -64,13 +64,13 @@ def _mk_rows(commodities, years):
 
 def _production_totals(request, state, query, query_dict):
     '''returns production in dollars aggregated by state'''
+    template_name = "viewer/production-total.html"
 
     if state:
         if len(state) != 2:
             raise Http404
 
         state = state.upper()
-        template_name = "viewer/county-production-total.html"
         theform = CountyYearForm
 
         # get list of counties (use sessions -- counties don't change much
@@ -79,6 +79,7 @@ def _production_totals(request, state, query, query_dict):
             counties = request.session[key]
         except KeyError:
             operation = 'list_counties'
+            counties = []
             try:
                 response = esp_call(operation, state=state)
                 try:
@@ -91,7 +92,7 @@ def _production_totals(request, state, query, query_dict):
                         counties.append((raw_name, name, ))
                         request.session[key] = counties
                 except KeyError:
-                    counties = []
+                    pass
             except ValueError as e:
                 messages.warning(request, str(e))
             if len(counties) == 0:
@@ -101,7 +102,6 @@ def _production_totals(request, state, query, query_dict):
         theform = StateYearForm
         counties = []
         county = ''
-    template_name = "viewer/production-total.html"
 
     title = query.capitalize()
 
@@ -123,6 +123,7 @@ def _production_totals(request, state, query, query_dict):
                 operation = query_dict['operation']
 
             try:
+                data = {}
                 response = esp_call(operation, state=state,
                                     group=query.upper(),
                                     county=county, year=year)
@@ -131,7 +132,6 @@ def _production_totals(request, state, query, query_dict):
                     data = response[op]['Results']['Result 1']['Row']
                 except KeyError:
                     messages.warning(request, 'Connect to data server failed')
-                    data = {}
             except ValueError as e:
                 messages.warning(request, str(e))
 
@@ -272,9 +272,9 @@ def area_planted_harvested_by_crop(request):
                 except KeyError:
                     messages.warning(request,
                                      'Connect to data server failed: ')
-                    data = {}
             except ValueError as e:
                 messages.warning(request, str(e))
+                data = {}
 
             if data:
                 for item in data:
