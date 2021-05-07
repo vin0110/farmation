@@ -185,6 +185,5 @@ NASS_YIELDS = json.load(open(os.path.join(
 ######################
 # HPCC access
 ######################
-HPCC_END_POINT = os.environ.get(
-    'HPCC_END_POINT',
-    'http://localhost:8124/WsEcl/submit/query/thor/{:s}/json')
+HPCC_HOST = os.environ.get('HPCC_HOST', 'localhost:8124')
+HPCC_END_POINT = 'http://' + HPCC_HOST + '/WsEcl/submit/query/thor/{:s}/json'
