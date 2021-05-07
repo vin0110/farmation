@@ -16,7 +16,7 @@
       <li class="breadcrumb-item">
         <a href="{% url 'viewer:home' %}">Data</a>
       </li>
-      {% if state %}
+      {% if by_county %}
       <li class="breadcrumb-item">
         <a href="{% url 'viewer:select_state' %}">Production</a>
       </li>
@@ -42,7 +42,7 @@
     <div class="col">
       <h1>{{ title }}</h1>
 
-      {% if state %}
+      {% if by_county %}
       <h2>{{ state }}</h2>
         <p>
           Select county
@@ -54,7 +54,7 @@
       </p>
       <form method="post">
         {% csrf_token %}
-        {% if state %}
+        {% if by_county %}
         {{ form.as_p }}
         {% else %}
         <input type="text" name="state" value="{{ state }}" required
@@ -75,7 +75,7 @@
       {% if year_earlier %}
       <form method="post">
         {% csrf_token %}
-        {% if state %}
+        {% if by_county %}
         <input type="text" name="county" value="{{ county }}" hidden />
         {% else %}
         <input type="text" name="state" value="{{ state }}" hidden />
@@ -91,7 +91,7 @@
       {% if year_later %}
       <form method="post">
         {% csrf_token %}      
-        {% if state %}
+        {% if by_county %}
         <input type="text" name="county" value="{{ county }}" hidden />
         {% else %}
         <input type="text" name="state" value="{{ state }}" hidden />

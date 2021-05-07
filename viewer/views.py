@@ -67,6 +67,7 @@ def _production_totals(request, state, query, query_dict):
     template_name = "viewer/production-total.html"
 
     if state:
+        by_county = True
         if len(state) != 2:
             raise Http404
 
@@ -99,6 +100,7 @@ def _production_totals(request, state, query, query_dict):
                 messages.warning(request, 'No county data')
 
     else:
+        by_county = False
         theform = StateYearForm
         counties = []
         county = ''
@@ -107,7 +109,7 @@ def _production_totals(request, state, query, query_dict):
 
     if request.method == "POST":
         form = theform(request.POST)
-        if state:
+        if by_county:
             form.fields['county'].choices = counties
         if form.is_valid():
             try:
@@ -115,7 +117,7 @@ def _production_totals(request, state, query, query_dict):
             except ValueError:
                 year = THIS_YEAR
 
-            if state:
+            if by_county:
                 county = form.cleaned_data['county'].upper()
                 operation = query_dict['operation'] + '-county'
             else:
@@ -152,7 +154,7 @@ def _production_totals(request, state, query, query_dict):
                 + [{'className': "text-right"}] * len(years)
 
     else:
-        if state:
+        if by_county:
             form = theform(county_choices=counties)
         else:
             form = theform()
@@ -172,6 +174,7 @@ def _production_totals(request, state, query, query_dict):
                    year_earlier=year_earlier, year_later=year_later,
                    sub_cols=query_dict['sub_cols'],
                    columns=json.dumps(columns), county=county,
+                   by_county=by_county,
                    title=title, rows=json.dumps(rows))
     return HttpResponse(render(request, template_name, context))
 
