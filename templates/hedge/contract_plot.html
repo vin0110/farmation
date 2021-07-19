@@ -13,6 +13,16 @@
       <li class="breadcrumb-item">
         <a href="{% url 'hedge:index' %}">Hedge</a>
       </li>
+      <li class="breadcrumb-item">
+        <a href="{% url 'hedge:wizard_crop' crop %}">
+          {{ crop }}
+        </a>
+      </li>
+      <li class="breadcrumb-item">
+        <a href="{% url 'hedge:select' crop location.id %}">
+          {{ location }}
+        </a>
+      </li>
       <li class="breadcrumb-item active" aria-current="page">Contract</li>
     </ol>
   </nav>
@@ -41,7 +51,7 @@
       <br/>
       <input type="submit" value="Submit" />
       <input type="button" value="Cancel"
-             onclick="location.href='{% url 'hedge:contract' %}'"/>
+             onclick="location.href='{% url 'hedge:contract' crop location.id %}'"/>
       </form>
     </div>
   </div>

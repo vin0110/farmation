@@ -10,32 +10,31 @@ from .models import (
 
 
 class QuantityForm(forms.Form):
-    location = forms.ModelChoiceField(queryset=Location.objects.all())
-    crop = forms.ChoiceField(choices=CROP_CHOICES)
-    hedge_month = forms.ChoiceField(choices=MONTH_CHOICES)
-    hedge_day = forms.IntegerField()
-    reconciliation_month = forms.ChoiceField(choices=MONTH_CHOICES)
-    reconciliation_day = forms.IntegerField()
+    hedge_date = forms.CharField(min_length=5, max_length=5, help_text="MM-DD")
+    reconcilliation_date = forms.CharField(
+        min_length=5, max_length=5, help_text="MM-DD")
     contract_month = forms.ChoiceField(choices=MONTH_CHOICES)
 
 
 class ContractForm(forms.Form):
-    location = forms.ModelChoiceField(queryset=Location.objects.all())
-    crop = forms.ChoiceField(choices=CROP_CHOICES)
-    hedge_month = forms.ChoiceField(choices=MONTH_CHOICES)
-    hedge_day = forms.IntegerField()
-    reconciliation_month = forms.ChoiceField(choices=MONTH_CHOICES)
-    reconciliation_day = forms.IntegerField()
+    hedge_date = forms.CharField(min_length=5, max_length=5, help_text="MM-DD")
+    reconcilliation_date = forms.CharField(
+        min_length=5, max_length=5, help_text="MM-DD")
     quantity = forms.IntegerField()
     # contract_month = forms.MultipleChoiceField(choices=MONTH_CHOICES)
 
 
 class ReconForm(forms.Form):
-    location = forms.ModelChoiceField(queryset=Location.objects.all())
-    crop = forms.ChoiceField(choices=CROP_CHOICES)
-    hedge_month = forms.ChoiceField(choices=MONTH_CHOICES)
-    hedge_day = forms.IntegerField()
-    reconciliation_day = forms.IntegerField()
+    hedge_date = forms.CharField(min_length=5, max_length=5, help_text="MM-DD")
+    reconcilliation_day = forms.IntegerField(help_text="DD")
     quantity = forms.IntegerField()
     contract_month = forms.ChoiceField(choices=MONTH_CHOICES)
     reconciliation_months = forms.MultipleChoiceField(choices=MONTH_CHOICES)
+
+
+class CropForm(forms.Form):
+    crop = forms.ChoiceField(choices=CROP_CHOICES)
+
+
+class LocationForm(forms.Form):
+    location = forms.ModelChoiceField(queryset=Location.objects.all())

@@ -3,6 +3,13 @@
 
 {% block head_title %}Quantity{% endblock %}
 
+{% comment %}{% block extra_head %}
+<link rel="stylesheet" type="text/css" href="/static/admin/css/base.css"/>
+<link rel="stylesheet" type="text/css" href="/static/admin/css/widgets.css"/>
+<link rel="stylesheet" type="text/css" href="/static/admin/css/forms.css"/>
+<link rel="stylesheet" type="text/css" href="/static/admin/css/global.css"/>
+{% endblock %}
+{% endcomment %}
 {% block body %}
 <!-- Breadcrumb -->
 <div class="container-fluid">
@@ -11,6 +18,16 @@
       <li class="breadcrumb-item"><a href="/">Home</a></li>
       <li class="breadcrumb-item">
         <a href="{% url 'hedge:index' %}">Hedge</a>
+      </li>
+      <li class="breadcrumb-item">
+        <a href="{% url 'hedge:wizard_crop' crop %}">
+          {{ crop }}
+        </a>
+      </li>
+      <li class="breadcrumb-item">
+        <a href="{% url 'hedge:select' crop location.id %}">
+          {{ location }}
+        </a>
       </li>
       <li class="breadcrumb-item active" aria-current="page">Quantity</li>
     </ol>
@@ -36,11 +53,11 @@
   <div class="row">
     <div class="col">
       <form method="post">{% csrf_token %}
-      {{ form.as_ul }}
+      {{ form.as_p }}
       <br/>
       <input type="submit" value="Submit" />
       <input type="button" value="Cancel"
-             onclick="location.href='{% url 'hedge:quantity' %}'"/>
+             onclick="location.href='{% url 'hedge:select' crop location.id %}'"/>
       </form>
     </div>
   </div>
@@ -123,6 +140,11 @@ path {
 
 <script>
   data = {{ df|safe }};
+</script>
+
+<script>
+    var django = django || {};
+    django.jQuery = $;
 </script>
 
 <script src="{% static "js/quantity_plot.js" %}"></script>

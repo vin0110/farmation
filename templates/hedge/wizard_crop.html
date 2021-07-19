@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block head_title %}Hedge{% endblock %}
+
+{% block body %}
+<!-- Breadcrumb -->
+<div class="container-fluid">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/">Home</a></li>
+      <li class="breadcrumb-item" >
+        <a href="{% url 'hedge:index' %}">Hedge</a>
+      </li>
+      <li class="breadcrumb-item active" aria-current="page">{{ crop }}</li>
+    </ol>
+  </nav>
+</div>
+
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <h1>Hedge</h1>
+      <hr/>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
+      <h3>Select location</h3>
+      <form method="post">{% csrf_token %}
+      {{ form.as_p }}
+      <br/>
+      <input type="submit" value="Submit" />
+      <input type="button" value="Cancel"
+             onclick="location.href='{% url 'hedge:index' %}'"/>
+      </form>
+      
+    </div>
+  </div>
+</div>
+{% endblock %}

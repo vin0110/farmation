@@ -29,6 +29,7 @@ CROP_CHOICES = (
     ("W", 'wheat'),
     ("S", 'soybeans'),
 )
+CROP_DICT = dict(CROP_CHOICES)
 
 
 class PriceManager(models.Manager):

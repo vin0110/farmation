@@ -22,17 +22,15 @@
   </div>
   <div class="row">
     <div class="col">
-      <a class="btn btn-primary" href="{% url "hedge:quantity" %}">
-        Quantity plot
-      </a>
-      &nbsp;
-      <a class="btn btn-primary" href="{% url "hedge:contract" %}">
-        Contract plot
-      </a>
-      &nbsp;
-      <a class="btn btn-primary" href="{% url "hedge:recon" %}">
-        Reconciliation dates plot
-      </a>
+      <h3>Select crop</h3>
+      <form method="post">{% csrf_token %}
+      {{ form.as_p }}
+      <br/>
+      <input type="submit" value="Submit" />
+      <input type="button" value="Cancel"
+             onclick="location.href='{% url 'hedge:index' %}'"/>
+      </form>
+      
     </div>
   </div>
 </div>

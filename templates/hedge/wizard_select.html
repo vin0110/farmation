@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block head_title %}Hedge{% endblock %}
+
+{% block body %}
+<!-- Breadcrumb -->
+<div class="container-fluid">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/">Home</a></li>
+      <li class="breadcrumb-item" >
+        <a href="{% url 'hedge:index' %}">Hedge</a>
+      </li>
+      <li class="breadcrumb-item" aria-current="page">
+        <a href="{% url 'hedge:wizard_crop' crop %}">
+          {{ crop }}
+        </a>
+      </li>
+      <li class="breadcrumb-item active" aria-current="page">
+        {{ location }}
+      </li>
+    </ol>
+  </nav>
+</div>
+
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <h1>Hedge</h1>
+      <hr/>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
+      <a class="btn btn-primary" href="{% url "hedge:quantity" crop location.id %}">
+        Quantity plot
+      </a>
+      &nbsp;
+      <a class="btn btn-primary" href="{% url "hedge:contract"  crop location.id %}">
+        Contract plot
+      </a>
+      &nbsp;
+      <a class="btn btn-primary" href="{% url "hedge:recon"  crop location.id %}">
+        Reconciliation dates plot
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
