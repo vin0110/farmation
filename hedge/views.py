@@ -191,19 +191,7 @@ def recon(request, crop, lid):
 # wizard views
 def wizard(request):
     template_name = 'hedge/wizard.html'
-    theform = CropForm
-
-    if request.method == "POST":
-        form = theform(request.POST)
-        if form.is_valid():
-            crop_index = form.cleaned_data['crop']
-            crop = CROP_DICT[crop_index]
-            return HttpResponseRedirect(
-                reverse('hedge:wizard_crop', args=(crop, )))
-    else:
-        form = theform()
-
-    context = dict(form=form)
+    context = dict(crops=CROP_DICT.values())
     return HttpResponse(render(request, template_name, context))
 
 
